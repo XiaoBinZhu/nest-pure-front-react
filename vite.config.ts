@@ -310,7 +310,10 @@ export default defineConfig({
     // downstream consumers locate this server through that env contract.
     strictPort: true,
     proxy: {
-      '/api': `http://localhost:${process.env.PORT || 3010}`,
+      // 对接 nest-admin 后端（开发期代理，生产由 Nginx 转发）
+      '/api': { target: 'http://127.0.0.1:7001', changeOrigin: true },
+      '/auth': { target: 'http://127.0.0.1:7001', changeOrigin: true },
+      '/ai': { target: 'http://127.0.0.1:7001', changeOrigin: true, ws: false },
       '/oidc': `http://localhost:${process.env.PORT || 3010}`,
       '/trpc': `http://localhost:${process.env.PORT || 3010}`,
       '/webapi': `http://localhost:${process.env.PORT || 3010}`,

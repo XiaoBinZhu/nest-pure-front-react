@@ -44,7 +44,19 @@
     "temp",
     ".temp",
     "e2e/**",
-    "knip.ts"
+    "knip.ts",
+    "apps/server/**",
+    "src/app/(backend)/**",
+    "packages/database/**",
+    "packages/trpc/**",
+    "packages/business-server/**",
+    "packages/openapi/**",
+    "packages/memory-user-memory/**",
+    "src/libs/better-auth/**",
+    "src/libs/oidc-provider/**",
+    "src/libs/redis/**",
+    "src/libs/qstash/**",
+    "src/libs/mcp/**"
   ],
   "include": [
     "src/**/*.d.ts",

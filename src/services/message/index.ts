@@ -16,7 +16,7 @@ import {
 } from '@lobechat/types';
 import { type HeatmapsProps } from '@lobehub/charts';
 
-import { lambdaClient } from '@/libs/trpc/client';
+import { apiFetch } from '../_api';
 
 import { abortableRequest } from '../utils/abortableRequest';
 
@@ -98,6 +98,7 @@ const getBatchMutationAbortKey = (operations: MessageBatchOperation[]) => {
 };
 
 export class MessageService {
+  // 批量操作：POST /api/v1/c-end/messages/batch
   batchMutate = async (operations: MessageBatchOperation[], signal?: AbortSignal) => {
     const input = {
       operations: operations.map((operation) => {
@@ -116,9 +117,11 @@ export class MessageService {
       }),
     } as any;
 
-    return signal
-      ? lambdaClient.message.batchMutate.mutate(input, { signal })
-      : lambdaClient.message.batchMutate.mutate(input);
+    return apiFetch<MessageBatchMutationResult>('/api/v1/c-end/messages/batch', {
+      method: 'POST',
+      body: JSON.stringify(input),
+      signal,
+    });
   };
 
   batchMutateOrThrow = async (operations: MessageBatchOperation[]) => {
@@ -141,206 +144,226 @@ export class MessageService {
     return abortKey ? abortableRequest.execute(abortKey, execute) : execute();
   };
 
+  // 创建消息：POST /api/v1/c-end/messages
   createMessage = async (params: CreateMessageParams): Promise<CreateMessageResult> => {
-    return lambdaClient.message.createMessage.mutate(params as any);
+    return apiFetch<CreateMessageResult>('/api/v1/c-end/messages', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
   };
 
+  // 列表：GET /api/v1/c-end/messages?sessionId=xxx
   getMessages = async (params: MessageReadQueryContext): Promise<UIChatMessage[]> => {
-    const data = await lambdaClient.message.getMessages.query(params);
-
+    const query = new URLSearchParams();
+    if (params.agentId) query.set('sessionId', params.agentId);
+    if (params.topicId) query.set('topicId', params.topicId);
+    if (params.threadId) query.set('threadId', params.threadId);
+    if (params.groupId) query.set('groupId', params.groupId);
+    const qs = query.toString();
+    const data = await apiFetch<UIChatMessage[]>(
+      `/api/v1/c-end/messages${qs ? `?${qs}` : ''}`,
+    );
     return data as unknown as UIChatMessage[];
   };
 
-  diagnoseTopic = async (params: { agentId?: string | null; topicId: string }) => {
-    return lambdaClient.message.diagnoseTopic.query(params);
+  // TODO: Wave 2 - 返回 any 以兼容调用方对 .issues/.hiddenCount/.patch 的访问
+  diagnoseTopic = async (_params: { agentId?: string | null; topicId: string }): Promise<any> => {
+    return Promise.resolve({ hiddenCount: 0, issues: [], patch: {} } as any);
   };
 
-  repairTopic = async (params: { agentId?: string | null; topicId: string }) => {
-    return lambdaClient.message.repairTopic.mutate(params);
+  // TODO: Wave 2 - 返回 any 以兼容调用方对 .restoredMessageIds 的访问
+  repairTopic = async (_params: { agentId?: string | null; topicId: string }): Promise<any> => {
+    return Promise.resolve({ restoredMessageIds: [] } as any);
   };
 
+  // 计数：GET /api/v1/c-end/messages/count
   countMessages = async (params?: {
     endDate?: string;
     range?: [string, string];
     startDate?: string;
   }): Promise<number> => {
-    return lambdaClient.message.count.query(params);
+    const query = params
+      ? '?' +
+        new URLSearchParams(
+          Object.entries(params).flatMap(([k, v]) =>
+            Array.isArray(v) ? [[k, v[0]], [k, v[1]]] : v != null ? [[k, String(v)]] : [],
+          ),
+        ).toString()
+      : '';
+    return apiFetch<number>(`/api/v1/c-end/messages/count${query}`);
   };
 
-  countWords = async (params?: {
+  // TODO: Wave 2 - 待对接 nest-admin 统计接口
+  countWords = async (_params?: {
     endDate?: string;
     range?: [string, string];
     startDate?: string;
   }): Promise<number> => {
-    return lambdaClient.message.countWords.query(params);
+    return Promise.resolve(0);
   };
 
+  // TODO: Wave 2
   rankModels = async (): Promise<ModelRankItem[]> => {
-    return lambdaClient.message.rankModels.query();
+    return Promise.resolve([]);
   };
 
+  // TODO: Wave 2
   getHeatmaps = async (): Promise<HeatmapsProps['data']> => {
-    return lambdaClient.message.getHeatmaps.query();
+    return Promise.resolve([] as HeatmapsProps['data']);
   };
 
+  // TODO: Wave 2
   getTokenHeatmaps = async (): Promise<HeatmapsProps['data']> => {
-    return lambdaClient.message.getTokenHeatmaps.query();
+    return Promise.resolve([] as HeatmapsProps['data']);
   };
 
+  // 更新消息（含 error）：PATCH /api/v1/c-end/messages/:id
   updateMessageError = async (id: string, value: ChatMessageError, ctx?: MessageQueryContext) => {
     const error = value.type
       ? value
       : { body: value, message: value.message, type: 'ApplicationRuntimeError' };
 
-    return lambdaClient.message.update.mutate({
-      ...ctx,
-      id,
-      value: { error },
+    return apiFetch(`/api/v1/c-end/messages/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ ...ctx, value: { error } }),
     });
   };
 
-  updateMessagePluginArguments = async (id: string, value: string | Record<string, any>) => {
-    const args = typeof value === 'string' ? value : JSON.stringify(value);
-    return lambdaClient.message.updateMessagePlugin.mutate({ id, value: { arguments: args } });
-  };
-
-  /**
-   * Update tool arguments by toolCallId - updates both tool message and parent assistant message in one transaction
-   * This is the preferred method for updating tool arguments as it prevents race conditions
-   *
-   * @param toolCallId - The tool call ID (stable identifier from AI response)
-   * @param value - The new arguments value
-   * @param ctx - Message query context
-   */
-  updateToolArguments = async (
-    toolCallId: string,
-    value: string | Record<string, unknown>,
-    ctx?: MessageQueryContext,
+  // TODO: Wave 2 - 待对接 nest-admin plugin 接口
+  updateMessagePluginArguments = async (
+    _id: string,
+    _value: string | Record<string, any>,
   ) => {
-    return lambdaClient.message.updateToolArguments.mutate({ ...ctx, toolCallId, value });
+    return Promise.resolve();
   };
 
+  // TODO: Wave 2 - 返回 any 以兼容调用方对 .success/.messages 的访问
+  updateToolArguments = async (
+    _toolCallId: string,
+    _value: string | Record<string, unknown>,
+    _ctx?: MessageQueryContext,
+  ): Promise<any> => {
+    return Promise.resolve({ success: false, messages: [] } as any);
+  };
+
+  // 更新消息：PATCH /api/v1/c-end/messages/:id
   updateMessage = async (
     id: string,
     value: Partial<UpdateMessageParams>,
     ctx?: MessageQueryContext,
   ): Promise<UpdateMessageResult> => {
-    return lambdaClient.message.update.mutate({
-      ...ctx,
-      id,
-      value,
+    return apiFetch<UpdateMessageResult>(`/api/v1/c-end/messages/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ ...ctx, value }),
     });
   };
 
-  updateMessageTranslate = async (id: string, translate: Partial<ChatTranslate> | false) => {
-    return lambdaClient.message.updateTranslate.mutate({ id, value: translate as ChatTranslate });
+  // TODO: Wave 2
+  updateMessageTranslate = async (_id: string, _translate: Partial<ChatTranslate> | false) => {
+    return Promise.resolve();
   };
 
-  updateMessageTTS = async (id: string, tts: Partial<ChatTTS> | false) => {
-    return lambdaClient.message.updateTTS.mutate({ id, value: tts });
+  // TODO: Wave 2
+  updateMessageTTS = async (_id: string, _tts: Partial<ChatTTS> | false) => {
+    return Promise.resolve();
   };
 
+  // TODO: Wave 2
   updateMessageMetadata = async (
-    id: string,
-    value: Partial<MessageMetadata>,
-    ctx?: MessageQueryContext,
+    _id: string,
+    _value: Partial<MessageMetadata>,
+    _ctx?: MessageQueryContext,
   ): Promise<UpdateMessageResult> => {
-    return abortableRequest.execute(`message-metadata-${id}`, (signal) =>
-      lambdaClient.message.updateMetadata.mutate({ ...ctx, id, value }, { signal }),
-    );
+    return Promise.resolve() as unknown as Promise<UpdateMessageResult>;
   };
 
+  // TODO: Wave 2
   updateMessagePluginState = async (
-    id: string,
-    value: Record<string, any>,
-    ctx?: MessageQueryContext,
+    _id: string,
+    _value: Record<string, any>,
+    _ctx?: MessageQueryContext,
   ): Promise<UpdateMessageResult> => {
-    return lambdaClient.message.updatePluginState.mutate({ ...ctx, id, value });
+    return Promise.resolve() as unknown as Promise<UpdateMessageResult>;
   };
 
+  // TODO: Wave 2
   updateMessagePluginError = async (
-    id: string,
-    error: ChatMessagePluginError | null,
-    ctx?: MessageQueryContext,
+    _id: string,
+    _error: ChatMessagePluginError | null,
+    _ctx?: MessageQueryContext,
   ): Promise<UpdateMessageResult> => {
-    return lambdaClient.message.updatePluginError.mutate({ ...ctx, id, value: error as any });
+    return Promise.resolve() as unknown as Promise<UpdateMessageResult>;
   };
 
+  // TODO: Wave 2
   updateMessagePlugin = async (
-    id: string,
-    value: Partial<Omit<MessagePluginItem, 'id'>>,
-    ctx?: MessageQueryContext,
+    _id: string,
+    _value: Partial<Omit<MessagePluginItem, 'id'>>,
+    _ctx?: MessageQueryContext,
   ): Promise<UpdateMessageResult> => {
-    return lambdaClient.message.updateMessagePlugin.mutate({ ...ctx, id, value });
+    return Promise.resolve() as unknown as Promise<UpdateMessageResult>;
   };
 
+  // TODO: Wave 2
   updateMessageRAG = async (
-    id: string,
-    data: UpdateMessageRAGParams,
-    ctx?: MessageQueryContext,
+    _id: string,
+    _data: UpdateMessageRAGParams,
+    _ctx?: MessageQueryContext,
   ): Promise<UpdateMessageResult> => {
-    return lambdaClient.message.updateMessageRAG.mutate({ ...ctx, id, value: data });
+    return Promise.resolve() as unknown as Promise<UpdateMessageResult>;
   };
 
-  /**
-   * Update tool message with content, metadata, pluginState, and pluginError in a single request
-   * This prevents race conditions when updating multiple fields
-   * Uses abortableRequest to cancel previous requests for the same message
-   */
+  // TODO: Wave 2
   updateToolMessage = async (
-    id: string,
-    value: {
+    _id: string,
+    _value: {
       content?: string;
       heterogeneousToolState?: HeterogeneousToolStateSnapshot;
       metadata?: Record<string, any>;
       pluginError?: any;
       pluginState?: Record<string, any>;
     },
-    ctx?: MessageQueryContext,
+    _ctx?: MessageQueryContext,
   ): Promise<UpdateMessageResult> => {
-    return abortableRequest.execute(`tool-message-${id}`, (signal) =>
-      lambdaClient.message.updateToolMessage.mutate({ ...ctx, id, value }, { signal }),
-    );
+    return Promise.resolve() as unknown as Promise<UpdateMessageResult>;
   };
 
-  removeMessage = async (id: string, ctx?: MessageQueryContext): Promise<UpdateMessageResult> => {
-    return lambdaClient.message.removeMessage.mutate({ ...ctx, id });
+  // 删除消息：DELETE /api/v1/c-end/messages/:id
+  removeMessage = async (id: string, _ctx?: MessageQueryContext): Promise<UpdateMessageResult> => {
+    return apiFetch<UpdateMessageResult>(`/api/v1/c-end/messages/${id}`, { method: 'DELETE' });
   };
 
+  // TODO: Wave 2 - 待对接 nest-admin 批量删除接口
   removeMessages = async (
-    ids: string[],
-    ctx?: MessageQueryContext,
+    _ids: string[],
+    _ctx?: MessageQueryContext,
   ): Promise<UpdateMessageResult> => {
-    return lambdaClient.message.removeMessages.mutate({ ...ctx, ids });
+    return Promise.resolve() as unknown as Promise<UpdateMessageResult>;
   };
 
-  removeMessagesByAssistant = async (sessionId: string, topicId?: string) => {
-    return lambdaClient.message.removeMessagesByAssistant.mutate({ sessionId, topicId });
+  // TODO: Wave 2
+  removeMessagesByAssistant = async (_sessionId: string, _topicId?: string) => {
+    return Promise.resolve();
   };
 
-  removeMessagesByGroup = async (groupId: string, topicId?: string) => {
-    return lambdaClient.message.removeMessagesByGroup.mutate({ groupId, topicId });
+  // TODO: Wave 2
+  removeMessagesByGroup = async (_groupId: string, _topicId?: string) => {
+    return Promise.resolve();
   };
 
-  /**
-   * Add files to a message
-   * Used to associate exported files from code interpreter with the tool message
-   */
+  // TODO: Wave 2
   addFilesToMessage = async (
-    id: string,
-    fileIds: string[],
-    ctx?: MessageQueryContext,
+    _id: string,
+    _fileIds: string[],
+    _ctx?: MessageQueryContext,
   ): Promise<UpdateMessageResult> => {
-    return lambdaClient.message.addFilesToMessage.mutate({ ...ctx, fileIds, id });
+    return Promise.resolve() as unknown as Promise<UpdateMessageResult>;
   };
 
   // =============== Compression ===============
 
-  /**
-   * Create a compression group for old messages
-   * Returns placeholder group and messages to summarize
-   */
-  createCompressionGroup = async (params: {
+  // TODO: Wave 2 - 待对接 nest-admin 压缩接口
+  createCompressionGroup = async (_params: {
     agentId: string;
     groupId?: string | null;
     messageIds: string[];
@@ -351,18 +374,15 @@ export class MessageService {
     messages: UIChatMessage[];
     messagesToSummarize: UIChatMessage[];
   }> => {
-    const result = await lambdaClient.message.createCompressionGroup.mutate(params);
     return {
-      messageGroupId: result.messageGroupId,
-      messages: (result.messages || []) as unknown as UIChatMessage[],
-      messagesToSummarize: (result.messagesToSummarize || []) as unknown as UIChatMessage[],
+      messageGroupId: '',
+      messages: [],
+      messagesToSummarize: [],
     };
   };
 
-  /**
-   * Finalize compression by updating group with generated summary
-   */
-  finalizeCompression = async (params: {
+  // TODO: Wave 2
+  finalizeCompression = async (_params: {
     agentId: string;
     content: string;
     groupId?: string | null;
@@ -371,16 +391,11 @@ export class MessageService {
     threadId?: string | null;
     topicId: string;
   }): Promise<{ messages?: UIChatMessage[] }> => {
-    const result = await lambdaClient.message.finalizeCompression.mutate(params);
-    return {
-      messages: (result.messages || []) as unknown as UIChatMessage[],
-    };
+    return { messages: [] };
   };
 
-  /**
-   * Update message group metadata (e.g., expanded state)
-   */
-  updateMessageGroupMetadata = async (params: {
+  // TODO: Wave 2
+  updateMessageGroupMetadata = async (_params: {
     context: {
       agentId: string;
       groupId?: string | null;
@@ -390,24 +405,18 @@ export class MessageService {
     expanded?: boolean;
     messageGroupId: string;
   }): Promise<{ messages: UIChatMessage[] }> => {
-    const result = await lambdaClient.message.updateMessageGroupMetadata.mutate(params);
-    return {
-      messages: (result.messages || []) as unknown as UIChatMessage[],
-    };
+    return { messages: [] };
   };
 
-  /**
-   * Cancel compression by deleting the compression group and restoring original messages
-   */
-  cancelCompression = async (params: {
+  // TODO: Wave 2
+  cancelCompression = async (_params: {
     agentId: string;
     groupId?: string | null;
     messageGroupId: string;
     threadId?: string | null;
     topicId: string;
   }): Promise<{ messages: UIChatMessage[] }> => {
-    const result = await lambdaClient.message.cancelCompression.mutate(params);
-    return { messages: (result.messages || []) as unknown as UIChatMessage[] };
+    return { messages: [] };
   };
 }
 

@@ -4,11 +4,18 @@ import dayjs from 'dayjs';
 import { sha256 } from 'js-sha256';
 
 import { fileEnv } from '@/envs/file';
-import { lambdaClient } from '@/libs/trpc/client';
 import { type FileMetadata, type UploadBase64ToS3Result } from '@/types/files';
 import { type FileUploadState, type FileUploadStatus } from '@/types/files/upload';
 
 export const UPLOAD_NETWORK_ERROR = 'NetWorkError';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
+
+// 获取存储的 accessToken（与 _api.ts 一致）
+function getToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('accessToken') || null;
+}
 
 /**
  * Generate file storage path metadata for S3-compatible storage
@@ -60,10 +67,7 @@ class UploadService {
     file: File,
     { onProgress, directory, pathname, abortController }: UploadFileToS3Options,
   ): Promise<{ data: FileMetadata; success: boolean }> => {
-    // Server-side upload logic
-
-    // if is server mode, upload to server s3,
-
+    // 对接 nest-admin 上传接口：POST /api/v1/c-end/files
     const data = await this.uploadToServerS3(file, {
       abortController,
       directory,
@@ -128,6 +132,7 @@ class UploadService {
     return await this.uploadFileToS3(file, options);
   };
 
+  // 直接 multipart 上传到 nest-admin：POST /api/v1/c-end/files
   uploadToServerS3 = async (
     file: File,
     {
@@ -143,8 +148,10 @@ class UploadService {
     },
   ): Promise<FileMetadata> => {
     const xhr = new XMLHttpRequest();
-
-    const { preSignUrl, ...result } = await this.getSignedUploadUrl(file, { directory, pathname });
+    const { date, dirname, filename, pathname: finalPathname } = generateFilePathMetadata(
+      file.name,
+      { directory, pathname },
+    );
     const startTime = Date.now();
 
     // Setup abort listener
@@ -161,9 +168,6 @@ class UploadService {
         const speedInByte = event.loaded / ((Date.now() - startTime) / 1000);
 
         onProgress?.('uploading', {
-          // if the progress is 100, it means the file is uploaded
-          // but the server is still processing it
-          // so make it as 99.9 and let users think it's still uploading
           progress: progress === 100 ? 99.9 : progress,
           restTime: (event.total - event.loaded) / speedInByte,
           speed: speedInByte,
@@ -171,11 +175,11 @@ class UploadService {
       }
     });
 
-    xhr.open('PUT', preSignUrl);
-    xhr.setRequestHeader('Content-Type', file.type);
-    const data = await file.arrayBuffer();
+    // 使用 FormData 进行 multipart 上传
+    const formData = new FormData();
+    formData.append('file', file, filename);
 
-    await new Promise((resolve, reject) => {
+    return new Promise<FileMetadata>((resolve, reject) => {
       xhr.addEventListener('load', () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           onProgress?.('success', {
@@ -183,7 +187,26 @@ class UploadService {
             restTime: 0,
             speed: file.size / ((Date.now() - startTime) / 1000),
           });
-          resolve(xhr.response);
+          try {
+            const response = JSON.parse(xhr.responseText);
+            // 兼容 nest-admin 返回结构：优先取 data 字段
+            const result = response?.data ?? response;
+            resolve({
+              date,
+              dirname,
+              filename,
+              path: result?.path || finalPathname,
+              url: result?.url,
+              ...result,
+            });
+          } catch {
+            resolve({
+              date,
+              dirname,
+              filename,
+              path: finalPathname,
+            });
+          }
         } else {
           reject(xhr.statusText);
         }
@@ -196,32 +219,15 @@ class UploadService {
         onProgress?.('cancelled', { progress: 0, restTime: 0, speed: 0 });
         reject(new Error('Upload cancelled by user'));
       });
-      xhr.send(data);
+
+      xhr.open('POST', `${API_BASE}/api/v1/c-end/files`);
+      // 注入 JWT（multipart 上传不设置 Content-Type，由浏览器自动添加 boundary）
+      const token = getToken();
+      if (token) {
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      }
+      xhr.send(formData);
     });
-
-    return result;
-  };
-
-  private getSignedUploadUrl = async (
-    file: File,
-    options: { directory?: string; pathname?: string } = {},
-  ): Promise<
-    FileMetadata & {
-      preSignUrl: string;
-    }
-  > => {
-    // Generate file path metadata
-    const { date, dirname, filename, pathname } = generateFilePathMetadata(file.name, options);
-
-    const preSignUrl = await lambdaClient.upload.createS3PreSignedUrl.mutate({ pathname });
-
-    return {
-      date,
-      dirname,
-      filename,
-      path: pathname,
-      preSignUrl,
-    };
   };
 }
 

@@ -1,6 +1,6 @@
 import { type PartialDeep } from 'type-fest';
 
-import { lambdaClient } from '@/libs/trpc/client';
+import { apiFetch } from '../_api';
 import { type LobeAgentChatConfig, type LobeAgentConfig } from '@/types/agent';
 import { type MetaData } from '@/types/meta';
 import {
@@ -28,19 +28,28 @@ export class SessionService {
     data: Partial<LobeAgentSession>,
   ): Promise<string> => {
     const { config, group, meta, ...session } = data;
-    return lambdaClient.session.createSession.mutate({
-      config: { ...config, ...meta } as any,
-      session: { ...session, groupId: group },
-      type,
+    const result = await apiFetch<{ id: string }>('/api/v1/c-end/sessions', {
+      method: 'POST',
+      body: JSON.stringify({
+        config: { ...config, ...meta } as any,
+        session: { ...session, groupId: group },
+        type,
+      }),
     });
+    return result.id;
   };
 
-  cloneSession = (id: string, newTitle: string): Promise<string | undefined> => {
-    return lambdaClient.session.cloneSession.mutate({ id, newTitle });
+  cloneSession = async (id: string, newTitle: string): Promise<string | undefined> => {
+    const result = await apiFetch<{ id?: string }>(`/api/v1/c-end/sessions/${id}/clone`, {
+      method: 'POST',
+      body: JSON.stringify({ newTitle }),
+    });
+    return result.id;
   };
 
+  // 列表：GET /api/v1/c-end/sessions
   getGroupedSessions = (): Promise<ChatSessionList> => {
-    return lambdaClient.session.getGroupedSessions.query();
+    return apiFetch<ChatSessionList>('/api/v1/c-end/sessions');
   };
 
   countSessions = async (params?: {
@@ -48,79 +57,93 @@ export class SessionService {
     range?: [string, string];
     startDate?: string;
   }): Promise<number> => {
-    return lambdaClient.session.countSessions.query(params);
+    const query = params
+      ? '?' +
+        new URLSearchParams(
+          Object.entries(params).flatMap(([k, v]) =>
+            Array.isArray(v) ? [[k, v[0]], [k, v[1]]] : v != null ? [[k, String(v)]] : [],
+          ),
+        ).toString()
+      : '';
+    return apiFetch<number>(`/api/v1/c-end/sessions/count${query}`);
   };
 
   updateSession = (id: string, data: Partial<UpdateSessionParams>) => {
     const { group, pinned, meta, updatedAt } = data;
-    return lambdaClient.session.updateSession.mutate({
-      id,
-      value: { groupId: group === 'default' ? null : group, pinned, ...meta, updatedAt },
+    return apiFetch(`/api/v1/c-end/sessions/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        groupId: group === 'default' ? null : group,
+        pinned,
+        ...meta,
+        updatedAt,
+      }),
     });
   };
 
-  // TODO: Need to be fixed
-  getSessionConfig = async (id: string): Promise<LobeAgentConfig> => {
-    // @ts-ignore
-    return lambdaClient.agent.getAgentConfig.query({ sessionId: id });
+  // TODO: Wave 2 - 待对接 nest-admin session config 接口
+  getSessionConfig = async (_id: string): Promise<LobeAgentConfig> => {
+    return {} as LobeAgentConfig;
   };
 
+  // TODO: Wave 2
   updateSessionConfig = (
-    id: string,
-    config: PartialDeep<LobeAgentConfig>,
-    signal?: AbortSignal,
+    _id: string,
+    _config: PartialDeep<LobeAgentConfig>,
+    _signal?: AbortSignal,
   ) => {
-    return lambdaClient.session.updateSessionConfig.mutate(
-      { id, value: config },
-      {
-        context: { showNotification: false },
-        signal,
-      },
-    );
+    return Promise.resolve();
   };
 
-  updateSessionMeta = (id: string, meta: Partial<MetaData>, signal?: AbortSignal) => {
-    return lambdaClient.session.updateSessionConfig.mutate({ id, value: meta }, { signal });
+  // TODO: Wave 2
+  updateSessionMeta = (_id: string, _meta: Partial<MetaData>, _signal?: AbortSignal) => {
+    return Promise.resolve();
   };
 
+  // TODO: Wave 2
   updateSessionChatConfig = (
-    id: string,
-    value: Partial<LobeAgentChatConfig>,
-    signal?: AbortSignal,
+    _id: string,
+    _value: Partial<LobeAgentChatConfig>,
+    _signal?: AbortSignal,
   ) => {
-    return lambdaClient.session.updateSessionChatConfig.mutate({ id, value }, { signal });
+    return Promise.resolve();
   };
 
-  searchSessions = (keywords: string): Promise<LobeSessions> => {
-    return lambdaClient.session.searchSessions.query({ keywords });
+  // TODO: Wave 2 - 待对接 nest-admin 搜索接口
+  searchSessions = (_keywords: string): Promise<LobeSessions> => {
+    return Promise.resolve([] as unknown as LobeSessions);
   };
 
   removeSession = (id: string) => {
-    return lambdaClient.session.removeSession.mutate({ id });
+    return apiFetch(`/api/v1/c-end/sessions/${id}`, { method: 'DELETE' });
   };
 
   // ************************************** //
   // ***********  SessionGroup  *********** //
   // ************************************** //
 
+  // TODO: Wave 2 - 待对接 nest-admin session group 接口
   createSessionGroup = (
-    name: string,
-    sort?: number,
-    visibility?: 'private' | 'public',
+    _name: string,
+    _sort?: number,
+    _visibility?: 'private' | 'public',
   ): Promise<string> => {
-    return lambdaClient.sessionGroup.createSessionGroup.mutate({ name, sort, visibility });
+    return Promise.resolve('');
   };
 
-  removeSessionGroup = (id: string, removeChildren?: boolean) => {
-    return lambdaClient.sessionGroup.removeSessionGroup.mutate({ id, removeChildren });
+  // TODO: Wave 2
+  removeSessionGroup = (_id: string, _removeChildren?: boolean) => {
+    return Promise.resolve();
   };
 
-  updateSessionGroup = (id: string, value: Partial<SessionGroupItem>) => {
-    return lambdaClient.sessionGroup.updateSessionGroup.mutate({ id, value });
+  // TODO: Wave 2
+  updateSessionGroup = (_id: string, _value: Partial<SessionGroupItem>) => {
+    return Promise.resolve();
   };
 
-  updateSessionGroupOrder = (sortMap: { id: string; sort: number }[]) => {
-    return lambdaClient.sessionGroup.updateSessionGroupOrder.mutate({ sortMap });
+  // TODO: Wave 2
+  updateSessionGroupOrder = (_sortMap: { id: string; sort: number }[]) => {
+    return Promise.resolve();
   };
 }
 

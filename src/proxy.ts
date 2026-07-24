@@ -1,63 +1,34 @@
-import { defineConfig } from '@/libs/next/proxy/define-config';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-const { middleware } = defineConfig();
+// nest-admin JWT 鉴权中间件（简化版）
+// 仅检查 accessToken 存在，实际校验由 nest-admin 后端完成
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
 
-// required to be literal
+  // 登录页、静态资源、API 端点不需要鉴权
+  if (
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/_spa') ||
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/auth') ||
+    pathname.startsWith('/ai')
+  ) {
+    return NextResponse.next();
+  }
+
+  // 检查 accessToken
+  const token = request.cookies.get('accessToken')?.value;
+  if (!token && !pathname.startsWith('/login')) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  return NextResponse.next();
+}
+
 export const config = {
-  matcher: [
-    // NOTE: `/api`, `/trpc`, `/webapi` are intentionally NOT matched. The
-    // middleware is a no-op for them — `defaultMiddleware` short-circuits the
-    // rewrite half via `backendApiEndpoints`, and they're all public routes, so
-    // the better-auth session lookup is skipped. Auth lives in the route
-    // handlers (`checkAuth`, trpc `protectedProcedure`), which return JSON 401s
-    // rather than the HTML redirect-to-signin. Skipping the matcher avoids a
-    // needless middleware invocation on the hottest backend traffic. (/oidc and
-    // /oauth stay matched below — their middleware pass is still load-bearing.)
-    // include the /
-    '/',
-    '/acceptance',
-    '/acceptance(.*)',
-    '/community',
-    '/community(.*)',
-    '/labs',
-    '/eval',
-    '/eval(.*)',
-    '/agent',
-    '/agent(.*)',
-    '/group',
-    '/group(.*)',
-    '/changelog(.*)',
-    '/settings(.*)',
-    '/image',
-    '/video',
-    '/resource',
-    '/resource(.*)',
-    '/profile(.*)',
-    '/page',
-    '/page(.*)',
-    '/tasks',
-    '/tasks(.*)',
-    '/task',
-    '/task(.*)',
-    '/me',
-    '/me(.*)',
-    '/share(.*)',
-
-    '/onboarding',
-    '/onboarding(.*)',
-
-    '/signup(.*)',
-    '/signin(.*)',
-    '/verify-email(.*)',
-    '/verify-im(.*)',
-    '/verify',
-    '/verify/(.*)',
-    '/reset-password(.*)',
-    '/auth-error(.*)',
-    '/oauth(.*)',
-    '/oidc(.*)',
-    '/market-auth-callback(.*)',
-  ],
+  matcher: ['/', '/((?!_next|_spa|api|auth|ai|login).*)'],
 };
-
-export default middleware;

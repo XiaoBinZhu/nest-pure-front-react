@@ -112,7 +112,7 @@ const TopicDoctorContent = memo<TopicDoctorContentProps>(({ agentId, topicId }) 
       )}
 
       <Flexbox gap={8}>
-        {issues.map((issue) => (
+        {issues.map((issue: TopicIssue) => (
           <Flexbox
             horizontal
             align={'flex-start'}

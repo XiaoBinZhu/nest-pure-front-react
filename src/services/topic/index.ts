@@ -1,5 +1,5 @@
 import { INBOX_SESSION_ID } from '@/const/session';
-import { lambdaClient } from '@/libs/trpc/client';
+import { apiFetch } from '@/services/_api';
 import { type BatchTaskResult } from '@/types/service';
 import {
   type ChatTopic,
@@ -29,151 +29,165 @@ type UpdateTopicMetadataInput = Omit<Partial<ChatTopicMetadata>, 'onboardingSess
 };
 
 export class TopicService {
+  // 创建话题：POST /api/v1/c-end/topics
   createTopic = (params: CreateTopicParams): Promise<string> => {
-    return lambdaClient.topic.createTopic.mutate({
-      ...params,
-      sessionId: this.toDbSessionId(params.sessionId),
+    return apiFetch<string>('/api/v1/c-end/topics', {
+      method: 'POST',
+      body: JSON.stringify({
+        ...params,
+        sessionId: this.toDbSessionId(params.sessionId),
+      }),
     });
   };
 
-  batchCreateTopics = (importTopics: ChatTopic[]): Promise<BatchTaskResult> => {
-    return lambdaClient.topic.batchCreateTopics.mutate(importTopics);
+  // TODO: Wave 2 - 待对接 nest-admin 批量创建接口
+  batchCreateTopics = (_importTopics: ChatTopic[]): Promise<BatchTaskResult> => {
+    return Promise.resolve({ added: 0, errors: [], skips: 0 } as unknown as BatchTaskResult);
   };
 
-  cloneTopic = (id: string, newTitle?: string): Promise<string> => {
-    return lambdaClient.topic.cloneTopic.mutate({ id, newTitle });
+  // TODO: Wave 2 - 待对接 nest-admin clone 接口
+  cloneTopic = (_id: string, _newTitle?: string): Promise<string> => {
+    return Promise.resolve('');
   };
 
-  batchMoveTopics = (topicIds: string[], targetAgentId: string) => {
-    return lambdaClient.topic.batchMoveTopics.mutate({ targetAgentId, topicIds });
+  // TODO: Wave 2
+  batchMoveTopics = (_topicIds: string[], _targetAgentId: string) => {
+    return Promise.resolve();
   };
 
-  importTopic = (params: {
+  // TODO: Wave 2
+  importTopic = (_params: {
     agentId: string;
     data: string;
     groupId?: string | null;
   }): Promise<{ messageCount: number; topicId: string }> => {
-    return lambdaClient.topic.importTopic.mutate(params);
+    return Promise.resolve({ messageCount: 0, topicId: '' });
   };
 
+  // 列表：GET /api/v1/c-end/topics?sessionId=xxx
   getTopics = async (params: QueryTopicParams): Promise<{ items: ChatTopic[]; total: number }> => {
-    return lambdaClient.topic.getTopics.query({
-      agentId: params.agentId,
-      current: params.current,
-      excludeStatuses: params.excludeStatuses,
-      excludeTriggers: params.excludeTriggers,
-      groupId: params.groupId,
-      includeTriggers: params.includeTriggers,
-      isInbox: params.isInbox,
-      pageSize: params.pageSize,
-      sortBy: params.sortBy,
-      triggers: params.triggers,
-      withDetails: params.withDetails,
-    }) as any;
+    const query = new URLSearchParams();
+    if (params.agentId) query.set('sessionId', params.agentId);
+    if (params.pageSize) query.set('pageSize', String(params.pageSize));
+    if (params.current) query.set('current', String(params.current));
+    if (params.sortBy) query.set('sortBy', params.sortBy);
+    const qs = query.toString();
+    return apiFetch<{ items: ChatTopic[]; total: number }>(
+      `/api/v1/c-end/topics${qs ? `?${qs}` : ''}`,
+    ) as any;
   };
 
-  queryTopics = (params?: {
+  // TODO: Wave 2 - 待对接 nest-admin queryTopics 接口
+  queryTopics = (_params?: {
     pageSize?: number;
     statuses?: string[];
-    /** Pull each topic's last assistant reply (truncated) alongside the row. */
     withLastMessage?: boolean;
   }): Promise<TopicListItem[]> => {
-    return lambdaClient.topic.queryTopics.query(params) as any;
+    return Promise.resolve([]);
   };
 
-  countTopics = async (params?: {
+  // TODO: Wave 2 - 待对接 nest-admin count 接口
+  countTopics = async (_params?: {
     agentId?: string;
     containerId?: string | null;
     endDate?: string;
     range?: [string, string];
     startDate?: string;
   }): Promise<number> => {
-    return lambdaClient.topic.countTopics.query(params);
+    return Promise.resolve(0);
   };
 
-  rankTopics = async (limit?: number): Promise<TopicRankItem[]> => {
-    return lambdaClient.topic.rankTopics.query(limit);
+  // TODO: Wave 2
+  rankTopics = async (_limit?: number): Promise<TopicRankItem[]> => {
+    return Promise.resolve([]);
   };
 
+  // TODO: Wave 2
   getMaxTaskDuration = async (): Promise<number> => {
-    return lambdaClient.topic.getMaxTaskDuration.query();
+    return Promise.resolve(0);
   };
 
-  /**
-   * Fetch a single topic row by id, bypassing the paginated list store.
-   * Used when a deep-linked topic is not on the loaded page but its metadata
-   * (workingDirectory / heteroSessionId bindings) must drive a run.
-   */
+  // 详情：GET /api/v1/c-end/topics/:id
   getTopicDetail = async (id: string): Promise<ChatTopic | null> => {
-    return lambdaClient.topic.getTopicDetail.query({ id }) as Promise<ChatTopic | null>;
+    return apiFetch<ChatTopic | null>(`/api/v1/c-end/topics/${id}`);
   };
 
-  getRecentTopics = async (limit?: number): Promise<RecentTopic[]> => {
-    return lambdaClient.topic.recentTopics.query({ limit });
+  // TODO: Wave 2 - 待对接 nest-admin recent 接口
+  getRecentTopics = async (_limit?: number): Promise<RecentTopic[]> => {
+    return Promise.resolve([]);
   };
 
-  hasTopicFiles = async (ids: string[]): Promise<boolean> => {
-    const result = await lambdaClient.topic.hasTopicFiles.query({ ids });
-    return result.data.hasFiles;
+  // TODO: Wave 2
+  hasTopicFiles = async (_ids: string[]): Promise<boolean> => {
+    return Promise.resolve(false);
   };
 
-  searchTopics = (keywords: string, agentId?: string, groupId?: string): Promise<ChatTopic[]> => {
-    return lambdaClient.topic.searchTopics.query({
-      agentId,
-      groupId,
-      keywords,
-    }) as any;
+  // TODO: Wave 2
+  searchTopics = (_keywords: string, _agentId?: string, _groupId?: string): Promise<ChatTopic[]> => {
+    return Promise.resolve([]);
   };
 
+  // 更新话题：PATCH /api/v1/c-end/topics/:id
   updateTopic = (id: string, data: Partial<ChatTopic>) => {
-    return lambdaClient.topic.updateTopic.mutate({ id, value: data });
-  };
-
-  updateTopicMetadata = (id: string, metadata: UpdateTopicMetadataInput) => {
-    return lambdaClient.topic.updateTopicMetadata.mutate({ id, metadata });
-  };
-
-  getShareInfo = (topicId: string) => {
-    return lambdaClient.topic.getShareInfo.query({ topicId });
-  };
-
-  enableSharing = (topicId: string, visibility?: 'private' | 'link') => {
-    return lambdaClient.topic.enableSharing.mutate({ topicId, visibility });
-  };
-
-  updateShareVisibility = (topicId: string, visibility: 'private' | 'link') => {
-    return lambdaClient.topic.updateShareVisibility.mutate({ topicId, visibility });
-  };
-
-  disableSharing = (topicId: string) => {
-    return lambdaClient.topic.disableSharing.mutate({ topicId });
-  };
-
-  removeTopic = (id: string, removeFiles?: boolean) => {
-    return lambdaClient.topic.removeTopic.mutate({ id, removeFiles });
-  };
-
-  removeTopics = (sessionId: string, scope: TopicBatchDeleteScope = 'own') => {
-    return lambdaClient.topic.batchDeleteBySessionId.mutate({
-      id: this.toDbSessionId(sessionId),
-      scope,
+    return apiFetch(`/api/v1/c-end/topics/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ value: data }),
     });
   };
 
-  removeTopicsByAgentId = (agentId: string, scope: TopicBatchDeleteScope = 'own') => {
-    return lambdaClient.topic.batchDeleteByAgentId.mutate({ agentId, scope });
+  // TODO: Wave 2 - 待对接 nest-admin metadata 接口
+  updateTopicMetadata = (_id: string, _metadata: UpdateTopicMetadataInput) => {
+    return Promise.resolve();
   };
 
-  removeTopicsByGroupId = (groupId: string, scope: TopicBatchDeleteScope = 'own') => {
-    return lambdaClient.topic.batchDeleteByGroupId.mutate({ groupId, scope });
+  // TODO: Wave 2 - 返回 any 以兼容调用方对 .id/.visibility 的访问
+  getShareInfo = (_topicId: string): Promise<any> => {
+    return Promise.resolve({ id: '', visibility: 'private' } as any);
   };
 
-  batchRemoveTopics = (topics: string[]) => {
-    return lambdaClient.topic.batchDelete.mutate({ ids: topics });
+  // TODO: Wave 2 - 返回 any 以兼容调用方
+  enableSharing = (_topicId: string, _visibility?: 'private' | 'link'): Promise<any> => {
+    return Promise.resolve({} as any);
   };
 
+  // TODO: Wave 2 - 返回 any 以兼容调用方
+  updateShareVisibility = (_topicId: string, _visibility: 'private' | 'link'): Promise<any> => {
+    return Promise.resolve({} as any);
+  };
+
+  // TODO: Wave 2 - 返回 any 以兼容调用方
+  disableSharing = (_topicId: string): Promise<any> => {
+    return Promise.resolve({} as any);
+  };
+
+  // 删除话题：DELETE /api/v1/c-end/topics/:id
+  removeTopic = (id: string, _removeFiles?: boolean) => {
+    return apiFetch(`/api/v1/c-end/topics/${id}`, { method: 'DELETE' });
+  };
+
+  // TODO: Wave 2 - 待对接 nest-admin 批量删除接口
+  removeTopics = (_sessionId: string, _scope: TopicBatchDeleteScope = 'own') => {
+    return Promise.resolve();
+  };
+
+  // TODO: Wave 2
+  removeTopicsByAgentId = (_agentId: string, _scope: TopicBatchDeleteScope = 'own') => {
+    return Promise.resolve();
+  };
+
+  // TODO: Wave 2
+  removeTopicsByGroupId = (_groupId: string, _scope: TopicBatchDeleteScope = 'own') => {
+    return Promise.resolve();
+  };
+
+  // TODO: Wave 2
+  batchRemoveTopics = (_topics: string[]) => {
+    return Promise.resolve();
+  };
+
+  // TODO: Wave 2
   removeAllTopic = () => {
-    return lambdaClient.topic.removeAllTopics.mutate();
+    return Promise.resolve();
   };
 
   private toDbSessionId = (sessionId?: string | null) =>

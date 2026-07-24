@@ -7,7 +7,7 @@ import {
   type UpdateAiModelParams,
 } from 'model-bank';
 
-import { lambdaClient } from '@/libs/trpc/client';
+import { apiFetch } from '@/services/_api';
 
 export interface GetAiProviderModelListParams {
   enabled?: boolean;
@@ -16,52 +16,71 @@ export interface GetAiProviderModelListParams {
 }
 
 export class AiModelService {
-  createAiModel = async (params: CreateAiModelParams) => {
-    return lambdaClient.aiModel.createAiModel.mutate(params);
+  // TODO: Wave 2 - 待对接 nest-admin aiModel 创建接口
+  createAiModel = async (_params: CreateAiModelParams) => {
+    return Promise.resolve();
   };
 
+  // 模型列表：GET /ai/v1/models
   getAiProviderModelList = async (
     id: string,
     params?: GetAiProviderModelListParams,
   ): Promise<AiProviderModelListItem[]> => {
-    const models = await lambdaClient.aiModel.getAiProviderModelList.query({ id, ...params });
+    const query = new URLSearchParams();
+    if (id) query.set('providerId', id);
+    if (params?.enabled !== undefined) query.set('enabled', String(params.enabled));
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.offset) query.set('offset', String(params.offset));
+    const qs = query.toString();
+    const models = await apiFetch<AiProviderModelListItem[]>(
+      `/ai/v1/models${qs ? `?${qs}` : ''}`,
+    );
     return models.filter(isAiModelVisible);
   };
 
+  // 模型详情：GET /ai/v1/models/:id
   getAiModelById = async (id: string) => {
-    return lambdaClient.aiModel.getAiModelById.query({ id });
+    return apiFetch(`/ai/v1/models/${encodeURIComponent(id)}`);
   };
 
-  toggleModelEnabled = async (params: ToggleAiModelEnableParams) => {
-    return lambdaClient.aiModel.toggleModelEnabled.mutate(params);
+  // TODO: Wave 2 - 待对接 nest-admin aiModel toggle 接口
+  toggleModelEnabled = async (_params: ToggleAiModelEnableParams) => {
+    return Promise.resolve();
   };
 
-  updateAiModel = async (id: string, providerId: string, value: UpdateAiModelParams) => {
-    return lambdaClient.aiModel.updateAiModel.mutate({ id, providerId, value });
+  // TODO: Wave 2
+  updateAiModel = async (_id: string, _providerId: string, _value: UpdateAiModelParams) => {
+    return Promise.resolve();
   };
 
-  batchUpdateAiModels = async (id: string, models: AiProviderModelListItem[]) => {
-    return lambdaClient.aiModel.batchUpdateAiModels.mutate({ id, models });
+  // TODO: Wave 2
+  batchUpdateAiModels = async (_id: string, _models: AiProviderModelListItem[]) => {
+    return Promise.resolve();
   };
 
-  batchToggleAiModels = async (id: string, models: string[], enabled: boolean) => {
-    return lambdaClient.aiModel.batchToggleAiModels.mutate({ enabled, id, models });
+  // TODO: Wave 2
+  batchToggleAiModels = async (_id: string, _models: string[], _enabled: boolean) => {
+    return Promise.resolve();
   };
 
-  clearModelsByProvider = async (providerId: string) => {
-    return lambdaClient.aiModel.clearModelsByProvider.mutate({ providerId });
+  // TODO: Wave 2
+  clearModelsByProvider = async (_providerId: string) => {
+    return Promise.resolve();
   };
 
-  clearRemoteModels = async (providerId: string) => {
-    return lambdaClient.aiModel.clearRemoteModels.mutate({ providerId });
+  // TODO: Wave 2
+  clearRemoteModels = async (_providerId: string) => {
+    return Promise.resolve();
   };
 
-  updateAiModelOrder = async (providerId: string, items: AiModelSortMap[]) => {
-    return lambdaClient.aiModel.updateAiModelOrder.mutate({ providerId, sortMap: items });
+  // TODO: Wave 2
+  updateAiModelOrder = async (_providerId: string, _items: AiModelSortMap[]) => {
+    return Promise.resolve();
   };
 
-  deleteAiModel = async (params: { id: string; providerId: string }) => {
-    return lambdaClient.aiModel.removeAiModel.mutate(params);
+  // TODO: Wave 2
+  deleteAiModel = async (_params: { id: string; providerId: string }) => {
+    return Promise.resolve();
   };
 }
 
