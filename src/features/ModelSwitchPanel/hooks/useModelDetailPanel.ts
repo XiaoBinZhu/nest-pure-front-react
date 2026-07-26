@@ -83,18 +83,23 @@ const getFormattedUnitPrice = (
   const currentRate = getUnitRateByName(pricing, unitName);
   const originalRate = getOriginalUnitRateByName(pricing, unitName);
 
+  // 修复：原价必须严格大于现价，且格式化后字符串不同才显示划线原价
+  // 避免 originalRate=5.001 / rate=5.000 时格式化后都是 $5.00 导致重复显示
+  const formattedCurrent = formatPricingRate(currentRate, currency, {
+    isCreditPricing,
+    unit: 'millionTokens',
+  });
+  const formattedOriginal =
+    typeof originalRate === 'number' && originalRate > (currentRate ?? 0)
+      ? formatPricingRate(originalRate, currency, {
+        isCreditPricing,
+        unit: 'millionTokens',
+      })
+      : undefined;
+
   return {
-    current: formatPricingRate(currentRate, currency, {
-      isCreditPricing,
-      unit: 'millionTokens',
-    }),
-    original:
-      typeof originalRate === 'number'
-        ? formatPricingRate(originalRate, currency, {
-            isCreditPricing,
-            unit: 'millionTokens',
-          })
-        : undefined,
+    current: formattedCurrent,
+    original: formattedOriginal && formattedOriginal !== formattedCurrent ? formattedOriginal : undefined,
   };
 };
 
@@ -176,38 +181,41 @@ const formatUnitRate = (
 
   if (unit.strategy === 'fixed') {
     const fixedUnit = unit as FixedPricingUnit;
-    return {
-      current: formatRate(fixedUnit.rate),
-      original:
-        typeof fixedUnit.originalRate === 'number' && fixedUnit.originalRate > fixedUnit.rate
-          ? formatRate(fixedUnit.originalRate)
-          : undefined,
-    };
+    const current = formatRate(fixedUnit.rate);
+    // 修复：用格式化后字符串比较，避免 originalRate=5.001 / rate=5.000
+    // 格式化后都是 $5.00 导致重复显示
+    const original =
+      typeof fixedUnit.originalRate === 'number' && fixedUnit.originalRate > fixedUnit.rate
+        ? formatRate(fixedUnit.originalRate)
+        : undefined;
+    return { current, original: original && original !== current ? original : undefined };
   }
 
   if (unit.strategy === 'tiered') {
     const tiers = (unit as TieredPricingUnit).tiers;
     if (tiers.length === 1) {
       const price = formatRate(tiers[0].rate);
-      return {
-        current: price,
-        original:
-          typeof tiers[0].originalRate === 'number' && tiers[0].originalRate > tiers[0].rate
-            ? formatRate(tiers[0].originalRate)
-            : undefined,
-      };
+      const original =
+        typeof tiers[0].originalRate === 'number' && tiers[0].originalRate > tiers[0].rate
+          ? formatRate(tiers[0].originalRate)
+          : undefined;
+      return { current: price, original: original && original !== price ? original : undefined };
     }
     const low = formatRate(tiers[0].rate);
     const high = formatRate(tiers.at(-1)!.rate);
     const originalLow = tiers[0].originalRate;
     const originalHigh = tiers.at(-1)!.originalRate;
-    const original =
+    const originalRange =
       typeof originalLow === 'number' &&
-      typeof originalHigh === 'number' &&
-      (originalLow > tiers[0].rate || originalHigh > tiers.at(-1)!.rate)
+        typeof originalHigh === 'number' &&
+        (originalLow > tiers[0].rate || originalHigh > tiers.at(-1)!.rate)
         ? formatRange(formatRate(originalLow), formatRate(originalHigh))
         : undefined;
-    return { current: formatRange(low, high), original };
+    const currentRange = formatRange(low, high);
+    return {
+      current: currentRange,
+      original: originalRange && originalRange !== currentRange ? originalRange : undefined,
+    };
   }
 
   if (unit.strategy === 'lookup') {
@@ -217,26 +225,29 @@ const formatUnitRate = (
     if (entries.length === 1) {
       const [key, price] = entries[0];
       const originalPrice = unit.lookup.originalPrices?.[key];
-      return {
-        current: formatRate(price),
-        original:
-          typeof originalPrice === 'number' && originalPrice > price
-            ? formatRate(originalPrice)
-            : undefined,
-      };
+      const current = formatRate(price);
+      const original =
+        typeof originalPrice === 'number' && originalPrice > price
+          ? formatRate(originalPrice)
+          : undefined;
+      return { current, original: original && original !== current ? original : undefined };
     }
     const sorted = [...entries].sort((a, b) => a[1] - b[1]);
     const [lowKey, lowPrice] = sorted[0];
     const [highKey, highPrice] = sorted.at(-1)!;
     const originalLow = unit.lookup.originalPrices?.[lowKey];
     const originalHigh = unit.lookup.originalPrices?.[highKey];
-    const original =
+    const currentRange = formatRange(formatRate(lowPrice), formatRate(highPrice));
+    const originalRange =
       typeof originalLow === 'number' &&
-      typeof originalHigh === 'number' &&
-      (originalLow > lowPrice || originalHigh > highPrice)
+        typeof originalHigh === 'number' &&
+        (originalLow > lowPrice || originalHigh > highPrice)
         ? formatRange(formatRate(originalLow), formatRate(originalHigh))
         : undefined;
-    return { current: formatRange(formatRate(lowPrice), formatRate(highPrice)), original };
+    return {
+      current: currentRange,
+      original: originalRange && originalRange !== currentRange ? originalRange : undefined,
+    };
   }
 
   return { current: '-' };
