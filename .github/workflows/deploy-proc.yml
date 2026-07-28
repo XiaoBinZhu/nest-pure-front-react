@@ -1,0 +1,126 @@
+name: Deploy SPA to Production Server
+
+on:
+  push:
+    branches:
+      - proc
+
+concurrency:
+  group: deploy-spa-proc-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build SPA for production
+        run: pnpm run build:spa:deploy
+        env:
+          NODE_OPTIONS: "--max-old-space-size=8192"
+          VITE_CDN_BASE: "/"
+
+      - name: Verify build output
+        run: |
+          ls -la dist/desktop/
+          test -f dist/desktop/index.html && echo "✅ index.html exists"
+
+      - name: Pack build artifacts
+        run: tar -czf deploy-spa.tar.gz -C dist/desktop .
+
+      - name: Upload to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          password: ${{ secrets.DEPLOY_PASS }}
+          port: 22
+          source: "deploy-spa.tar.gz"
+          target: "/tmp/lobehub-spa-deploy"
+
+      - name: Deploy to nginx directory
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          password: ${{ secrets.DEPLOY_PASS }}
+          port: 22
+          script: |
+            set -e
+
+            # 检测 sudo 是否免密
+            if sudo -n true 2>/dev/null; then
+              SUDO="sudo"
+            else
+              echo "⚠️  sudo 需要密码，改用 docker 方式部署"
+              SUDO=""
+              USE_DOCKER=1
+            fi
+
+            if [ "$USE_DOCKER" = "1" ]; then
+              docker run --rm \
+                -v /usr/share/nginx/front:/app \
+                -v /tmp/lobehub-spa-deploy:/deploy \
+                alpine sh -c '
+                  rm -rf /app.bak
+                  if [ -d /app ] && [ "$(ls -A /app 2>/dev/null)" ]; then
+                    cp -a /app /app.bak
+                  fi
+                  mkdir -p /app
+                  rm -rf /app/*
+                  tar -xzf /deploy/deploy-spa.tar.gz -C /app/
+                '
+            else
+              $SUDO mkdir -p /usr/share/nginx/front.bak
+              $SUDO rm -rf /usr/share/nginx/front.bak/*
+              if [ -d /usr/share/nginx/front ] && [ "$(ls -A /usr/share/nginx/front 2>/dev/null)" ]; then
+                $SUDO cp -a /usr/share/nginx/front/. /usr/share/nginx/front.bak/
+              fi
+
+              $SUDO mkdir -p /usr/share/nginx/front
+              $SUDO rm -rf /usr/share/nginx/front/*
+              $SUDO tar -xzf /tmp/lobehub-spa-deploy/deploy-spa.tar.gz -C /usr/share/nginx/front/
+              $SUDO chown -R nginx:nginx /usr/share/nginx/front/ 2>/dev/null || true
+            fi
+
+            rm -f /tmp/lobehub-spa-deploy/deploy-spa.tar.gz
+            echo "✅ LobeHub SPA deployed to /usr/share/nginx/front/"
+
+      - name: Rollback on failure
+        if: failure()
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          password: ${{ secrets.DEPLOY_PASS }}
+          port: 22
+          script: |
+            if [ -d /usr/share/nginx/front.bak ] && [ "$(ls -A /usr/share/nginx/front.bak 2>/dev/null)" ]; then
+              if sudo -n true 2>/dev/null; then
+                sudo rm -rf /usr/share/nginx/front/*
+                sudo cp -a /usr/share/nginx/front.bak/. /usr/share/nginx/front/
+              else
+                docker run --rm \
+                  -v /usr/share/nginx/front:/app \
+                  alpine sh -c '
+                    rm -rf /app/*
+                    cp -a /app.bak/. /app/
+                  '
+              fi
+              echo "🔄 Rolled back to previous version"
+            fi
