@@ -48,7 +48,7 @@ jobs:
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
-          password: ${{ secrets.DEPLOY_PASS }}
+          key: ${{ secrets.DEPLOY_KEY }}
           port: 22
           source: "deploy-spa.tar.gz"
           target: "/tmp/lobehub-spa-deploy"
@@ -58,7 +58,7 @@ jobs:
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
-          password: ${{ secrets.DEPLOY_PASS }}
+          key: ${{ secrets.DEPLOY_KEY }}
           port: 22
           script: |
             set -e
@@ -107,7 +107,7 @@ jobs:
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
-          password: ${{ secrets.DEPLOY_PASS }}
+          key: ${{ secrets.DEPLOY_KEY }}
           port: 22
           script: |
             if [ -d /usr/share/nginx/front.bak ] && [ "$(ls -A /usr/share/nginx/front.bak 2>/dev/null)" ]; then
