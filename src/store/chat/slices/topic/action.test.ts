@@ -1589,7 +1589,7 @@ describe('topic action', () => {
       const updateTopicMock = vi.spyOn(topicService, 'updateTopic').mockResolvedValue([]);
       const updateTopicMetadataMock = vi
         .spyOn(topicService, 'updateTopicMetadata')
-        .mockResolvedValue([]);
+        .mockResolvedValue(undefined as any);
 
       act(() => {
         useChatStore.setState({
@@ -1659,7 +1659,7 @@ describe('topic action', () => {
 
       vi.spyOn(topicService, 'queryTopics').mockResolvedValue([topic]);
       vi.spyOn(topicService, 'updateTopic').mockResolvedValue([]);
-      vi.spyOn(topicService, 'updateTopicMetadata').mockResolvedValue([]);
+      vi.spyOn(topicService, 'updateTopicMetadata').mockResolvedValue(undefined as any);
 
       act(() => {
         useChatStore.setState({

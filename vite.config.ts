@@ -254,6 +254,54 @@ export default defineConfig({
       },
     },
 
+    // 纯 SPA 模式下 mock tRPC 端点（与生产 Nginx c-end.conf 保持一致）
+    // LobeHub 前端在纯 SPA 模式下无 Next.js 后端，/trpc 请求需返回 mock JSON
+    // 避免 TRPCClientError: Unexpected end of JSON input
+    {
+      name: 'trpc-spa-mock',
+      configureServer(server: ViteDevServer) {
+        const sendJson = (res: any, data: unknown, status = 200) => {
+          const body = `{"result":{"data":{"json":${JSON.stringify(data)}}}}`;
+          res.statusCode = status;
+          res.setHeader('content-type', 'application/json');
+          res.setHeader('cache-control', 'no-store');
+          res.end(body);
+        };
+
+        const sendError = (res: any) => {
+          res.statusCode = 404;
+          res.setHeader('content-type', 'application/json');
+          res.end(
+            '{"error":{"json":{"message":"tRPC not available in SPA mode","code":-32001,"data":{"code":"NOT_FOUND","httpStatus":404}}}}',
+          );
+        };
+
+        server.middlewares.use('/trpc', (req: any, res: any) => {
+          const url = req.url || '';
+          // 提取 trpc procedure 名（去掉 query string）
+          const procedure = url.split('?')[0].replace(/^\//, '');
+
+          switch (procedure) {
+            case 'lambda/config.getGlobalConfig':
+              sendJson(res, {
+                serverConfig: { telemetry: { langfuse: false } },
+                serverFeatureFlags: {},
+                billboard: null,
+              });
+              break;
+            case 'lambda/config.getDefaultAgentConfig':
+              sendJson(res, { model: 'gpt-4o-mini', provider: 'openai', params: {} });
+              break;
+            case 'lambda/user.getUserState':
+              sendJson(res, null);
+              break;
+            default:
+              sendError(res);
+          }
+        });
+      },
+    },
+
     !isAuth &&
       VitePWA({
         injectRegister: null,
@@ -310,9 +358,12 @@ export default defineConfig({
     // downstream consumers locate this server through that env contract.
     strictPort: true,
     proxy: {
-      '/api': `http://localhost:${process.env.PORT || 3010}`,
+      // 对接 nest-admin 后端（开发期代理，生产由 Nginx 转发）
+      '/api': { target: 'http://127.0.0.1:7001', changeOrigin: true },
+      '/auth': { target: 'http://127.0.0.1:7001', changeOrigin: true },
+      '/ai': { target: 'http://127.0.0.1:7001', changeOrigin: true, ws: false },
       '/oidc': `http://localhost:${process.env.PORT || 3010}`,
-      '/trpc': `http://localhost:${process.env.PORT || 3010}`,
+      // /trpc 在纯 SPA 模式下无 Next.js 后端，由下方 trpc-mock 插件返回 mock JSON
       '/webapi': `http://localhost:${process.env.PORT || 3010}`,
     },
     warmup: {
