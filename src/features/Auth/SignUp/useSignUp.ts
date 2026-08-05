@@ -11,6 +11,7 @@ import { withCaptchaToken } from '@/features/Auth/utils/authFetchOptions';
 import { useAuthServerConfigStore } from '@/features/AuthShell';
 import { trackLoginOrSignupClicked } from '@/features/User/UserLoginOrSignup/trackLoginOrSignupClicked';
 import { signUp } from '@/libs/better-auth/auth-client';
+import { setAuthTokens } from '@/services/_api';
 import { buildOnboardingRedirectUrl } from '@/utils/onboardingRedirect';
 
 import type { BaseSignUpFormValues } from './types';
@@ -68,13 +69,13 @@ export const useSignUp = () => {
           password: values.password,
         });
 
-      let { error } = await submit(fetchOptions);
+      let { data, error } = await submit(fetchOptions);
 
       if (error) {
         const captchaToken = await getCaptchaTokenOnError(error);
         if (captchaToken === null) return;
         if (captchaToken) {
-          ({ error } = await submit(withCaptchaToken(fetchOptions, captchaToken)));
+          ({ data, error } = await submit(withCaptchaToken(fetchOptions, captchaToken)));
         }
       }
 
@@ -99,6 +100,11 @@ export const useSignUp = () => {
           : '';
         message.error(translated || signUpError.message || t('betterAuth.signup.error'));
         return;
+      }
+
+      // 注册成功即自动登录：把 JWT 写入 localStorage，与 better-auth cookie 双轨打通
+      if (data?.token) {
+        setAuthTokens(data.token, data.refreshToken);
       }
 
       if (enableEmailVerification) {

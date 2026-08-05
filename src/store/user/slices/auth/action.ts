@@ -1,6 +1,7 @@
 import { type SSOProvider } from '@lobechat/types';
 
 import { clearActiveScopeKey } from '@/libs/swr/useCacheScope';
+import { clearAuthTokens } from '@/services/_api';
 import { type StoreSetter } from '@/store/types';
 
 import { type UserStore } from '../../store';
@@ -75,6 +76,8 @@ export class UserAuthActionImpl {
     await signOut({
       fetchOptions: {
         onSuccess: () => {
+          // 清除 localStorage 中的 JWT（REST 层鉴权凭据）
+          clearAuthTokens();
           // Drop the persisted active scope so the next boot doesn't hydrate the
           // signed-out user's cache (localStorage survives the reload below).
           clearActiveScopeKey();

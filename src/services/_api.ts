@@ -4,10 +4,44 @@
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
 
+// 刷新端点：nest-admin 系统级刷新（@Public），返回 { token, refreshToken, expires }
+const REFRESH_URL = `${API_BASE}/system/auth/refresh-token`;
+
 // 获取存储的 accessToken
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem('accessToken') || null;
+}
+
+// 登录/注册成功后写入 token 与 refreshToken（供 REST 层注入与无感刷新）
+export function setAuthTokens(token: string, refreshToken?: string | null) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem('accessToken', token);
+    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+  } catch {
+    // ignore localStorage errors (quota exceeded / private mode)
+  }
+}
+
+// 登出/刷新失败时清除 token
+export function clearAuthTokens() {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+  } catch {
+    // ignore localStorage errors
+  }
+}
+
+// nest-admin 统一响应包装为 { code, data, message }（@Bypass 端点返回原始格式）。
+// 解包出 data，供调用方直接消费业务数据。
+function unwrapData<T = any>(json: any): T {
+  if (json && typeof json === 'object' && 'code' in json && 'data' in json) {
+    return json.data as T;
+  }
+  return json as T;
 }
 
 // 统一 fetch 封装
@@ -33,26 +67,28 @@ export async function apiFetch<T = any>(
     // 尝试刷新 token
     const refreshToken = localStorage.getItem('refreshToken');
     if (refreshToken) {
-      const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
+      const refreshRes = await fetch(REFRESH_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken }),
       });
       if (refreshRes.ok) {
-        const data = await refreshRes.json();
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
+        const data = unwrapData<{ token?: string; refreshToken?: string }>(await refreshRes.json());
+        // nest-admin 返回 { token, refreshToken, expires }
+        if (!data.token) {
+          throw new Error('Refresh failed: no token in response');
+        }
+        setAuthTokens(data.token, data.refreshToken);
         // 重试原请求
-        headers.Authorization = `Bearer ${data.accessToken}`;
+        headers.Authorization = `Bearer ${data.token}`;
         const retryRes = await fetch(`${API_BASE}${path}`, { ...options, headers });
         if (!retryRes.ok) throw new Error(`HTTP ${retryRes.status}`);
-        return retryRes.json();
+        return unwrapData<T>(await retryRes.json());
       }
     }
     // 刷新失败，清除 token
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    window.location.href = '/login';
+    clearAuthTokens();
+    window.location.href = '/signin';
     throw new Error('Unauthorized');
   }
 
@@ -61,7 +97,9 @@ export async function apiFetch<T = any>(
     throw new Error(error.message || `HTTP ${res.status}`);
   }
 
-  return res.json();
+  // 解包 nest-admin 统一包装 { code, data, message }，@Bypass 端点原样返回
+  const text = await res.text();
+  return unwrapData<T>(text ? JSON.parse(text) : null);
 }
 
 // SSE 流式请求封装（用于 AI 对话）

@@ -362,6 +362,8 @@ export default defineConfig({
       '/api': { target: 'http://127.0.0.1:7001', changeOrigin: true },
       '/auth': { target: 'http://127.0.0.1:7001', changeOrigin: true },
       '/ai': { target: 'http://127.0.0.1:7001', changeOrigin: true, ws: false },
+      // token 无感刷新（/system/auth/refresh-token）
+      '/system': { target: 'http://127.0.0.1:7001', changeOrigin: true },
       '/oidc': `http://localhost:${process.env.PORT || 3010}`,
       // /trpc 在纯 SPA 模式下无 Next.js 后端，由下方 trpc-mock 插件返回 mock JSON
       '/webapi': `http://localhost:${process.env.PORT || 3010}`,
