@@ -148,10 +148,12 @@ class UploadService {
     },
   ): Promise<FileMetadata> => {
     const xhr = new XMLHttpRequest();
-    const { date, dirname, filename, pathname: finalPathname } = generateFilePathMetadata(
-      file.name,
-      { directory, pathname },
-    );
+    const {
+      date,
+      dirname,
+      filename,
+      pathname: finalPathname,
+    } = generateFilePathMetadata(file.name, { directory, pathname });
     const startTime = Date.now();
 
     // Setup abort listener

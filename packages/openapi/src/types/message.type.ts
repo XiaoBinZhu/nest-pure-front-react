@@ -190,7 +190,9 @@ export interface MessagesDeleteBatchRequest {
 }
 
 export const MessagesDeleteBatchRequestSchema = z.object({
-  messageIds: z.array(z.string().min(1, 'Message ID cannot be empty')).min(1, 'Message ID array cannot be empty'),
+  messageIds: z
+    .array(z.string().min(1, 'Message ID cannot be empty'))
+    .min(1, 'Message ID array cannot be empty'),
 });
 
 // ==================== Message Response Types ====================

@@ -45,7 +45,9 @@ describe('apiFetch 响应解包', () => {
 
   it('带 token 时应注入 Authorization: Bearer 头', async () => {
     setAuthTokens('my-token');
-    (fetch as Mock).mockResolvedValueOnce(mockJsonResponse(200, { code: 200, data: null, message: 'success' }));
+    (fetch as Mock).mockResolvedValueOnce(
+      mockJsonResponse(200, { code: 200, data: null, message: 'success' }),
+    );
 
     await apiFetch('/api/v1/c-end/sessions');
 
@@ -67,7 +69,11 @@ describe('apiFetch 401 无感刷新', () => {
       data: { token: 'new-token', refreshToken: 'new-refresh', expires: 999 },
       message: 'success',
     });
-    const retryResp = mockJsonResponse(200, { code: 200, data: { items: [1] }, message: 'success' });
+    const retryResp = mockJsonResponse(200, {
+      code: 200,
+      data: { items: [1] },
+      message: 'success',
+    });
 
     (fetch as Mock)
       .mockResolvedValueOnce(mockJsonResponse(401, { message: 'Unauthorized' })) // 原请求 401

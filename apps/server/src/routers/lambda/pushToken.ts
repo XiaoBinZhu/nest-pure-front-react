@@ -1,9 +1,6 @@
 import { z } from 'zod';
 
-import {
-  deletePushTokenByExpoTokenAndDevice,
-  PushTokenModel,
-} from '@/database/models/pushToken';
+import { deletePushTokenByExpoTokenAndDevice, PushTokenModel } from '@/database/models/pushToken';
 import { authedProcedure, publicProcedure, router } from '@/libs/trpc/lambda';
 import { serverDatabase } from '@/libs/trpc/lambda/middleware';
 

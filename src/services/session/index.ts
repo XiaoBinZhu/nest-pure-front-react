@@ -1,6 +1,5 @@
 import { type PartialDeep } from 'type-fest';
 
-import { apiFetch } from '../_api';
 import { type LobeAgentChatConfig, type LobeAgentConfig } from '@/types/agent';
 import { type MetaData } from '@/types/meta';
 import {
@@ -11,6 +10,8 @@ import {
   type SessionGroupItem,
   type UpdateSessionParams,
 } from '@/types/session';
+
+import { apiFetch } from '../_api';
 
 /**
  * @deprecated Session service is legacy. Use agentService for agent CRUD operations.
@@ -61,7 +62,14 @@ export class SessionService {
       ? '?' +
         new URLSearchParams(
           Object.entries(params).flatMap(([k, v]) =>
-            Array.isArray(v) ? [[k, v[0]], [k, v[1]]] : v != null ? [[k, String(v)]] : [],
+            Array.isArray(v)
+              ? [
+                  [k, v[0]],
+                  [k, v[1]],
+                ]
+              : v != null
+                ? [[k, String(v)]]
+                : [],
           ),
         ).toString()
       : '';

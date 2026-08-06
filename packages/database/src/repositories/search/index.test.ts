@@ -1082,9 +1082,7 @@ describe.skipIf(!isServerDB)('SearchRepo', () => {
       });
 
       it('does not surface another user PDF when querying their KB', async () => {
-        const results = await searchRepo.searchKnowledgeBaseDocuments('attention', [
-          'kb-other-1',
-        ]);
+        const results = await searchRepo.searchKnowledgeBaseDocuments('attention', ['kb-other-1']);
         expect(results).toEqual([]);
       });
     });

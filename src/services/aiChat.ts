@@ -1,4 +1,8 @@
-import { type SendMessageServerParams, type SendMessageServerResponse, type StructureOutputParams } from '@lobechat/types';
+import {
+  type SendMessageServerParams,
+  type SendMessageServerResponse,
+  type StructureOutputParams,
+} from '@lobechat/types';
 
 import { apiFetch, apiStream } from './_api';
 
@@ -36,7 +40,7 @@ class AiChatService {
 
   // 暂时 stub（tracing feedback 待 Wave 2）
   recordTracingFeedback = async (_params: RecordTracingFeedbackParams) => {
-    return Promise.resolve();
+    return;
   };
 }
 

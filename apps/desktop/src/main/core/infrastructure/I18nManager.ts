@@ -89,7 +89,7 @@ export class I18nManager {
   createNamespacedT(namespace: string) {
     return (key: string, options: any = {}) => {
       // Copy options to avoid modifying the original object
-      const mergedOptions = { ...options , ns: namespace,};
+      const mergedOptions = { ...options, ns: namespace };
       // Set namespace
 
       return this.t(key, mergedOptions);

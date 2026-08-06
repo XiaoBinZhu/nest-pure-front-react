@@ -175,9 +175,7 @@ describe('pushTokenRouter', () => {
 
     it('should reject empty expoToken when provided', async () => {
       const caller = createCaller();
-      await expect(
-        caller.unregister({ deviceId: 'device-1', expoToken: '' }),
-      ).rejects.toThrow();
+      await expect(caller.unregister({ deviceId: 'device-1', expoToken: '' })).rejects.toThrow();
     });
   });
 });

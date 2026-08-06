@@ -17,7 +17,6 @@ import {
 import { type HeatmapsProps } from '@lobehub/charts';
 
 import { apiFetch } from '../_api';
-
 import { abortableRequest } from '../utils/abortableRequest';
 
 /**
@@ -160,20 +159,18 @@ export class MessageService {
     if (params.threadId) query.set('threadId', params.threadId);
     if (params.groupId) query.set('groupId', params.groupId);
     const qs = query.toString();
-    const data = await apiFetch<UIChatMessage[]>(
-      `/api/v1/c-end/messages${qs ? `?${qs}` : ''}`,
-    );
+    const data = await apiFetch<UIChatMessage[]>(`/api/v1/c-end/messages${qs ? `?${qs}` : ''}`);
     return data as unknown as UIChatMessage[];
   };
 
   // TODO: Wave 2 - 返回 any 以兼容调用方对 .issues/.hiddenCount/.patch 的访问
   diagnoseTopic = async (_params: { agentId?: string | null; topicId: string }): Promise<any> => {
-    return Promise.resolve({ hiddenCount: 0, issues: [], patch: {} } as any);
+    return { hiddenCount: 0, issues: [], patch: {} } as any;
   };
 
   // TODO: Wave 2 - 返回 any 以兼容调用方对 .restoredMessageIds 的访问
   repairTopic = async (_params: { agentId?: string | null; topicId: string }): Promise<any> => {
-    return Promise.resolve({ restoredMessageIds: [] } as any);
+    return { restoredMessageIds: [] } as any;
   };
 
   // 计数：GET /api/v1/c-end/messages/count
@@ -186,7 +183,14 @@ export class MessageService {
       ? '?' +
         new URLSearchParams(
           Object.entries(params).flatMap(([k, v]) =>
-            Array.isArray(v) ? [[k, v[0]], [k, v[1]]] : v != null ? [[k, String(v)]] : [],
+            Array.isArray(v)
+              ? [
+                  [k, v[0]],
+                  [k, v[1]],
+                ]
+              : v != null
+                ? [[k, String(v)]]
+                : [],
           ),
         ).toString()
       : '';
@@ -199,22 +203,22 @@ export class MessageService {
     range?: [string, string];
     startDate?: string;
   }): Promise<number> => {
-    return Promise.resolve(0);
+    return 0;
   };
 
   // TODO: Wave 2
   rankModels = async (): Promise<ModelRankItem[]> => {
-    return Promise.resolve([]);
+    return [];
   };
 
   // TODO: Wave 2
   getHeatmaps = async (): Promise<HeatmapsProps['data']> => {
-    return Promise.resolve([] as HeatmapsProps['data']);
+    return [] as HeatmapsProps['data'];
   };
 
   // TODO: Wave 2
   getTokenHeatmaps = async (): Promise<HeatmapsProps['data']> => {
-    return Promise.resolve([] as HeatmapsProps['data']);
+    return [] as HeatmapsProps['data'];
   };
 
   // 更新消息（含 error）：PATCH /api/v1/c-end/messages/:id
@@ -230,11 +234,8 @@ export class MessageService {
   };
 
   // TODO: Wave 2 - 待对接 nest-admin plugin 接口
-  updateMessagePluginArguments = async (
-    _id: string,
-    _value: string | Record<string, any>,
-  ) => {
-    return Promise.resolve();
+  updateMessagePluginArguments = async (_id: string, _value: string | Record<string, any>) => {
+    return;
   };
 
   // TODO: Wave 2 - 返回 any 以兼容调用方对 .success/.messages 的访问
@@ -243,7 +244,7 @@ export class MessageService {
     _value: string | Record<string, unknown>,
     _ctx?: MessageQueryContext,
   ): Promise<any> => {
-    return Promise.resolve({ success: false, messages: [] } as any);
+    return { success: false, messages: [] } as any;
   };
 
   // 更新消息：PATCH /api/v1/c-end/messages/:id
@@ -260,12 +261,12 @@ export class MessageService {
 
   // TODO: Wave 2
   updateMessageTranslate = async (_id: string, _translate: Partial<ChatTranslate> | false) => {
-    return Promise.resolve();
+    return;
   };
 
   // TODO: Wave 2
   updateMessageTTS = async (_id: string, _tts: Partial<ChatTTS> | false) => {
-    return Promise.resolve();
+    return;
   };
 
   // TODO: Wave 2
@@ -343,12 +344,12 @@ export class MessageService {
 
   // TODO: Wave 2
   removeMessagesByAssistant = async (_sessionId: string, _topicId?: string) => {
-    return Promise.resolve();
+    return;
   };
 
   // TODO: Wave 2
   removeMessagesByGroup = async (_groupId: string, _topicId?: string) => {
-    return Promise.resolve();
+    return;
   };
 
   // TODO: Wave 2

@@ -72,7 +72,8 @@ const compressFile = (filePath: string): { brotliBytes: number; gzipBytes: numbe
 
   const brotliBytes = existsSync(brPath)
     ? 0
-    : (writeFileSync(brPath, brotliCompressSync(content, { params: { [1]: BROTLI_LEVEL } })), statSync(brPath).size);
+    : (writeFileSync(brPath, brotliCompressSync(content, { params: { [1]: BROTLI_LEVEL } })),
+      statSync(brPath).size);
   const gzipBytes = existsSync(gzPath)
     ? 0
     : (writeFileSync(gzPath, gzipSync(content, { level: GZIP_LEVEL })), statSync(gzPath).size);

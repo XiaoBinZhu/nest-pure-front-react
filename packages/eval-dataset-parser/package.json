@@ -4,12 +4,12 @@
   "private": true,
   "description": "Parse CSV, XLSX, JSON, and JSONL files into structured dataset records",
   "keywords": [
-    "dataset",
-    "parser",
     "csv",
-    "xlsx",
+    "dataset",
     "jsonl",
-    "lobehub"
+    "lobehub",
+    "parser",
+    "xlsx"
   ],
   "homepage": "https://github.com/lobehub/lobehub/tree/master/packages/eval-dataset-parser",
   "bugs": {

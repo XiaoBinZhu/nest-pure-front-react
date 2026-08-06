@@ -75,11 +75,7 @@ describe('countFoldedProcessSteps', () => {
   });
 
   it('does not double-count a mixed block split into answer and workflow segments', () => {
-    const segments = [
-      a('mixed-block'),
-      w('mixed-block', 2),
-      w('next-block', 1),
-    ];
+    const segments = [a('mixed-block'), w('mixed-block', 2), w('next-block', 1)];
 
     expect(countFoldedProcessSteps(segments)).toBe(5);
   });

@@ -10,8 +10,8 @@ import { message } from '@/components/AntdStaticMethods';
 import { useAuthServerConfigStore } from '@/features/AuthShell';
 import { trackLoginOrSignupClicked } from '@/features/User/UserLoginOrSignup/trackLoginOrSignupClicked';
 import { requestPasswordReset, signIn } from '@/libs/better-auth/auth-client';
-import { setAuthTokens } from '@/services/_api';
 import { isBuiltinProvider, normalizeProviderId } from '@/libs/better-auth/utils/client';
+import { setAuthTokens } from '@/services/_api';
 import { buildOnboardingRedirectUrl, sanitizeRedirectPath } from '@/utils/onboardingRedirect';
 
 import { EMAIL_REGEX, USERNAME_REGEX } from './SignInEmailStep';
@@ -275,17 +275,17 @@ export const useSignIn = () => {
       const signInWithAdditionalData = async () =>
         isBuiltinProvider(normalizedProvider)
           ? await signIn.social({
-            additionalData,
-            callbackURL: callbackUrl,
-            newUserCallbackURL,
-            provider: normalizedProvider,
-          })
+              additionalData,
+              callbackURL: callbackUrl,
+              newUserCallbackURL,
+              provider: normalizedProvider,
+            })
           : await signIn.oauth2({
-            additionalData,
-            callbackURL: callbackUrl,
-            newUserCallbackURL,
-            providerId: normalizedProvider,
-          });
+              additionalData,
+              callbackURL: callbackUrl,
+              newUserCallbackURL,
+              providerId: normalizedProvider,
+            });
 
       const result = await signInWithAdditionalData();
 
@@ -369,10 +369,10 @@ export const useSignIn = () => {
   const resolvedProviders = enableBusinessFeatures ? ssoProviders : oAuthSSOProviders;
   const sortedProviders = lastAuthProvider
     ? [...resolvedProviders].sort((a, b) => {
-      if (a === lastAuthProvider) return -1;
-      if (b === lastAuthProvider) return 1;
-      return 0;
-    })
+        if (a === lastAuthProvider) return -1;
+        if (b === lastAuthProvider) return 1;
+        return 0;
+      })
     : resolvedProviders;
 
   return {

@@ -118,9 +118,7 @@ const Versions = memo(() => {
             {
               align: 'end',
               dataIndex: 'createdAt',
-              render: (_: any, record: any) => (
-                <PublishedTime date={record.createdAt} />
-              ),
+              render: (_: any, record: any) => <PublishedTime date={record.createdAt} />,
               title: t('assistants.details.version.table.publishAt'),
             },
           ]}

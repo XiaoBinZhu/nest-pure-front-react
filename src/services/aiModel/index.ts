@@ -18,7 +18,7 @@ export interface GetAiProviderModelListParams {
 export class AiModelService {
   // TODO: Wave 2 - 待对接 nest-admin aiModel 创建接口
   createAiModel = async (_params: CreateAiModelParams) => {
-    return Promise.resolve();
+    return;
   };
 
   // 模型列表：GET /ai/v1/models
@@ -32,9 +32,7 @@ export class AiModelService {
     if (params?.limit) query.set('limit', String(params.limit));
     if (params?.offset) query.set('offset', String(params.offset));
     const qs = query.toString();
-    const models = await apiFetch<AiProviderModelListItem[]>(
-      `/ai/v1/models${qs ? `?${qs}` : ''}`,
-    );
+    const models = await apiFetch<AiProviderModelListItem[]>(`/ai/v1/models${qs ? `?${qs}` : ''}`);
     return models.filter(isAiModelVisible);
   };
 
@@ -45,42 +43,42 @@ export class AiModelService {
 
   // TODO: Wave 2 - 待对接 nest-admin aiModel toggle 接口
   toggleModelEnabled = async (_params: ToggleAiModelEnableParams) => {
-    return Promise.resolve();
+    return;
   };
 
   // TODO: Wave 2
   updateAiModel = async (_id: string, _providerId: string, _value: UpdateAiModelParams) => {
-    return Promise.resolve();
+    return;
   };
 
   // TODO: Wave 2
   batchUpdateAiModels = async (_id: string, _models: AiProviderModelListItem[]) => {
-    return Promise.resolve();
+    return;
   };
 
   // TODO: Wave 2
   batchToggleAiModels = async (_id: string, _models: string[], _enabled: boolean) => {
-    return Promise.resolve();
+    return;
   };
 
   // TODO: Wave 2
   clearModelsByProvider = async (_providerId: string) => {
-    return Promise.resolve();
+    return;
   };
 
   // TODO: Wave 2
   clearRemoteModels = async (_providerId: string) => {
-    return Promise.resolve();
+    return;
   };
 
   // TODO: Wave 2
   updateAiModelOrder = async (_providerId: string, _items: AiModelSortMap[]) => {
-    return Promise.resolve();
+    return;
   };
 
   // TODO: Wave 2
   deleteAiModel = async (_params: { id: string; providerId: string }) => {
-    return Promise.resolve();
+    return;
   };
 }
 

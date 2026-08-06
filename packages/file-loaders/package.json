@@ -6,8 +6,8 @@
   "keywords": [
     "file",
     "loader",
-    "parser",
-    "lobehub"
+    "lobehub",
+    "parser"
   ],
   "homepage": "https://github.com/lobehub/lobe-chat/tree/master/packages/file-loaders",
   "bugs": {

@@ -94,17 +94,17 @@ export class TopicService {
     range?: [string, string];
     startDate?: string;
   }): Promise<number> => {
-    return Promise.resolve(0);
+    return 0;
   };
 
   // TODO: Wave 2
   rankTopics = async (_limit?: number): Promise<TopicRankItem[]> => {
-    return Promise.resolve([]);
+    return [];
   };
 
   // TODO: Wave 2
   getMaxTaskDuration = async (): Promise<number> => {
-    return Promise.resolve(0);
+    return 0;
   };
 
   // 详情：GET /api/v1/c-end/topics/:id
@@ -114,16 +114,20 @@ export class TopicService {
 
   // TODO: Wave 2 - 待对接 nest-admin recent 接口
   getRecentTopics = async (_limit?: number): Promise<RecentTopic[]> => {
-    return Promise.resolve([]);
+    return [];
   };
 
   // TODO: Wave 2
   hasTopicFiles = async (_ids: string[]): Promise<boolean> => {
-    return Promise.resolve(false);
+    return false;
   };
 
   // TODO: Wave 2
-  searchTopics = (_keywords: string, _agentId?: string, _groupId?: string): Promise<ChatTopic[]> => {
+  searchTopics = (
+    _keywords: string,
+    _agentId?: string,
+    _groupId?: string,
+  ): Promise<ChatTopic[]> => {
     return Promise.resolve([]);
   };
 

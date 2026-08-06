@@ -15,9 +15,11 @@ export const styles = createStaticStyles(({ css, cssVar }) => ({
     overflow: hidden;
 
     border: 1px solid ${cssVar.colorBorderSecondary};
-    border-radius: ${!isMacOSWithLargeWindowBorders()
-      ? cssVar.borderRadius
-      : `${cssVar.borderRadius} 12px ${cssVar.borderRadius} 12px`};
+    border-radius: ${
+      !isMacOSWithLargeWindowBorders()
+        ? cssVar.borderRadius
+        : `${cssVar.borderRadius} 12px ${cssVar.borderRadius} 12px`
+    };
 
     background: ${cssVar.colorBgContainer};
   `,
@@ -29,9 +31,11 @@ export const styles = createStaticStyles(({ css, cssVar }) => ({
     overflow: hidden;
 
     border: 1px solid ${cssVar.colorBorder};
-    border-radius: ${!isMacOSWithLargeWindowBorders()
-      ? cssVar.borderRadius
-      : `${cssVar.borderRadius} 12px ${cssVar.borderRadius} 12px`};
+    border-radius: ${
+      !isMacOSWithLargeWindowBorders()
+        ? cssVar.borderRadius
+        : `${cssVar.borderRadius} 12px ${cssVar.borderRadius} 12px`
+    };
 
     background: ${cssVar.colorBgContainer};
   `,

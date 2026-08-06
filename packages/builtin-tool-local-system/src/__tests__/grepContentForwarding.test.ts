@@ -148,7 +148,7 @@ describe('localSystemExecutor.grepContent — working directory default', () => 
   it('anchors a relative scope (".") onto ctx.workingDirectory', async () => {
     const spy = mockRuntime();
 
-    await localSystemExecutor.grepContent({ 'pattern': 'foo', 'scope': '.' }, {
+    await localSystemExecutor.grepContent({ pattern: 'foo', scope: '.' }, {
       messageId: 'm1',
       workingDirectory: '/Users/me/project',
     } as never);
@@ -160,7 +160,7 @@ describe('localSystemExecutor.grepContent — working directory default', () => 
   it('keeps an absolute scope as-is even when a working directory is present', async () => {
     const spy = mockRuntime();
 
-    await localSystemExecutor.grepContent({ 'pattern': 'foo', 'scope': '/abs/elsewhere' }, {
+    await localSystemExecutor.grepContent({ pattern: 'foo', scope: '/abs/elsewhere' }, {
       messageId: 'm1',
       workingDirectory: '/Users/me/project',
     } as never);

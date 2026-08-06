@@ -96,12 +96,7 @@ const NameSuggestions = memo<NameSuggestionsProps>(({ variant = 'cards' }) => {
           {t('agent.welcome.suggestion.title')}
         </Text>
         <Flexbox horizontal align={'center'} gap={8}>
-          <Flexbox
-            horizontal
-            className={styles.chipRow}
-            gap={6}
-            style={{ flex: 1, minWidth: 0 }}
-          >
+          <Flexbox horizontal className={styles.chipRow} gap={6} style={{ flex: 1, minWidth: 0 }}>
             {items.map((item) => {
               const { name, prompt } = resolveNameSuggestion(item, i18n.language);
               return (
