@@ -28,14 +28,21 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Build SPA for production
-        run: |
-          bun run build:spa
-          bun run build:spa:auth
-          bun run build:spa:copy
+      - name: Build main SPA
+        run: bun run build:spa
         env:
           NODE_OPTIONS: "--max-old-space-size=8192"
           VITE_CDN_BASE: "/"
+      
+      - name: Build auth SPA
+        # auth 页面由 nginx 在 /_spa-auth/ 下服务，base 必须保持 /_spa-auth/（不能被主站 CDN_BASE 覆盖）
+        run: bun run build:spa:auth
+        env:
+          NODE_OPTIONS: "--max-old-space-size=8192"
+          VITE_CDN_BASE: "/_spa-auth/"
+      
+      - name: Copy SPA build
+        run: bun run build:spa:copy
 
       - name: Verify build output
         run: |
@@ -62,8 +69,8 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           port: 22
-          source: "deploy-spa.tar.gz"
-          target: "/tmp/lobehub-spa-deploy"
+          source: 'deploy-spa.tar.gz'
+          target: '/tmp/lobehub-spa-deploy'
 
       - name: Deploy to nginx directory
         uses: appleboy/ssh-action@v1.0.3
@@ -120,8 +127,8 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           port: 22
-          source: "docker-compose/deploy/nginx/c-end.conf"
-          target: "/tmp/lobehub-spa-deploy"
+          source: 'docker-compose/deploy/nginx/c-end.conf'
+          target: '/tmp/lobehub-spa-deploy'
 
       - name: Apply nginx config and reload
         uses: appleboy/ssh-action@v1.0.3
