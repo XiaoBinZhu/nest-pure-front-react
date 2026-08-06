@@ -7,9 +7,18 @@
   "editor.formatOnSave": true,
   // don't show errors, but fix when save and git pre commit
   "eslint.rules.customizations": [
-    { "rule": "simple-import-sort/exports", "severity": "off" },
-    { "rule": "perfectionist/sort-interfaces", "severity": "off" },
-    { "rule": "simple-import-sort/imports", "severity": "off" }
+    {
+      "rule": "simple-import-sort/exports",
+      "severity": "off"
+    },
+    {
+      "rule": "perfectionist/sort-interfaces",
+      "severity": "off"
+    },
+    {
+      "rule": "simple-import-sort/imports",
+      "severity": "off"
+    }
   ],
   "eslint.validate": [
     "json",
@@ -91,5 +100,18 @@
     "**/src/server/routers/edge/*.ts": "${filename} • edge",
     "**/src/locales/default/*.ts": "${filename} • locale",
     "**/index.*": "${dirname}/${filename}.${extname}"
-  }
+  },
+  "i18n-ally.localesPaths": [
+    "locales",
+    "packages/locales",
+    "public/_spa/i18n",
+    "public/_spa-auth/i18n",
+    "src/libs/i18n",
+    "src/utils/i18n",
+    "src/utils/locale",
+    "apps/desktop/resources/locales",
+    "apps/desktop/src/main/locales",
+    "packages/context-engine/src/engine/messages",
+    "packages/database/src/models/__tests__/messages"
+  ]
 }

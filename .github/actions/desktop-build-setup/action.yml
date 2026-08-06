@@ -96,7 +96,7 @@ runs:
         if [ "${CLOUD_DESKTOP:-}" = "1" ]; then
           cd ..
         fi
-        pnpm install --node-linker=hoisted
+        bun install
 
     # 移除国内 electron 镜像配置，GitHub Actions 使用官方源更快
     - name: Remove China electron mirror from .npmrc
@@ -115,7 +115,7 @@ runs:
         set -euo pipefail
         if [ "${CLOUD_DESKTOP:-}" = "1" ]; then
           cd ..
-          npm run install-isolated --prefix=./lobehub/apps/desktop
+          bun run install-isolated --cwd=./lobehub/apps/desktop
         else
-          npm run install-isolated --prefix=./apps/desktop
+          bun run install-isolated --cwd=./apps/desktop
         fi

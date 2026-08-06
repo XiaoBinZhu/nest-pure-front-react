@@ -3,6 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f8f8f8" />
+    <meta
+      name="description"
+      content="LobeHub - open-source AI chat platform"
+    />
     <link rel="icon" href="/favicon.ico" />
     <link rel="shortcut icon" href="/favicon-32x32.ico" />
     <link rel="manifest" href="/manifest.webmanifest" />
@@ -141,6 +146,17 @@
     <div id="root" style="height: 100%"></div>
 
     <!--ANALYTICS_SCRIPTS-->
+    <script>
+      // PWA Service Worker 注册（仅生产环境；开发环境由 Vite 提供，无 sw.js）
+      if (
+        'serviceWorker' in navigator &&
+        ['localhost', '127.0.0.1'].indexOf(location.hostname) === -1
+      ) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').catch(function () {});
+        });
+      }
+    </script>
     <script type="module" src="/src/spa/entry.web.tsx"></script>
   </body>
 </html>

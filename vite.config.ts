@@ -104,9 +104,13 @@ const openExternalBrowser = async (
 export default defineConfig({
   base: isDev ? '/' : process.env.VITE_CDN_BASE || (isAuth ? '/_spa-auth/' : '/_spa/'),
   build: {
+    // 小资源（<4KB）内联为 base64，减少首屏请求数
+    assetsInlineLimit: 4096,
     modulePreload: sharedModulePreload,
     outDir: isAuth ? 'dist/auth' : isMobile ? 'dist/mobile' : 'dist/desktop',
     reportCompressedSize: false,
+    // 项目已通过 importmap/cascade-layers 检测 + not-compatible.html 兜底，可安全使用现代语法
+    target: 'es2022',
     rolldownOptions: {
       ...(enableViteDevTools && { devtools: {} }),
       input: path.resolve(
@@ -305,11 +309,21 @@ export default defineConfig({
     !isAuth &&
       VitePWA({
         injectRegister: null,
-        manifest: false,
+        manifest: false, // 使用 public/manifest.webmanifest 静态文件（纯静态部署直接可用）
         registerType: 'prompt',
         workbox: {
           globPatterns: ['**/*.{js,css,html,woff2}'],
           maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+          // SPA 导航请求回退到 index.html，保证离线/直接访问子路由不 404
+          navigateFallback: '/index.html',
+          navigateFallbackDenylist: [
+            /^\/api\//,
+            /^\/trpc\//,
+            /^\/auth\//,
+            /^\/system\//,
+            /^\/ai\//,
+            /\.(?:png|jpg|jpeg|svg|gif|webp|ico|avif|woff2?)$/,
+          ],
           runtimeCaching: [
             {
               handler: 'StaleWhileRevalidate',
