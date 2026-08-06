@@ -12,10 +12,10 @@ describe('getServerConfig', () => {
       const { getAppConfig } = await import('../app');
       const config = getAppConfig();
       expect(config.AGENTS_INDEX_URL).toBe(
-        'https://registry.npmmirror.com/@lobehub/agents-index/v1/files/public',
+        'https://unpkg.com/@lobehub/agents-index@latest/v1/files/public',
       );
       expect(config.PLUGINS_INDEX_URL).toBe(
-        'https://registry.npmmirror.com/@lobehub/plugins-index/v1/files/public',
+        'https://unpkg.com/@lobehub/plugins-index@latest/v1/files/public',
       );
     });
 
@@ -35,10 +35,10 @@ describe('getServerConfig', () => {
       const { getAppConfig } = await import('../app');
       const config = getAppConfig();
       expect(config.AGENTS_INDEX_URL).toBe(
-        'https://registry.npmmirror.com/@lobehub/agents-index/v1/files/public',
+        'https://unpkg.com/@lobehub/agents-index@latest/v1/files/public',
       );
       expect(config.PLUGINS_INDEX_URL).toBe(
-        'https://registry.npmmirror.com/@lobehub/plugins-index/v1/files/public',
+        'https://unpkg.com/@lobehub/plugins-index@latest/v1/files/public',
       );
     });
   });
