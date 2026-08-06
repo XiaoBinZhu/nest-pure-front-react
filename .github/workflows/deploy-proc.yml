@@ -29,7 +29,10 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Build SPA for production
-        run: bun run build:spa
+        run: |
+          bun run build:spa
+          bun run build:spa:auth
+          bun run build:spa:copy
         env:
           NODE_OPTIONS: "--max-old-space-size=8192"
           VITE_CDN_BASE: "/"
@@ -38,6 +41,8 @@ jobs:
         run: |
           ls -la dist/desktop/
           test -f dist/desktop/index.html && echo "✅ index.html exists"
+          # auth SPA 产物（/signin /signup 等认证页）
+          test -f public/_spa-auth/index.auth.html && echo "✅ index.auth.html exists"
           # 预压缩产物应已生成 (compressSpa.mts)
           gz_count=$(find dist/desktop -name '*.gz' | wc -l)
           br_count=$(find dist/desktop -name '*.br' | wc -l)
@@ -45,7 +50,10 @@ jobs:
           [ "$gz_count" -gt 0 ] || { echo "❌ no .gz files generated"; exit 1; }
 
       - name: Pack build artifacts
-        run: tar -czf deploy-spa.tar.gz -C dist/desktop .
+        run: |
+          # auth SPA 并入部署包（nginx 通过 /_spa-auth/ 提供服务）
+          cp -r public/_spa-auth dist/desktop/_spa-auth
+          tar -czf deploy-spa.tar.gz -C dist/desktop .
 
       - name: Upload to server
         uses: appleboy/scp-action@v0.1.7
@@ -192,6 +200,11 @@ jobs:
             MANIFEST=$(curl -s -o /dev/null -w "%{http_code}" -H "$HOST_HEADER" "$BASE/manifest.webmanifest")
             echo "✅ manifest 状态: $MANIFEST"
             [ "$MANIFEST" = "200" ] || echo "⚠️  manifest 缺失"
+
+            # auth SPA 入口（/signin）
+            SIGNIN=$(curl -s -o /dev/null -w "%{http_code}" -H "$HOST_HEADER" "$BASE/signin")
+            echo "✅ auth 路由状态: $SIGNIN"
+            [ "$SIGNIN" = "200" ] || echo "⚠️  auth 路由异常"
 
             echo "🎉 健康检查全部通过"
 
