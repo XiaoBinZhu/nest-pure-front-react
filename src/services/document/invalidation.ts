@@ -3,7 +3,10 @@ import { mutate } from '@/libs/swr';
 import { agentDocumentSWRKeys, documentSWRKeys, notebookSWRKeys } from './swrKeys';
 
 export type DocumentMutationCause =
-  'agent-document' | 'document-service' | 'notebook' | 'page-title';
+  | 'agent-document'
+  | 'document-service'
+  | 'notebook'
+  | 'page-title';
 
 export interface InvalidateDocumentMutationParams {
   agentDocumentId?: string;

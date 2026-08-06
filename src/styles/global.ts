@@ -69,7 +69,7 @@ const genGlobalStyle = ({ token }: { prefixCls: string; token: Theme }) => css`
     background: ${token.colorFillTertiary};
   }
   .accordion-action:has(
-    .${CLASSNAMES.DropdownMenuTrigger}[data-popup-open]:not([data-no-highlight])
+  .${CLASSNAMES.DropdownMenuTrigger}[data-popup-open]:not([data-no-highlight])
   ) {
     opacity: 1;
   }

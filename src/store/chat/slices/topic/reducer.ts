@@ -41,7 +41,10 @@ type ReplaceChatTopicIdAction = ChatTopicScope & {
 };
 
 export type ChatTopicDispatch =
-  AddChatTopicAction | UpdateChatTopicAction | DeleteChatTopicAction | ReplaceChatTopicIdAction;
+  | AddChatTopicAction
+  | UpdateChatTopicAction
+  | DeleteChatTopicAction
+  | ReplaceChatTopicIdAction;
 
 export const topicReducer = (state: ChatTopic[] = [], payload: ChatTopicDispatch): ChatTopic[] => {
   switch (payload.type) {

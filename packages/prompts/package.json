@@ -2,12 +2,12 @@
   "name": "@lobechat/prompts",
   "version": "1.0.0",
   "private": true,
+  "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
     "./fileSystem": "./src/prompts/fileSystem/index.ts",
     "./understanding": "./src/chains/understanding.ts"
   },
-  "main": "./src/index.ts",
   "scripts": {
     "test": "vitest",
     "test:coverage": "vitest --coverage --silent='passed-only'",

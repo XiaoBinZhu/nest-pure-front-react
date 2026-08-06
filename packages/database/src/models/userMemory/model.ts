@@ -319,7 +319,8 @@ export interface UpdateIdentityEntryParams {
 
 export interface ContextEntryPayload {
   associatedObjects?:
-    { extra?: Record<string, unknown>; name?: string; type?: UserMemoryContextObjectType }[] | null;
+    | { extra?: Record<string, unknown>; name?: string; type?: UserMemoryContextObjectType }[]
+    | null;
   associatedSubjects?:
     | { extra?: Record<string, unknown>; name?: string; type?: UserMemoryContextSubjectType }[]
     | null;

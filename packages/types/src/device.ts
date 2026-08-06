@@ -649,7 +649,9 @@ export interface DeviceLocalFilePreviewUnsupported {
 }
 
 export type DeviceLocalFilePreview =
-  DeviceLocalFilePreviewImage | DeviceLocalFilePreviewText | DeviceLocalFilePreviewUnsupported;
+  | DeviceLocalFilePreviewImage
+  | DeviceLocalFilePreviewText
+  | DeviceLocalFilePreviewUnsupported;
 
 /**
  * File preview payload for a file on a remote device. Mirrors the desktop local

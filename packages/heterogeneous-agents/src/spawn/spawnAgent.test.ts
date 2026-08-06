@@ -17,7 +17,8 @@ const execFileMock = vi.mocked(childProcess.execFile);
 const callExecFile = (stdout: string) => {
   execFileMock.mockImplementationOnce(((...args: unknown[]) => {
     const callback = [...args].reverse().find((arg) => typeof arg === 'function') as
-      ((error: Error | null, stdout: string) => void) | undefined;
+      | ((error: Error | null, stdout: string) => void)
+      | undefined;
     callback?.(null, stdout);
     return {} as childProcess.ChildProcess;
   }) as typeof childProcess.execFile);

@@ -996,7 +996,8 @@ export const createGatewayEventHandler = (
             : fetchAndReplaceMessages(get, context, { skipWorks: true }).catch(console.error);
           const payload = unwrapToolPayload(data?.payload);
           const result = data?.result as
-            { state?: unknown; workRegistration?: unknown } | undefined;
+            | { state?: unknown; workRegistration?: unknown }
+            | undefined;
           if (
             didToolMutateWorkView({
               apiName: typeof payload?.apiName === 'string' ? payload.apiName : undefined,

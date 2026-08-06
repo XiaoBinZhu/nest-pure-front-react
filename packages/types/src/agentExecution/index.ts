@@ -3,7 +3,11 @@ import type { TaskDetail, UIChatMessage } from '../message';
 import type { ChatTopic } from '../topic';
 
 export type AgentSignalOperationKind =
-  'memory' | 'nightly-review' | 'self-feedback-intent' | 'self-reflection' | 'skill';
+  | 'memory'
+  | 'nightly-review'
+  | 'self-feedback-intent'
+  | 'self-reflection'
+  | 'skill';
 
 /**
  * Run-scoped Agent Signal marker stamped onto a background agent operation at

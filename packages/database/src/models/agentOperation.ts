@@ -75,7 +75,12 @@ export interface RecordOperationCompletionParams {
   /** Backfill the executed provider — see {@link RecordOperationCompletionParams.model}. */
   provider?: string | null;
   status:
-    'running' | 'waiting_for_human' | 'waiting_for_async_tool' | 'done' | 'error' | 'interrupted';
+    | 'running'
+    | 'waiting_for_human'
+    | 'waiting_for_async_tool'
+    | 'done'
+    | 'error'
+    | 'interrupted';
   stepCount?: number | null;
   toolCalls?: number | null;
   totalCost?: number | null;

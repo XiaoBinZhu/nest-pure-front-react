@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "sideEffects": false,
+  "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
     "./askUser": "./src/askUser/index.ts",
@@ -15,7 +16,6 @@
     "./spawn": "./src/spawn/index.ts",
     "./transcript": "./src/transcript/index.ts"
   },
-  "main": "./src/index.ts",
   "scripts": {
     "test": "vitest",
     "test:coverage": "vitest --coverage --silent='passed-only'"

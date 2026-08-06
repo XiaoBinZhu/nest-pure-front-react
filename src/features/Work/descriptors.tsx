@@ -55,7 +55,8 @@ export const isSafeExternalUrl = (url?: string | null): url is string => {
 
 /** Narrow a Work list/summary union member to the variants of a single type. */
 type WorkItemOfType<T extends WorkType> =
-  Extract<WorkListItem, { type: T }> | Extract<WorkSummaryItem, { type: T }>;
+  | Extract<WorkListItem, { type: T }>
+  | Extract<WorkSummaryItem, { type: T }>;
 
 interface WorkTypeDescriptor<Item extends WorkListItem | WorkSummaryItem> {
   /**

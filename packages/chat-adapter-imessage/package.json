@@ -2,13 +2,13 @@
   "name": "@lobechat/chat-adapter-imessage",
   "version": "0.1.0",
   "description": "iMessage adapter for chat SDK via BlueBubbles",
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "tsup",
     "clean": "rm -rf dist",

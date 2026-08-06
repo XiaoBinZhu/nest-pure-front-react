@@ -16,7 +16,8 @@ const CredentialExtras = memo<PlatformCredentialExtrasProps>(({ disabled }) => {
   const { message } = App.useApp();
   const form = AntdForm.useFormInstance();
   const channelAccessToken = AntdForm.useWatch(['credentials', 'channelAccessToken'], form) as
-    string | undefined;
+    | string
+    | undefined;
   const [loading, setLoading] = useState(false);
 
   const lineFetchBotInfo = useAgentStore((s) => s.lineFetchBotInfo);

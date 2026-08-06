@@ -523,7 +523,8 @@ export class OnboardingService {
       };
     } else {
       let discoveryContext:
-        { currentUserMessageCount: number; startUserMessageCount: number } | undefined;
+        | { currentUserMessageCount: number; startUserMessageCount: number }
+        | undefined;
 
       if (topicId) {
         const pastPreDiscovery =
@@ -656,7 +657,8 @@ export class OnboardingService {
 
     let currentUserMessageCount: number | undefined;
     let discoveryContext:
-      { currentUserMessageCount: number; startUserMessageCount: number } | undefined;
+      | { currentUserMessageCount: number; startUserMessageCount: number }
+      | undefined;
 
     // Build discovery context if we have a topic and are past agent_identity + user_identity
     if (topicId) {

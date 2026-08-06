@@ -34,7 +34,13 @@ export const buildResourcePermissionState = (params: {
 });
 
 export type ResourceAccessAction =
-  'changeVisibility' | 'delete' | 'edit' | 'manage' | 'transfer' | 'use' | 'view';
+  | 'changeVisibility'
+  | 'delete'
+  | 'edit'
+  | 'manage'
+  | 'transfer'
+  | 'use'
+  | 'view';
 
 const RESOURCE_ACTIONS: Record<
   PermissionResourceType,

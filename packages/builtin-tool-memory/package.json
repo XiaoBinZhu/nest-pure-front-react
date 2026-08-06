@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
     "./client": "./src/client/index.ts",
     "./executor": "./src/executor/index.ts",
     "./executionRuntime": "./src/ExecutionRuntime/index.ts"
   },
-  "main": "./src/index.ts",
   "scripts": {},
   "dependencies": {
     "@lobechat/memory-user-memory": "workspace:*",

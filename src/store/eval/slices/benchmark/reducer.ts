@@ -19,7 +19,9 @@ type DeleteBenchmarkDetailAction = {
 };
 
 export type BenchmarkDetailDispatch =
-  SetBenchmarkDetailAction | UpdateBenchmarkDetailAction | DeleteBenchmarkDetailAction;
+  | SetBenchmarkDetailAction
+  | UpdateBenchmarkDetailAction
+  | DeleteBenchmarkDetailAction;
 
 export const benchmarkDetailReducer = (
   state: Record<string, AgentEvalBenchmark> = {},

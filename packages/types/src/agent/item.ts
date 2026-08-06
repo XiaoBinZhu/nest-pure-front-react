@@ -100,7 +100,8 @@ export interface LobeAgentConfig {
 }
 
 export type LobeAgentConfigKeys =
-  keyof LobeAgentConfig | ['params', keyof LobeAgentConfig['params']];
+  | keyof LobeAgentConfig
+  | ['params', keyof LobeAgentConfig['params']];
 
 /**
  * Zod schema for creating a new agent.

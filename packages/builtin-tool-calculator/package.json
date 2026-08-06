@@ -2,12 +2,12 @@
   "name": "@lobechat/builtin-tool-calculator",
   "version": "1.0.0",
   "private": true,
+  "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
     "./client": "./src/client/index.ts",
     "./executor": "./src/executor/index.ts"
   },
-  "main": "./src/index.ts",
   "dependencies": {
     "@lobechat/prompts": "workspace:*",
     "@thi.ng/base-n": "^2.7.71",

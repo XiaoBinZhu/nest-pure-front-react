@@ -258,13 +258,14 @@ export const FileItemHeader = memo<FileItemHeaderProps>(
     return (
       <div className={styles.header}>
         <span className={styles.pathWrapper} title={filePath}>
-          {!hideDir && dir && (
-            // bdi keeps the dir's visual order LTR while the span is
-            // direction: rtl for head-side truncation of leading segments.
-            <span className={styles.dir}>
-              <bdi dir={'ltr'}>{dir}</bdi>
-            </span>
-          )}
+          {!hideDir &&
+            dir && (
+              // bdi keeps the dir's visual order LTR while the span is
+              // direction: rtl for head-side truncation of leading segments.
+              <span className={styles.dir}>
+                <bdi dir={'ltr'}>{dir}</bdi>
+              </span>
+            )}
           <span className={styles.fileName}>{fileName}</span>
         </span>
         <span className={styles.stats}>

@@ -78,7 +78,8 @@ const ExecuteTasksRender = memo<BuiltinRenderProps<ExecuteTasksParams, unknown, 
       return tasks.map((task) => ({
         ...task,
         agent: groupAgents.find((agent) => agent.id === task.agentId) as
-          AgentGroupMember | undefined,
+          | AgentGroupMember
+          | undefined,
       }));
     }, [tasks, groupAgents]);
 

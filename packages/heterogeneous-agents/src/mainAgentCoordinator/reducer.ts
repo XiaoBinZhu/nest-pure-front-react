@@ -65,7 +65,8 @@ const normalizeErrorText = (value?: string) => value?.replaceAll(/\s+/g, ' ').tr
  */
 const shouldSuppressTerminalErrorEcho = (content: string, errorData: unknown): boolean => {
   const body = errorData as
-    { clearEchoedContent?: boolean; code?: string; message?: string; stderr?: string } | undefined;
+    | { clearEchoedContent?: boolean; code?: string; message?: string; stderr?: string }
+    | undefined;
   // Keep in sync with the interpreters' ECHO_TRIGGER_CODES.
   if (!body?.clearEchoedContent && body?.code !== 'AuthRequired') return false;
   const normalizedContent = normalizeErrorText(content);

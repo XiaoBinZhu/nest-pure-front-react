@@ -78,7 +78,9 @@ export interface ModifyDocumentRemoveOperation {
 }
 
 export type ModifyDocumentOperation =
-  ModifyDocumentInsertOperation | ModifyDocumentRemoveOperation | ModifyDocumentUpdateOperation;
+  | ModifyDocumentInsertOperation
+  | ModifyDocumentRemoveOperation
+  | ModifyDocumentUpdateOperation;
 
 export interface ModifyDocumentNodesArgs {
   id: string;

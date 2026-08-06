@@ -39,7 +39,13 @@ export enum GroupSettingsTabs {
 
 // business builds may register extra sidebar tabs, so any string key is accepted
 export type WorkingSidebarTab =
-  'browser' | 'files' | 'overview' | 'params' | 'resources' | 'review' | (string & {});
+  | 'browser'
+  | 'files'
+  | 'overview'
+  | 'params'
+  | 'resources'
+  | 'review'
+  | (string & {});
 
 export const DEFAULT_RESOURCE_MANAGER_COLUMN_WIDTHS = {
   date: 160,
@@ -384,7 +390,10 @@ export interface SystemStatus {
  * overlay is empty.
  */
 export type WorkspaceOverridableField =
-  'expandSessionGroupKeys' | 'hiddenSidebarSections' | 'sidebarExpandedKeys' | 'sidebarItems';
+  | 'expandSessionGroupKeys'
+  | 'hiddenSidebarSections'
+  | 'sidebarExpandedKeys'
+  | 'sidebarItems';
 
 export const WORKSPACE_OVERRIDABLE_FIELDS = [
   'expandSessionGroupKeys',

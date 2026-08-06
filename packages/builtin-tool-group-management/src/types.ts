@@ -158,7 +158,12 @@ export interface VoteResult {
 // ==================== State Types for UI Rendering ====================
 
 export type ExecuteTaskStatus =
-  'processing' | 'completed' | 'failed' | 'cancelled' | 'timeout' | 'interrupted';
+  | 'processing'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'timeout'
+  | 'interrupted';
 
 export interface ExecuteTaskState {
   cost?: { total: number };

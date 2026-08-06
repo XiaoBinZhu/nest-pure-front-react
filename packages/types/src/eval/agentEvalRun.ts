@@ -6,7 +6,13 @@ import type { AgentEvalDataset } from './agentEvalDataset';
 // ============================================
 
 export type AgentEvalRunStatus =
-  'aborted' | 'completed' | 'failed' | 'idle' | 'pending' | 'external' | 'running';
+  | 'aborted'
+  | 'completed'
+  | 'failed'
+  | 'idle'
+  | 'pending'
+  | 'external'
+  | 'running';
 
 export interface AgentEvalRunTargetAgent {
   avatar?: string;

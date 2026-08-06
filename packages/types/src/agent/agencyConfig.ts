@@ -11,7 +11,11 @@ export const HETEROGENEOUS_AGENT_DEFAULT_SELECTION = 'default' as const;
 export type HeterogeneousAgentDefaultSelection = typeof HETEROGENEOUS_AGENT_DEFAULT_SELECTION;
 
 export type HeterogeneousAgentModelCatalogErrorCode =
-  'cli_not_found' | 'command_failed' | 'device_unavailable' | 'timeout' | 'unsupported_client';
+  | 'cli_not_found'
+  | 'command_failed'
+  | 'device_unavailable'
+  | 'timeout'
+  | 'unsupported_client';
 
 /** One model reported by a heterogeneous CLI's device-local model catalog. */
 export interface HeterogeneousAgentModel {
@@ -46,7 +50,8 @@ export interface HeterogeneousAgentModelCatalogFailure {
 }
 
 export type HeterogeneousAgentModelCatalog =
-  HeterogeneousAgentModelCatalogFailure | HeterogeneousAgentModelCatalogSuccess;
+  | HeterogeneousAgentModelCatalogFailure
+  | HeterogeneousAgentModelCatalogSuccess;
 
 /**
  * Claude Code reasoning-effort levels, mirrored 1:1 with the CLI's
@@ -92,7 +97,9 @@ const CODEX_ULTRA_REASONING_MODELS = ['gpt-5.6', 'gpt-5.6-sol', 'gpt-5.6-terra']
 const CODEX_MAX_REASONING_MODELS = ['gpt-5.6-luna'] as const;
 
 export type HeterogeneousReasoningEffort =
-  ClaudeCodeReasoningEffort | CodexReasoningEffort | HeterogeneousAgentDefaultSelection;
+  | ClaudeCodeReasoningEffort
+  | CodexReasoningEffort
+  | HeterogeneousAgentDefaultSelection;
 
 /**
  * Codex speed modes, mirrored to the CLI config key `service_tier`.

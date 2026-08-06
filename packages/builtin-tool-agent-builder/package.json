@@ -2,12 +2,12 @@
   "name": "@lobechat/builtin-tool-agent-builder",
   "version": "1.0.0",
   "private": true,
+  "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
     "./client": "./src/client/index.ts",
     "./executor": "./src/executor.ts"
   },
-  "main": "./src/index.ts",
   "dependencies": {
     "@lobechat/agent-manager-runtime": "workspace:*",
     "@lobechat/const": "workspace:*",

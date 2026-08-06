@@ -2,6 +2,7 @@
   "name": "@lobechat/const",
   "version": "1.0.0",
   "private": true,
+  "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
     "./currency": "./src/currency.ts",
@@ -12,7 +13,6 @@
     "./verify": "./src/verify.ts",
     "./visualRef": "./src/visualRef.ts"
   },
-  "main": "./src/index.ts",
   "dependencies": {
     "@lobechat/business-const": "workspace:*",
     "query-string": "^9.4.1",

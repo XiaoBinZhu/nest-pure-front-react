@@ -276,23 +276,25 @@ const DeviceItem = memo<DeviceItemProps>(({ device, isCurrent, onSelect, selecte
           </Text>
           <span className={online ? styles.statusOnline : styles.statusOffline} />
           {isCurrent && <Tag>{t('devices.currentBadge')}</Tag>}
-          {device.scope === 'workspace' && device.sharedFromPersonal && (
-            // Member-shared machine (vs directly enrolled infra) — mirrors the
-            // "Shared by {name}" tag on workspace connectors/credentials.
-            <Tag>
-              {t('devices.share.sharedByTag', {
-                name:
-                  device.enroller?.fullName ||
-                  device.enroller?.username ||
-                  t('workspaceSetting.devices.unknownEnroller'),
-              })}
-            </Tag>
-          )}
-          {device.scope === 'personal' && !!device.sharedWorkspaces?.length && (
-            // At-a-glance "this machine also lives in N workspaces" marker;
-            // the per-workspace list (and revoke) sits in the detail panel.
-            <Tag>{t('devices.share.badge', { count: device.sharedWorkspaces.length })}</Tag>
-          )}
+          {device.scope === 'workspace' &&
+            device.sharedFromPersonal && (
+              // Member-shared machine (vs directly enrolled infra) — mirrors the
+              // "Shared by {name}" tag on workspace connectors/credentials.
+              <Tag>
+                {t('devices.share.sharedByTag', {
+                  name:
+                    device.enroller?.fullName ||
+                    device.enroller?.username ||
+                    t('workspaceSetting.devices.unknownEnroller'),
+                })}
+              </Tag>
+            )}
+          {device.scope === 'personal' &&
+            !!device.sharedWorkspaces?.length && (
+              // At-a-glance "this machine also lives in N workspaces" marker;
+              // the per-workspace list (and revoke) sits in the detail panel.
+              <Tag>{t('devices.share.badge', { count: device.sharedWorkspaces.length })}</Tag>
+            )}
           {isFallback && (
             <Tooltip title={t('devices.fallbackTooltip')}>
               <Tag icon={<Icon icon={TriangleAlertIcon} />}>{t('devices.fallbackBadge')}</Tag>
@@ -316,23 +318,24 @@ const DeviceItem = memo<DeviceItemProps>(({ device, isCurrent, onSelect, selecte
       </Flexbox>
 
       <Flexbox horizontal align={'center'} gap={8} style={{ flex: 'none' }}>
-        {device.scope === 'workspace' && device.enroller && (
-          // Enroller avatar — the at-a-glance "who put this here" answer for
-          // shared workspace pools. Hidden in personal scope (always the
-          // caller) and for ghost rows (no row yet).
-          <Tooltip
-            title={t('workspaceSetting.devices.enrolledBy', {
-              name:
-                device.enroller.fullName ||
-                device.enroller.username ||
-                t('workspaceSetting.devices.unknownEnroller'),
-            })}
-          >
-            <span onClick={(e) => e.stopPropagation()}>
-              <Avatar avatar={device.enroller.avatar ?? undefined} size={20} />
-            </span>
-          </Tooltip>
-        )}
+        {device.scope === 'workspace' &&
+          device.enroller && (
+            // Enroller avatar — the at-a-glance "who put this here" answer for
+            // shared workspace pools. Hidden in personal scope (always the
+            // caller) and for ghost rows (no row yet).
+            <Tooltip
+              title={t('workspaceSetting.devices.enrolledBy', {
+                name:
+                  device.enroller.fullName ||
+                  device.enroller.username ||
+                  t('workspaceSetting.devices.unknownEnroller'),
+              })}
+            >
+              <span onClick={(e) => e.stopPropagation()}>
+                <Avatar avatar={device.enroller.avatar ?? undefined} size={20} />
+              </span>
+            </Tooltip>
+          )}
         {canEdit && (
           <span onClick={(e) => e.stopPropagation()}>
             <DropdownMenu

@@ -16,25 +16,22 @@ export const lobehubPipelines: PipelineEntry[] = [
   },
   {
     exts: ['.mdx'],
-    tools: [
-      ['remark', '-r', './.remarkrc.mdx.mjs', '--silent', '--output', '--'],
-      ['eslint', '--quiet', '--fix'],
-    ],
+    tools: [['remark', '-r', './.remarkrc.mdx.mjs', '--silent', '--output', '--']],
   },
-  { exts: ['.json'], tools: [['prettier', '--write']] },
+  { exts: ['.json'], tools: [['oxfmt']] },
   {
     exts: ['.mjs', '.cjs'],
     tools: [
-      ['eslint', '--fix'],
-      ['prettier', '--write'],
+      ['oxlint', '--fix'],
+      ['oxfmt'],
     ],
   },
   {
     exts: ['.js', '.jsx'],
     tools: [
-      ['eslint', '--fix'],
+      ['oxlint', '--fix'],
       ['stylelint', '--fix'],
-      ['prettier', '--write'],
+      ['oxfmt'],
     ],
   },
   {
@@ -42,9 +39,8 @@ export const lobehubPipelines: PipelineEntry[] = [
     exts: ['.ts', '.tsx', '.mts', '.cts'],
     tools: [
       ['stylelint', '--fix'],
-      ['eslint', '--fix'],
-      ['prettier', '--write'],
+      ['oxlint', '--fix'],
+      ['oxfmt'],
     ],
   },
-  { exts: ['.yml', '.yaml'], tools: [['eslint', '--fix']] },
 ];

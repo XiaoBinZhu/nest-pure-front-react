@@ -475,7 +475,9 @@ export const messageRuntime: ServerRuntimeRegistration = {
             applicationId: row.applicationId,
             enterpriseId:
               ((row.metadata as Record<string, unknown> | null)?.enterpriseId as
-                string | null | undefined) ?? null,
+                | string
+                | null
+                | undefined) ?? null,
             id: row.id,
             installedAt:
               row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -547,7 +549,9 @@ export const messageRuntime: ServerRuntimeRegistration = {
           applicationId: row.applicationId,
           enterpriseId:
             ((row.metadata as Record<string, unknown> | null)?.enterpriseId as
-              string | null | undefined) ?? null,
+              | string
+              | null
+              | undefined) ?? null,
           id: row.id,
           installedAt:
             row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),

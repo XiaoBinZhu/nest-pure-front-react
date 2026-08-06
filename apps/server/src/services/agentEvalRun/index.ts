@@ -1798,7 +1798,13 @@ export class AgentEvalRunService {
         rubricScores: meta.rubricScores as any,
         score: meta.score as number | undefined,
         status: meta.status as
-          'error' | 'external' | 'failed' | 'passed' | 'running' | 'timeout' | undefined,
+          | 'error'
+          | 'external'
+          | 'failed'
+          | 'passed'
+          | 'running'
+          | 'timeout'
+          | undefined,
         steps: meta.steps as number | undefined,
         threadId: t.id,
         tokens: meta.tokens as number | undefined,

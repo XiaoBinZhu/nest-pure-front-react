@@ -84,7 +84,8 @@ export interface RuntimeContext {
  * - Object: BuiltinAgentRuntimeResult (static config)
  */
 export type BuiltinAgentRuntimeConfig =
-  ((ctx: RuntimeContext) => BuiltinAgentRuntimeResult) | BuiltinAgentRuntimeResult;
+  | ((ctx: RuntimeContext) => BuiltinAgentRuntimeResult)
+  | BuiltinAgentRuntimeResult;
 
 /**
  * Builtin Agent Definition - complete definition with persist and runtime parts

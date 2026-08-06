@@ -25,7 +25,8 @@ export const resolveRunActiveDeviceId = (metadata?: {
   executionPlan?: unknown;
 }): string | undefined => {
   const devicePolicy = metadata?.deviceAccessPolicy as
-    { canUseDevice: boolean; reason: DeviceAccessReason } | undefined;
+    | { canUseDevice: boolean; reason: DeviceAccessReason }
+    | undefined;
   const executionPlan = metadata?.executionPlan as ExecutionPlan | undefined;
   const planAllowsDevice = !executionPlan || isDeviceCapablePlan(executionPlan);
 

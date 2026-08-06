@@ -125,7 +125,8 @@ export const DynamicInterventionConfigSchema = z.object({
  * Extended human intervention config that supports dynamic evaluation
  */
 export type ExtendedHumanInterventionConfig =
-  HumanInterventionConfig | { dynamic: DynamicInterventionConfig };
+  | HumanInterventionConfig
+  | { dynamic: DynamicInterventionConfig };
 
 export const ExtendedHumanInterventionConfigSchema = z.union([
   HumanInterventionConfigSchema,
@@ -306,7 +307,10 @@ export interface BuiltinToolResolveContext {
    * remote-device picker is active) need different prompt wording.
    */
   executionEnvUnroutedReason?:
-    'ambiguous-online-devices' | 'bound-device-offline' | 'no-bound-device' | 'no-online-device';
+    | 'ambiguous-online-devices'
+    | 'bound-device-offline'
+    | 'no-bound-device'
+    | 'no-online-device';
   /**
    * True when running inside a sub-agent execution. A nested sub-agent must not
    * be able to dispatch further sub-agents.

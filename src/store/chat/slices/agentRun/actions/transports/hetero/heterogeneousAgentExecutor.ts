@@ -182,7 +182,8 @@ const maybeClassifyCliAuthRequiredError = (
 
 const shouldSuppressTerminalErrorEcho = (content: string, error: ChatMessageError): boolean => {
   const errorBody = error.body as
-    (HeterogeneousAgentSessionError & { clearEchoedContent?: boolean }) | undefined;
+    | (HeterogeneousAgentSessionError & { clearEchoedContent?: boolean })
+    | undefined;
   if (
     !errorBody?.clearEchoedContent &&
     errorBody?.code !== HeterogeneousAgentSessionErrorCode.AuthRequired

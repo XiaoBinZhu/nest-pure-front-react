@@ -8,7 +8,8 @@ import { ConnectorSourceType } from '@/database/schemas';
  */
 export interface MigrationCreatePayload {
   credentials?:
-    { token: string; type: 'bearer' } | { headers: Record<string, string>; type: 'header' };
+    | { token: string; type: 'bearer' }
+    | { headers: Record<string, string>; type: 'header' };
   identifier: string;
   isEnabled: true;
   mcpConnectionType: 'http' | 'stdio' | 'cloud';

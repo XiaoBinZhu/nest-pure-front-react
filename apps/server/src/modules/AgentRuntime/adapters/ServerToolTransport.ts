@@ -121,7 +121,8 @@ export class ServerToolTransport implements ToolTransport {
 
       if (isDeviceToolIdentifier(chatToolPayload.identifier) && !hookResult?.isMocked) {
         const policy = context.state.metadata?.deviceAccessPolicy as
-          { canUseDevice: boolean; reason: DeviceAccessReason } | undefined;
+          | { canUseDevice: boolean; reason: DeviceAccessReason }
+          | undefined;
         logDeviceToolAudit({
           apiName: chatToolPayload.apiName,
           botContext: context.state.metadata?.botContext,

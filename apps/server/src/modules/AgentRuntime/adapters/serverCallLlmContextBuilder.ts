@@ -218,7 +218,8 @@ export const buildServerCallLlmContext = async ({
   const lobehubSkillAgentId = state.metadata?.agentId;
   const lobehubSkillTopicId = state.metadata?.topicId;
   const lobehubSkillAgentMeta = state.metadata?.agentConfig as
-    { description?: string | null; title?: string | null } | undefined;
+    | { description?: string | null; title?: string | null }
+    | undefined;
 
   let lobehubSkillTopicTitle = '';
   if (lobehubSkillTopicId && ctx.serverDB && ctx.userId) {

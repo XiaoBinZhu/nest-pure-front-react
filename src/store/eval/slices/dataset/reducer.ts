@@ -19,7 +19,9 @@ type DeleteDatasetDetailAction = {
 };
 
 export type DatasetDetailDispatch =
-  SetDatasetDetailAction | UpdateDatasetDetailAction | DeleteDatasetDetailAction;
+  | SetDatasetDetailAction
+  | UpdateDatasetDetailAction
+  | DeleteDatasetDetailAction;
 
 export const datasetDetailReducer = (
   state: Record<string, AgentEvalDataset> = {},

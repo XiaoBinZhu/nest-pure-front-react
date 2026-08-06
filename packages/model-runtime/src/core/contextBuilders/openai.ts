@@ -26,7 +26,9 @@ const isDeepSeekModel = (model: string | undefined) =>
   typeof model === 'string' && model.toLowerCase().includes('deepseek');
 
 type OpenAICompatibleContentPart =
-  ExtendedChatCompletionContentPart | OpenAI.ChatCompletionContentPart | UserMessageContentPart;
+  | ExtendedChatCompletionContentPart
+  | OpenAI.ChatCompletionContentPart
+  | UserMessageContentPart;
 
 const isInternalThinkingContentPart = (
   content: OpenAICompatibleContentPart,

@@ -2,12 +2,12 @@
   "name": "@lobechat/builtin-tool-lobe-agent",
   "version": "1.0.0",
   "private": true,
+  "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
     "./client": "./src/client/index.ts",
     "./client/executor": "./src/client/executor/index.ts"
   },
-  "main": "./src/index.ts",
   "scripts": {
     "test": "vitest",
     "test:coverage": "vitest --coverage --silent='passed-only'",

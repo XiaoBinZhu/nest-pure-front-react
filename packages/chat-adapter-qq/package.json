@@ -2,13 +2,13 @@
   "name": "@lobechat/chat-adapter-qq",
   "version": "0.1.0",
   "description": "QQ Bot adapter for chat SDK",
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "tsup",
     "clean": "rm -rf dist",
