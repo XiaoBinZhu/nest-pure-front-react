@@ -1,34 +1,11 @@
 {
   "editor.codeActionsOnSave": {
     "source.addMissingImports": "explicit",
-    "source.fixAll.eslint": "explicit",
+    "source.fixAll.oxlint": "explicit",
     "source.fixAll.stylelint": "explicit"
   },
   "editor.formatOnSave": true,
-  // don't show errors, but fix when save and git pre commit
-  "eslint.rules.customizations": [
-    {
-      "rule": "simple-import-sort/exports",
-      "severity": "off"
-    },
-    {
-      "rule": "perfectionist/sort-interfaces",
-      "severity": "off"
-    },
-    {
-      "rule": "simple-import-sort/imports",
-      "severity": "off"
-    }
-  ],
-  "eslint.validate": [
-    "json",
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact",
-    // support mdx
-    "mdx"
-  ],
+  "oxlint.enable": true,
   "js/ts.tsdk.path": "node_modules/typescript/lib",
   "npm.packageManager": "pnpm",
   "search.exclude": {

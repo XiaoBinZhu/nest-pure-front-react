@@ -7,22 +7,27 @@ import type { LintOutcome, LintProblem, RepoMount } from './types';
 
 const filePrefix = (mount: RepoMount) => (mount.dir === '' ? '' : `${mount.dir}/`);
 
-const parseEslintJson = (stdout: string, mount: RepoMount): LintProblem[] | null => {
+const parseOxlintJson = (stdout: string, mount: RepoMount): LintProblem[] | null => {
   try {
     const results = JSON.parse(stdout) as {
-      filePath: string;
-      messages: { line?: number; message: string; ruleId: string | null; severity: number }[];
+      filename: string;
+      diagnostics: {
+        rule_id: string | null;
+        message: string;
+        severity: 1 | 2;
+        start: { line: number } | null;
+      }[];
     }[];
     return results.flatMap((result) =>
-      result.messages
-        // ruleId=null entries are eslint's own notices (e.g. ignored-file warnings)
-        .filter((message) => message.ruleId !== null)
-        .map((message) => ({
-          file: filePrefix(mount) + path.relative(mountDir(mount), result.filePath),
-          line: message.line ?? 0,
-          message: message.message,
-          rule: message.ruleId ?? '',
-          severity: message.severity === 2 ? ('error' as const) : ('warning' as const),
+      result.diagnostics
+        // rule_id=null entries are oxlint's own notices
+        .filter((diagnostic) => diagnostic.rule_id !== null)
+        .map((diagnostic) => ({
+          file: filePrefix(mount) + path.relative(mountDir(mount), result.filename),
+          line: diagnostic.start?.line ?? 0,
+          message: diagnostic.message,
+          rule: diagnostic.rule_id ?? '',
+          severity: diagnostic.severity === 2 ? ('error' as const) : ('warning' as const),
         })),
     );
   } catch {
@@ -62,17 +67,13 @@ export const lintGroup = async (
 
   for (const toolArgs of tools) {
     const [tool] = toolArgs;
-    if (tool === 'eslint') {
-      const result = await runTool(
-        mount,
-        [...toolArgs, '--format', 'json', '--no-warn-ignored'],
-        subPaths,
-      );
-      const problems = parseEslintJson(result.stdout, mount);
+    if (tool === 'oxlint') {
+      const result = await runTool(mount, [...toolArgs, '--format', 'json'], subPaths);
+      const problems = parseOxlintJson(result.stdout, mount);
       if (problems) outcome.problems.push(...problems);
       else if (result.code !== 0)
         outcome.fatal.push(
-          `eslint(${mountLabel(mount)}): ${result.stderr.trim() || result.stdout.trim()}`,
+          `oxlint(${mountLabel(mount)}): ${result.stderr.trim() || result.stdout.trim()}`,
         );
     } else if (tool === 'stylelint') {
       const scoped = subPaths.filter((subPath) => stylelintApplies(subPath));

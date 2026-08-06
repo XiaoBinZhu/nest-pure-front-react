@@ -47,7 +47,6 @@ interface IControllerModule {
 export class ControllerModule extends IpcService implements IControllerModule {
   constructor(public app: App) {
     super();
-    this.app = app;
   }
 }
 

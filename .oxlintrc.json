@@ -1,0 +1,88 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn",
+    "pedantic": "off",
+    "nursery": "off",
+    "style": "off",
+    "restriction": "off"
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2022": true
+  },
+  "ignorePatterns": [
+    "node_modules",
+    "coverage",
+    ".coverage",
+    "dist",
+    "es",
+    "lib",
+    "logs",
+    ".next",
+    "tmp",
+    "temp",
+    ".temp",
+    ".local",
+    "docs/.local",
+    ".cache",
+    ".claude",
+    ".serena",
+    "**/*.md",
+    "**/*.mdx"
+  ],
+  "overrides": [
+    {
+      "files": ["scripts/**/*"],
+      "rules": {
+        "unicorn/no-process-exit": "off",
+        "unicorn/prefer-top-level-await": "off"
+      }
+    },
+    {
+      "files": ["e2e/**/*", "**/*.test.ts", "**/*.test.tsx"],
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
+      "files": [
+        "packages/agent-tracing/**/*",
+        "apps/cli/**/*",
+        "packages/model-runtime/src/utils/debugStream.ts"
+      ],
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
+      "files": ["**/*.cjs"],
+      "rules": {
+        "no-require-imports": "off"
+      }
+    }
+  ],
+  "plugins": ["typescript", "react", "unicorn", "oxc", "import", "promise"],
+  "rules": {
+    "no-console": "off",
+    "no-extra-boolean-cast": "off",
+    "no-use-before-define": "off",
+    "no-require-imports": "off",
+    "no-unused-vars": "warn",
+    "no-unsafe-optional-chaining": "off",
+    "import/default": "off",
+    "promise/valid-params": "off",
+    "unicorn/no-useless-fallback-in-spread": "off",
+    "react/react-in-jsx-scope": "off",
+    "react/no-children-prop": "off",
+    "react/no-array-index-key": "off",
+    "react-hooks/exhaustive-deps": "warn",
+    "unicorn/no-process-exit": "off",
+    "unicorn/prefer-top-level-await": "off",
+    "unicorn/no-useless-spread": "off",
+    "consistent-type-imports": "error"
+  }
+}
