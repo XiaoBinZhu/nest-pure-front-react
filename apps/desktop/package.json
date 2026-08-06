@@ -28,7 +28,7 @@
     "lint:circular:packages": "dpdm packages/**/src/**/*.ts  --no-warning --no-tree --exit-code circular:1 --no-progress -T true --skip-dynamic-imports circular",
     "lint:md": "remark . --silent --output",
     "lint:style": "stylelint \"{src,tests}/**/*.{js,jsx,ts,tsx}\" --fix",
-    "lint:ts": "oxlint \"{src,tests}\" --fix",
+    "lint:ts": "oxlint src tests --fix",
     "package:linux": "npm run build:main && electron-builder --linux --config electron-builder.mjs  --publish never",
     "package:local": "npm run build:main && electron-builder --dir --config electron-builder.mjs  --c.mac.notarize=false -c.mac.identity=null --c.asar=false",
     "package:local:reuse": "electron-builder --dir --config electron-builder.mjs  --c.mac.notarize=false -c.mac.identity=null --c.asar=false",
