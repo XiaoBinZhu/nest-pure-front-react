@@ -16,8 +16,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
@@ -26,10 +26,10 @@ jobs:
           package-manager-cache: false
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: bun install --frozen-lockfile
 
       - name: Build SPA for production
-        run: pnpm run build:spa
+        run: bun run build:spa
         env:
           NODE_OPTIONS: "--max-old-space-size=8192"
           VITE_CDN_BASE: "/"
@@ -38,6 +38,11 @@ jobs:
         run: |
           ls -la dist/desktop/
           test -f dist/desktop/index.html && echo "✅ index.html exists"
+          # 预压缩产物应已生成 (compressSpa.mts)
+          gz_count=$(find dist/desktop -name '*.gz' | wc -l)
+          br_count=$(find dist/desktop -name '*.br' | wc -l)
+          echo "✅ gzip files: $gz_count, brotli files: $br_count"
+          [ "$gz_count" -gt 0 ] || { echo "❌ no .gz files generated"; exit 1; }
 
       - name: Pack build artifacts
         run: tar -czf deploy-spa.tar.gz -C dist/desktop .
@@ -100,6 +105,96 @@ jobs:
             rm -f /tmp/lobehub-spa-deploy/deploy-spa.tar.gz
             echo "✅ LobeHub SPA deployed to /usr/share/nginx/front/"
 
+      - name: Deploy nginx config
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          port: 22
+          source: "docker-compose/deploy/nginx/c-end.conf"
+          target: "/tmp/lobehub-spa-deploy"
+
+      - name: Apply nginx config and reload
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          port: 22
+          script: |
+            set -e
+
+            if ! sudo -n true 2>/dev/null; then
+              echo "⚠️  sudo 需要密码，跳过 nginx 配置更新"
+              exit 0
+            fi
+
+            CONF_SRC="/tmp/lobehub-spa-deploy/c-end.conf"
+            CONF_DST="/usr/share/nginx/conf.d/c-end.conf"
+            if [ ! -f "$CONF_SRC" ]; then
+              echo "ℹ️  无 nginx 配置变更，跳过"
+              exit 0
+            fi
+
+            # 备份现有配置
+            sudo cp "$CONF_DST" "$CONF_DST.bak.$(date +%Y%m%d%H%M%S)" 2>/dev/null || true
+
+            # 安装新配置并校验
+            sudo cp "$CONF_SRC" "$CONF_DST"
+            if ! sudo nginx -t 2>&1; then
+              echo "❌ nginx 配置校验失败，回滚"
+              LATEST_BAK=$(ls -t "$CONF_DST".bak.* 2>/dev/null | head -1)
+              if [ -n "$LATEST_BAK" ]; then
+                sudo cp "$LATEST_BAK" "$CONF_DST"
+                sudo nginx -t && echo "🔄 已回滚到上一个可用配置"
+              fi
+              exit 1
+            fi
+
+            sudo nginx -s reload
+            rm -f "$CONF_SRC"
+            echo "✅ nginx 配置已更新并 reload"
+
+      - name: Health check
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          port: 22
+          script: |
+            set -e
+            BASE="http://127.0.0.1:8080"
+            HOST_HEADER="Host: www.007icu.top"
+
+            # 首页 200
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "$HOST_HEADER" "$BASE/")
+            echo "✅ 首页状态: $CODE"
+            [ "$CODE" = "200" ] || { echo "❌ 首页异常"; exit 1; }
+
+            # 静态资源存在且带 gzip 预压缩 (gzip_static 生效返回 Content-Encoding: gzip)
+            JS_FILE=$(ls /usr/share/nginx/front/assets/*.js 2>/dev/null | head -1 | xargs -r basename)
+            if [ -n "$JS_FILE" ]; then
+              ENC=$(curl -s -o /dev/null -D - -H "$HOST_HEADER" -H "Accept-Encoding: gzip" "$BASE/assets/$JS_FILE" | grep -i '^content-encoding' | tr -d '\r')
+              echo "✅ 静态资源 $JS_FILE: $ENC"
+              echo "$ENC" | grep -qi gzip || echo "⚠️  gzip 未生效（检查 gzip_static）"
+              CACHE=$(curl -s -o /dev/null -D - -H "$HOST_HEADER" "$BASE/assets/$JS_FILE" | grep -i '^cache-control' | tr -d '\r')
+              echo "✅ 缓存头: $CACHE"
+            fi
+
+            # tRPC mock 正常
+            TRPC=$(curl -s -o /dev/null -w "%{http_code}" -H "$HOST_HEADER" "$BASE/trpc/lambda/config.getGlobalConfig")
+            echo "✅ trpc mock 状态: $TRPC"
+            [ "$TRPC" = "200" ] || { echo "❌ trpc mock 异常"; exit 1; }
+
+            # manifest 存在
+            MANIFEST=$(curl -s -o /dev/null -w "%{http_code}" -H "$HOST_HEADER" "$BASE/manifest.webmanifest")
+            echo "✅ manifest 状态: $MANIFEST"
+            [ "$MANIFEST" = "200" ] || echo "⚠️  manifest 缺失"
+
+            echo "🎉 健康检查全部通过"
+
       - name: Rollback on failure
         if: failure()
         uses: appleboy/ssh-action@v1.0.3
@@ -113,6 +208,7 @@ jobs:
               if sudo -n true 2>/dev/null; then
                 sudo rm -rf /usr/share/nginx/front/*
                 sudo cp -a /usr/share/nginx/front.bak/. /usr/share/nginx/front/
+                echo "🔄 Rolled back to previous version"
               else
                 docker run --rm \
                   -v /usr/share/nginx/front:/app \
@@ -121,5 +217,4 @@ jobs:
                     cp -a /app.bak/. /app/
                   '
               fi
-              echo "🔄 Rolled back to previous version"
             fi

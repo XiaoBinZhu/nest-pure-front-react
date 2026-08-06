@@ -73,7 +73,7 @@ jobs:
         uses: ./.github/actions/setup-env
 
       - name: Install dependencies
-        run: pnpm install
+        run: bun install --frozen-lockfile
 
       - name: Generate OIDC test signing key
         run: |

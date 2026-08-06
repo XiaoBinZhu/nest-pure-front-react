@@ -1,3 +1,5 @@
+# Bun 配置
+# bun.lock 提交到仓库，保证 CI --frozen-lockfile 可复现构建
 [install.lockfile]
 
-save = false
+save = true
