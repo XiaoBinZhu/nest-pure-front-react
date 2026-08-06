@@ -14,9 +14,10 @@ import HighlightLayer from './HighlightLayer';
 import { styles } from './style';
 import useResizeObserver from './useResizeObserver';
 
+// jsdelivr 支持 CORS（npmmirror 无 Access-Control-Allow-Origin 头，浏览器加载 cmaps 会失败）
 const options = {
-  cMapUrl: `https://registry.npmmirror.com/pdfjs-dist/${pdfjs.version}/files/cmaps/`,
-  standardFontDataUrl: `https://registry.npmmirror.com/pdfjs-dist/${pdfjs.version}/files/standard_fonts/`,
+  cMapUrl: `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/cmaps/`,
+  standardFontDataUrl: `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
 };
 
 const maxWidth = 1200;
@@ -32,7 +33,6 @@ const PDFViewer = memo<PDFViewerProps>(({ url, fileId }) => {
   const [containerWidth, setContainerWidth] = useState<number>();
   const [isLoaded, setIsLoaded] = useState(false);
 
-   
   const onResize = useCallback<ResizeObserverCallback>((entries) => {
     const [entry] = entries;
 

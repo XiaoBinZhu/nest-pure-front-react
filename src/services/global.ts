@@ -9,7 +9,8 @@ import { electronSyncSelectors } from '@/store/electron/selectors';
 import { type LobeAgentConfig } from '@/types/agent';
 import { type GlobalRuntimeConfig } from '@/types/serverConfig';
 
-const VERSION_URL = 'https://registry.npmmirror.com/@lobehub/chat/latest';
+// jsdelivr 支持 CORS（npmmirror 无 Access-Control-Allow-Origin 头，浏览器直接 fetch 会 403）
+const VERSION_URL = 'https://cdn.jsdelivr.net/npm/@lobehub/chat/package.json';
 const SERVER_VERSION_URL = '/api/version';
 
 class GlobalService extends BusinessGlobalService {

@@ -43,7 +43,7 @@ const SPAGlobalProvider = memo<PropsWithChildren>(({ children }) => {
 
   return (
     <Locale defaultLang={locale}>
-      <AppTheme>
+      <AppTheme globalCDN={serverConfig?.globalCDN}>
         <ServerConfigStoreProvider
           featureFlags={serverConfig?.featureFlags}
           isMobile={isMobile}

@@ -29,9 +29,10 @@ const APP_URL = process.env.APP_URL
 // Falls back to APP_URL if not set
 const INTERNAL_APP_URL = process.env.INTERNAL_APP_URL || APP_URL;
 
-const ASSISTANT_INDEX_URL = 'https://registry.npmmirror.com/@lobehub/agents-index/v1/files/public';
+// unpkg 支持 CORS（npmmirror 无 Access-Control-Allow-Origin 头，浏览器端 fetch 会 403）
+const ASSISTANT_INDEX_URL = 'https://unpkg.com/@lobehub/agents-index@latest/v1/files/public';
 
-const PLUGINS_INDEX_URL = 'https://registry.npmmirror.com/@lobehub/plugins-index/v1/files/public';
+const PLUGINS_INDEX_URL = 'https://unpkg.com/@lobehub/plugins-index@latest/v1/files/public';
 
 export const getAppConfig = () => {
   return createEnv({

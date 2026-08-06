@@ -37,5 +37,7 @@ export interface SPAServerConfig {
   clientEnv: SPAClientEnv;
   config: GlobalServerConfig;
   featureFlags: Partial<IFeatureFlags>;
+  /** 资源 CDN 开关：true 时 @lobehub/ui 字体/静态资源走 unpkg（npmmirror 无 CORS 头） */
+  globalCDN?: boolean;
   isMobile: boolean;
 }
