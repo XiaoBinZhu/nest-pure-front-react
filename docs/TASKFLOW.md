@@ -83,6 +83,23 @@
 | M2 | 管理端 8 页面（Harness 会话 / Agent 团队 / 记忆画像 / 知识库 / 工作台产物 / Agent 市场 / HITL 审批 / UI 生成） | ✅ PASS（编译通过 + 已推 proc） |
 | M3 | 路由菜单组 /ai/c-end + api/ai/c-end.ts 封装 | ✅ PASS |
 
+## 阶段 6：C 端界面修复（2026-08-07）
+
+> 用户反馈"C 端界面问题很多"后全面排查修复，浏览器端到端验证通过。
+
+| # | 问题 | 根因 | 修复 | 状态 |
+|---|---|---|---|---|
+| F1 | 首页/页面空白 + tRPC 404 崩页面 | tRPC mock 仅 3 端点，其余 404 | vite mock 扩 11 端点 + 组合 batch + nginx 同步 | ✅ |
+| F2 | settings 无限 PUT 循环 | UserSettingsDto whitelist 剥离任意字段 | PUT 透传 + preference/settings 隔离 | ✅ |
+| F3 | onboarding 无限跳转 | updateGuide/getUserState 空实现 + completed 被 stepUpdateQueue 覆盖 | init-state 聚合接口 + updateOnboarding 只升不降 | ✅ |
+| F4 | 用户数据全空（settings/profile） | user service 未解包 {code,data} 信封 | 统一 unwrap 15 处 | ✅ |
+| F5 | 429 限流 | Throttler 100/min | 600/min | ✅ |
+| F6 | Harness 工具调用丢失 | deepseek 输出 <thinking>+```json 围栏，首行解析失败 | extractToolCall 兼容三格式（harness/agent/team） | ✅ |
+| F7 | market 页 categories.map 崩溃 | 后端返回 {list:[{name}]} 非数组 | service 适配 | ✅ |
+| F8 | 新页面缺失 | teams/hitl/knowledge/market 未建 | 4 页面 + 3 service + 路由 + i18n | ✅ |
+
+**端到端验证**：首页/登录守卫/onboarding/Harness（会话→终端→文件写入→文件树）/teams/hitl/knowledge/market 全部浏览器实测通过。
+
 ---
 
 ## 执行须知（给任意 AI 工具）
