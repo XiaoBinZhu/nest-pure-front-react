@@ -37,7 +37,12 @@ class MarketplaceService {
 
   getAgent = async (id: string) => unwrap<MarketAgent>(`/api/v1/c-end/marketplace/agents/${id}`);
 
-  getCategories = async () => unwrap<string[]>('/api/v1/c-end/marketplace/categories');
+  getCategories = async () => {
+    const res = await unwrap<{ list: Array<{ name: string; agentCount: number }> }>(
+      '/api/v1/c-end/marketplace/categories',
+    );
+    return (res?.list || []).map((c) => c.name);
+  };
 
   clone = async (id: string) => unwrap(`/api/v1/c-end/marketplace/${id}/clone`, { method: 'POST' });
 
