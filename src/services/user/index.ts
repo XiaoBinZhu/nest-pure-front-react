@@ -15,23 +15,29 @@ import {
 } from '@/types/user';
 import { type UserSettings } from '@/types/user/settings';
 
+// 统一解包 { code, data } 信封（后端响应统一包装，前端各 service 均需解包）
+async function unwrap<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await apiFetch<{ code: number; data: T }>(path, options);
+  return 'data' in (res as any) ? (res as any).data : (res as T);
+}
+
 export class UserService {
   // 活动摘要：GET /api/v1/c-end/user/activity-summary
   getUserActivitySummary = async (): Promise<{
     lastUserMessageAt: Date | null;
     userCreatedAt: Date | null;
   }> => {
-    return apiFetch('/api/v1/c-end/user/activity-summary');
+    return unwrap('/api/v1/c-end/user/activity-summary');
   };
 
   // 用户资料：GET /api/v1/c-end/user/profile
   getProfile = async () => {
-    return apiFetch('/api/v1/c-end/user/profile');
+    return unwrap('/api/v1/c-end/user/profile');
   };
 
   // 更新资料：PATCH /api/v1/c-end/user/profile
   updateProfile = async (data: Record<string, any>) => {
-    return apiFetch('/api/v1/c-end/user/profile', {
+    return unwrap('/api/v1/c-end/user/profile', {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
@@ -39,25 +45,25 @@ export class UserService {
 
   // 偏好：GET /api/v1/c-end/user/preferences
   getPreferences = async () => {
-    return apiFetch('/api/v1/c-end/user/preferences');
+    return unwrap('/api/v1/c-end/user/preferences');
   };
 
-  // 更新偏好：PUT /api/v1/c-end/user/preferences
+  // 更新偏好：PUT /api/v1/c-end/user/preferences（后端契约 body 需 { preferences } 包装，合并更新）
   updatePreferences = async (preference: Partial<UserPreference>) => {
-    return apiFetch('/api/v1/c-end/user/preferences', {
+    return unwrap('/api/v1/c-end/user/preferences', {
       method: 'PUT',
-      body: JSON.stringify(preference),
+      body: JSON.stringify({ preferences: preference }),
     });
   };
 
   // 设置：GET /api/v1/c-end/user/settings
   getSettings = async () => {
-    return apiFetch('/api/v1/c-end/user/settings');
+    return unwrap('/api/v1/c-end/user/settings');
   };
 
   // 更新设置：PUT /api/v1/c-end/user/settings
   updateSettings = async (value: PartialDeep<UserSettings>, signal?: AbortSignal) => {
-    return apiFetch('/api/v1/c-end/user/settings', {
+    return unwrap('/api/v1/c-end/user/settings', {
       method: 'PUT',
       body: JSON.stringify(value),
       signal,
@@ -71,11 +77,6 @@ export class UserService {
     updatedAt: string;
   }> => {
     return Promise.resolve({ createdAt: '', duration: 0, updatedAt: '' });
-  };
-
-  // TODO: Wave 2 - 待对接 nest-admin user state 接口
-  getUserState = async (): Promise<UserInitializationState> => {
-    return Promise.resolve({} as UserInitializationState);
   };
 
   // TODO: Wave 2 - 待对接 nest-admin SSO 接口
@@ -127,18 +128,38 @@ export class UserService {
   };
 
   // TODO: Wave 2 - 返回 any 以兼容调用方对返回值的类型期望
+  // 用户初始化状态：GET /api/v1/c-end/user/init-state（settings/preferences/onboarding 聚合）
+  getUserState = async (): Promise<UserInitializationState> => {
+    return unwrap('/api/v1/c-end/user/init-state');
+  };
+
+  // 更新引导状态：PATCH /api/v1/c-end/user/onboarding
+  updateOnboarding = async (onboarding: UserOnboarding) => {
+    return unwrap('/api/v1/c-end/user/onboarding', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        state: onboarding,
+        completed: !!onboarding.finishedAt,
+      }),
+    });
+  };
+
+  // 完成引导：PATCH onboarding completed=true
   finishOnboarding = async (): Promise<any> => {
-    return Promise.resolve({} as any);
+    return unwrap('/api/v1/c-end/user/onboarding', {
+      method: 'PATCH',
+      body: JSON.stringify({ state: { finishedAt: new Date().toISOString(), version: 1 }, completed: true }),
+    });
+  };
+
+  // 标记已引导（兼容旧调用）
+  makeUserOnboarded = async () => {
+    return this.finishOnboarding();
   };
 
   // TODO: Wave 2 - 返回 any 以兼容调用方对 .content/.id 的访问
   readOnboardingDocument = async (_type: 'soul' | 'persona'): Promise<any> => {
     return Promise.resolve({ content: '', id: '' } as any);
-  };
-
-  // TODO: Wave 2 - 返回 any 以兼容调用方对 .id 的访问
-  updateOnboardingDocument = async (_type: 'soul' | 'persona', _content: string): Promise<any> => {
-    return Promise.resolve({ id: '' } as any);
   };
 
   // TODO: Wave 2 - 返回 any 以兼容调用方对 .id/.applied 的访问
@@ -147,11 +168,6 @@ export class UserService {
     _hunks: MarkdownPatchHunk[],
   ): Promise<any> => {
     return Promise.resolve({ id: '', applied: 0 } as any);
-  };
-
-  // TODO: Wave 2
-  makeUserOnboarded = async () => {
-    return Promise.resolve();
   };
 
   // TODO: Wave 2 - 返回 any 以兼容调用方对 UserAgentOnboarding 的类型期望
@@ -164,14 +180,9 @@ export class UserService {
     return Promise.resolve(_agentOnboarding as any);
   };
 
-  // TODO: Wave 2
-  updateOnboarding = async (_onboarding: UserOnboarding) => {
-    return Promise.resolve();
-  };
-
   // 更新头像：PATCH /api/v1/c-end/user/profile
   updateAvatar = async (avatar: string) => {
-    return apiFetch('/api/v1/c-end/user/profile', {
+    return unwrap('/api/v1/c-end/user/profile', {
       method: 'PATCH',
       body: JSON.stringify({ avatar }),
     });
@@ -179,7 +190,7 @@ export class UserService {
 
   // 更新兴趣：PATCH /api/v1/c-end/user/profile
   updateInterests = async (interests: string[]) => {
-    return apiFetch('/api/v1/c-end/user/profile', {
+    return unwrap('/api/v1/c-end/user/profile', {
       method: 'PATCH',
       body: JSON.stringify({ interests }),
     });
@@ -187,7 +198,7 @@ export class UserService {
 
   // 更新全名：PATCH /api/v1/c-end/user/profile
   updateFullName = async (fullName: string) => {
-    return apiFetch('/api/v1/c-end/user/profile', {
+    return unwrap('/api/v1/c-end/user/profile', {
       method: 'PATCH',
       body: JSON.stringify({ fullName }),
     });
@@ -195,7 +206,7 @@ export class UserService {
 
   // 更新用户名：PATCH /api/v1/c-end/user/profile
   updateUsername = async (username: string) => {
-    return apiFetch('/api/v1/c-end/user/profile', {
+    return unwrap('/api/v1/c-end/user/profile', {
       method: 'PATCH',
       body: JSON.stringify({ username }),
     });
@@ -206,9 +217,12 @@ export class UserService {
     return this.updatePreferences(preference);
   };
 
-  // TODO: Wave 2 - 待对接 nest-admin guide 接口
-  updateGuide = async (_guide: Partial<UserGuide>) => {
-    return Promise.resolve();
+  // 更新引导状态（onboarding 完成/向导关闭）：存 preference.guide
+  updateGuide = async (guide: Partial<UserGuide>) => {
+    return unwrap('/api/v1/c-end/user/preferences', {
+      method: 'PUT',
+      body: JSON.stringify({ preferences: { guide } }),
+    });
   };
 
   // 更新设置（兼容原方法名）：PUT /api/v1/c-end/user/settings

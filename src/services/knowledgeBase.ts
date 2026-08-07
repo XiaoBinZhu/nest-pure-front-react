@@ -66,6 +66,48 @@ class KnowledgeBaseService {
   removeFilesFromKnowledgeBase = async (_knowledgeBaseId: string, _ids: string[]) => {
     return { success: true };
   };
+
+  // ============ C 端扩展：文档/上传/搜索（对接 /api/v1/c-end/knowledge） ============
+
+  /** 文档列表 */
+  listDocs = async (baseId: string, params?: { page?: number; pageSize?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.pageSize) qs.set('pageSize', String(params.pageSize));
+    const q = qs.toString();
+    return unwrap<{ items: any[]; total: number }>(
+      `/api/v1/c-end/knowledge/bases/${baseId}/documents${q ? `?${q}` : ''}`,
+    );
+  };
+
+  /** 上传文档并索引（multipart/form-data） */
+  indexDoc = async (baseId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const token =
+      typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    const res = await fetch(`/api/v1/c-end/knowledge/bases/${baseId}/documents`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: `HTTP ${res.status}` }));
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    return res.json();
+  };
+
+  /** 语义检索（pgvector 余弦相似度） */
+  search = async (baseId: string, query: string, limit = 5) => {
+    return unwrap<{ results: Array<{ content: string; score: number }> }>(
+      `/api/v1/c-end/knowledge/bases/${baseId}/search`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ query, limit }),
+      },
+    );
+  };
 }
 
 export const knowledgeBaseService = new KnowledgeBaseService();

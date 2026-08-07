@@ -22,6 +22,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useClientDataSWR } from '@/libs/swr';
+import { harnessKeys } from '@/libs/swr/keys';
 import {
   harnessService,
   type HarnessFileNode,

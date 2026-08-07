@@ -3,6 +3,7 @@
 import {
   BrainCircuit,
   Code2,
+  Database,
   Download,
   FilePenIcon,
   Home,
@@ -10,6 +11,9 @@ import {
   LibraryBigIcon,
   Settings,
   ShapesIcon,
+  ShieldCheck,
+  Store,
+  Users,
 } from 'lucide-react';
 import { type RouteObject } from 'react-router';
 
@@ -734,6 +738,38 @@ export const desktopRoutes: RouteObject[] = [
         errorElement: <ErrorBoundary />,
         handle: { meta: routeMeta({ icon: Code2, titleKey: 'navigation.harness' }) },
         path: 'harness',
+      },
+
+      // Agent 团队页
+      {
+        element: dynamicElement(() => import('@/routes/(main)/teams'), 'Desktop > Teams'),
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Users, titleKey: 'navigation.teams' }) },
+        path: 'teams',
+      },
+
+      // HITL 审批中心
+      {
+        element: dynamicElement(() => import('@/routes/(main)/hitl'), 'Desktop > HITL'),
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: ShieldCheck, titleKey: 'navigation.hitl' }) },
+        path: 'hitl',
+      },
+
+      // 知识库
+      {
+        element: dynamicElement(() => import('@/routes/(main)/knowledge'), 'Desktop > Knowledge'),
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Database, titleKey: 'navigation.knowledge' }) },
+        path: 'knowledge',
+      },
+
+      // Agent 市场
+      {
+        element: dynamicElement(() => import('@/routes/(main)/market'), 'Desktop > Market'),
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Store, titleKey: 'navigation.market' }) },
+        path: 'market',
       },
 
       // Settings routes (personal-only — never mirrored under /:workspaceSlug)

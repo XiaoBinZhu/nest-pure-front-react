@@ -146,5 +146,9 @@
   "window.restore": "恢复窗口",
   "window.unpinFromTop": "取消置顶",
   "navigation.deptStats": "部门用量看板",
-  "navigation.harness": "Harness 代码智能体"
+  "navigation.harness": "Harness 代码智能体",
+  "navigation.teams": "Agent 团队",
+  "navigation.hitl": "HITL 审批",
+  "navigation.knowledge": "知识库",
+  "navigation.market": "Agent 市场"
 }

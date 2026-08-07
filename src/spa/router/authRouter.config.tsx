@@ -53,6 +53,7 @@ const AuthErrorBoundary = () => {
       }}
     >
       <h2 style={{ margin: 0 }}>Something went wrong</h2>
+      <pre style={{ maxWidth: '90vw', overflow: 'auto', fontSize: 12 }}>{JSON.stringify(error, Object.getOwnPropertyNames(error), 2) || String(error)}</pre>
       <div style={{ display: 'flex', gap: 12 }}>
         <button style={buttonStyle} type={'button'} onClick={() => window.location.reload()}>
           Retry

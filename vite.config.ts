@@ -264,8 +264,10 @@ export default defineConfig({
     {
       name: 'trpc-spa-mock',
       configureServer(server: ViteDevServer) {
-        const sendJson = (res: any, data: unknown, status = 200) => {
-          const body = `{"result":{"data":{"json":${JSON.stringify(data)}}}}`;
+        const sendJson = (res: any, data: unknown, status = 200, batch = false) => {
+          const body = batch
+            ? `[{"result":{"data":{"json":${JSON.stringify(data)}}}}]`
+            : `{"result":{"data":{"json":${JSON.stringify(data)}}}}`;
           res.statusCode = status;
           res.setHeader('content-type', 'application/json');
           res.setHeader('cache-control', 'no-store');
@@ -284,24 +286,70 @@ export default defineConfig({
           const url = req.url || '';
           // 提取 trpc procedure 名（去掉 query string）
           const procedure = url.split('?')[0].replace(/^\//, '');
+          const isBatch = url.includes('batch=1');
+          // 组合 batch（逗号分隔多个 procedure）逐个 mock
+          // 注意：组合后续项可能不带 lambda/ 前缀（如 agent.getBuiltinAgent,agent.getBuiltinAgent）
+          const procedures = procedure.split(',').map((p: string) => (p.startsWith('lambda/') ? p : `lambda/${p}`));
+          const mocks: Record<string, unknown> = {
+            'lambda/config.getGlobalConfig': {
+              serverConfig: { telemetry: { langfuse: false } },
+              serverFeatureFlags: {},
+              billboard: null,
+            },
+            'lambda/config.getDefaultAgentConfig': { model: 'gpt-4o-mini', provider: 'openai', params: {} },
+            'lambda/user.getUserState': null,
+            'lambda/agent.getBuiltinAgent': {
+              agent: {
+                agentId: 'inbox',
+                slug: 'inbox',
+                title: '收件箱',
+                description: '默认助手',
+                model: 'deepseek-ai/DeepSeek-V4-Pro',
+                provider: 'siliconflow',
+                settings: {},
+                createAt: 0,
+              },
+            },
+            'lambda/connector.list': { connectors: [] },
+            'lambda/aiProvider.getAiProviderRuntimeState': {
+              runtimeState: {
+                isLogin: false,
+                isServerSide: false,
+                canUse: false,
+                enabledList: [],
+                disabledList: [],
+              },
+            },
+            // SidebarAgentListResponse: { groups, pinned, privateGroups?, privateUngrouped?, ungrouped }
+            'lambda/home.getSidebarAgentList': {
+              groups: [],
+              pinned: [],
+              privateGroups: [],
+              privateUngrouped: [],
+              ungrouped: [],
+            },
+            // recent.getAll 返回 RecentItem[]（数组），不能包对象否则 recents.slice 崩溃
+            'lambda/recent.getAll': [],
+            'lambda/aiModel.list': { data: [] },
+            'lambda/agent.list': { agents: [] },
+            'lambda/agentGroup.list': { groups: [] },
+            'lambda/topic.list': { items: [], total: 0 },
+          };
 
-          switch (procedure) {
-            case 'lambda/config.getGlobalConfig':
-              sendJson(res, {
-                serverConfig: { telemetry: { langfuse: false } },
-                serverFeatureFlags: {},
-                billboard: null,
-              });
-              break;
-            case 'lambda/config.getDefaultAgentConfig':
-              sendJson(res, { model: 'gpt-4o-mini', provider: 'openai', params: {} });
-              break;
-            case 'lambda/user.getUserState':
-              sendJson(res, null);
-              break;
-            default:
-              sendError(res);
+          // 组合请求：按逗号拆分后每个都有 mock 才返回数组，否则 404
+          const known = procedures.every((p) => p in mocks);
+          if (known) {
+            const json = isBatch
+              ? `[${procedures.map((p) => `{"result":{"data":{"json":${JSON.stringify(mocks[p])}}}}`).join(',')}]`
+              : `{"result":{"data":{"json":${JSON.stringify(mocks[procedures[0]])}}}}`;
+            res.statusCode = 200;
+            res.setHeader('content-type', 'application/json');
+            res.setHeader('cache-control', 'no-store');
+            res.end(json);
+            return;
           }
+
+          sendError(res);
         });
       },
     },

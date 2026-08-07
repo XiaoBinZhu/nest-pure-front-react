@@ -152,4 +152,8 @@ export default {
   'window.restore': 'Restore window',
   'window.unpinFromTop': 'Unpin from top',
   'navigation.harness': 'Harness Coding Agent',
+  'navigation.teams': 'Agent Teams',
+  'navigation.hitl': 'HITL Approval',
+  'navigation.knowledge': 'Knowledge Base',
+  'navigation.market': 'Agent Market',
 };
