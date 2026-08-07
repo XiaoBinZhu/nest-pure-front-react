@@ -69,9 +69,19 @@
 
 | 任务   | 描述                                                                  | 状态      |
 | ---- | ------------------------------------------------------------------- | ------- |
-| S4-1 | `bun run build:spa` 构建 → 上传 proc（GIT 自动化部署 `morgan@43.155.185.180`） | PENDING |
-| S4-2 | 线上回归 `https://www.007icu.top/`（登录 / 对话 / 用量 / 部门看板）                 | PENDING |
-| S4-3 | 更新 22-spec Status 表 + 本表最终状态                                        | PENDING |
+| S4-1 | `bun run build:spa` 构建 → 上传 proc（GIT 自动化部署 `morgan@43.155.185.180`） | ✅ PASS（已推 proc：nest-admin 274838e / C端 c02bd06a / 管理端 3c40211；修复 bun.lock frozen-lockfile 部署失败） |
+| S4-2 | 线上回归 `https://www.007icu.top/`（登录 / 对话 / 用量 / 部门看板）                 | 🔄 部署中（首页已含 harness 路由，页面 200） |
+| S4-3 | 更新 22-spec Status 表 + 本表最终状态                                        | ✅ PASS |
+
+## 阶段 5：后台管理端（vue-pure-admin）
+
+> 职责边界（modules.md L4956-4963）：13 个用户可见模块在后台做 CRUD 管理 / 策略配置 / 审计查看。
+
+| 任务   | 描述                                                  | 状态      |
+| ---- | --------------------------------------------------- | ------- |
+| M1 | 后端 admin 全量视角接口（memory/knowledge/workspace/team/harness 5 模块 list/delete + ROOT_USER_ID） | ✅ PASS（API 回归 8/8） |
+| M2 | 管理端 8 页面（Harness 会话 / Agent 团队 / 记忆画像 / 知识库 / 工作台产物 / Agent 市场 / HITL 审批 / UI 生成） | ✅ PASS（编译通过 + 已推 proc） |
+| M3 | 路由菜单组 /ai/c-end + api/ai/c-end.ts 封装 | ✅ PASS |
 
 ---
 
