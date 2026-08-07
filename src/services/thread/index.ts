@@ -4,6 +4,13 @@ import { INBOX_SESSION_ID } from '@/const/session';
 import { apiFetch } from '@/services/_api';
 import { type CreateThreadParams, type ThreadItem } from '@/types/topic';
 
+
+// 统一解包 { code, data } 信封（后端响应统一包装）
+async function unwrap<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await apiFetch<{ code: number; data: T }>(path, options);
+  return 'data' in (res as any) ? (res as any).data : (res as T);
+}
+
 interface CreateThreadWithMessageParams extends CreateThreadParams {
   message: CreateMessageParams;
 }
@@ -11,7 +18,7 @@ interface CreateThreadWithMessageParams extends CreateThreadParams {
 export class ThreadService {
   // 列表：GET /api/v1/c-end/threads?topicId=xxx
   getThreads = (topicId: string): Promise<ThreadItem[]> => {
-    return apiFetch<ThreadItem[]>(`/api/v1/c-end/threads?topicId=${encodeURIComponent(topicId)}`);
+    return unwrap<ThreadItem[]>(`/api/v1/c-end/threads?topicId=${encodeURIComponent(topicId)}`);
   };
 
   // TODO: Wave 2 - 待对接 nest-admin createThreadWithMessage 接口
@@ -26,7 +33,7 @@ export class ThreadService {
 
   // 创建线程：POST /api/v1/c-end/threads
   createThread = async (params: CreateThreadParams): Promise<string> => {
-    const result = await apiFetch<{ id: string }>('/api/v1/c-end/threads', {
+    const result = await unwrap<{ id: string }>('/api/v1/c-end/threads', {
       method: 'POST',
       body: JSON.stringify(params),
     });
@@ -35,7 +42,7 @@ export class ThreadService {
 
   // 更新线程：PATCH /api/v1/c-end/threads/:id
   updateThread = async (id: string, data: Partial<ThreadItem>) => {
-    return apiFetch(`/api/v1/c-end/threads/${id}`, {
+    return unwrap(`/api/v1/c-end/threads/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ value: data }),
     });
@@ -43,7 +50,7 @@ export class ThreadService {
 
   // 删除线程：DELETE /api/v1/c-end/threads/:id
   removeThread = async (id: string) => {
-    return apiFetch(`/api/v1/c-end/threads/${id}`, { method: 'DELETE' });
+    return unwrap(`/api/v1/c-end/threads/${id}`, { method: 'DELETE' });
   };
 
   private toDbSessionId = (sessionId: string | undefined) => {

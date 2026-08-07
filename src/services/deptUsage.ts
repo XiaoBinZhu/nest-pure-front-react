@@ -1,5 +1,12 @@
 import { apiFetch } from '@/services/_api';
 
+
+// 统一解包 { code, data } 信封（后端响应统一包装）
+async function unwrap<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await apiFetch<{ code: number; data: T }>(path, options);
+  return 'data' in (res as any) ? (res as any).data : (res as T);
+}
+
 // 部门负责人数据看板 API（对应 nest-admin /api/v1/c-end/usage/dept/*）
 // 数据范围由后端 DataScopeService 解析：admin→全量 / 部门负责人→本部门 / 普通用户→仅自己
 
@@ -56,7 +63,7 @@ class DeptUsageService {
     if (year) qs.set('year', String(year));
     if (month) qs.set('month', String(month));
     const query = qs.toString();
-    return apiFetch(`/api/v1/c-end/usage/dept/overview${query ? `?${query}` : ''}`);
+    return unwrap(`/api/v1/c-end/usage/dept/overview${query ? `?${query}` : ''}`);
   };
 
   // 部门成员用量排行
@@ -74,7 +81,7 @@ class DeptUsageService {
     if (params.page) qs.set('page', String(params.page));
     if (params.pageSize) qs.set('pageSize', String(params.pageSize));
     const query = qs.toString();
-    return apiFetch(`/api/v1/c-end/usage/dept/members${query ? `?${query}` : ''}`);
+    return unwrap(`/api/v1/c-end/usage/dept/members${query ? `?${query}` : ''}`);
   };
 
   // 部门模型使用分布
@@ -83,7 +90,7 @@ class DeptUsageService {
     if (year) qs.set('year', String(year));
     if (month) qs.set('month', String(month));
     const query = qs.toString();
-    return apiFetch(`/api/v1/c-end/usage/dept/models${query ? `?${query}` : ''}`);
+    return unwrap(`/api/v1/c-end/usage/dept/models${query ? `?${query}` : ''}`);
   };
 
   // 部门用量趋势（按天）
@@ -92,7 +99,7 @@ class DeptUsageService {
     if (year) qs.set('year', String(year));
     if (month) qs.set('month', String(month));
     const query = qs.toString();
-    return apiFetch(`/api/v1/c-end/usage/dept/trend${query ? `?${query}` : ''}`);
+    return unwrap(`/api/v1/c-end/usage/dept/trend${query ? `?${query}` : ''}`);
   };
 }
 

@@ -310,7 +310,10 @@ export default defineConfig({
                 createAt: 0,
               },
             },
-            'lambda/connector.list': { connectors: [] },
+            // connector.list 返回 ConnectorWithTools[]（数组），不能包对象否则 connectors.filter 崩溃
+            'lambda/connector.list': [],
+            'lambda/connector.listAgentBound': [],
+            'lambda/connector.listByAgent': [],
             'lambda/aiProvider.getAiProviderRuntimeState': {
               runtimeState: {
                 isLogin: false,
@@ -334,6 +337,15 @@ export default defineConfig({
             'lambda/agent.list': { agents: [] },
             'lambda/agentGroup.list': { groups: [] },
             'lambda/topic.list': { items: [], total: 0 },
+            // 首页任务推荐（返回 { data, success }）
+            'lambda/taskTemplate.listDailyRecommend': { data: [], success: true },
+            'lambda/taskTemplate.dismiss': { success: true },
+            // 日报/待办/设备（组合 batch 中出现的其他端点）
+            // brief.listUnresolved 前端取 result.data（数组）
+            'lambda/home.getDailyBrief': null,
+            'lambda/brief.listUnresolved': { data: [] },
+            'lambda/brief.markRead': { success: true },
+            'lambda/device.listDevices': [],
           };
 
           // 组合请求：按逗号拆分后每个都有 mock 才返回数组，否则 404

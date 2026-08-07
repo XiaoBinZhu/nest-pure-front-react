@@ -1,6 +1,13 @@
 import { type PartialDeep } from 'type-fest';
 
 import { apiFetch } from '../_api';
+
+// 统一解包 { code, data } 信封（后端响应统一包装）
+async function unwrap<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await apiFetch<{ code: number; data: T }>(path, options);
+  return 'data' in (res as any) ? (res as any).data : (res as T);
+}
+
 import { type LobeAgentChatConfig, type LobeAgentConfig } from '@/types/agent';
 import { type MetaData } from '@/types/meta';
 import {
@@ -19,7 +26,7 @@ import {
 export class SessionService {
   hasSessions = async (): Promise<boolean> => {
     const result = await this.countSessions();
-    return result === 0;
+    return result > 0;
   };
 
   /** @deprecated Use agentService.createAgent instead */
@@ -28,7 +35,7 @@ export class SessionService {
     data: Partial<LobeAgentSession>,
   ): Promise<string> => {
     const { config, group, meta, ...session } = data;
-    const result = await apiFetch<{ id: string }>('/api/v1/c-end/sessions', {
+    const result = await unwrap<{ id: string }>('/api/v1/c-end/sessions', {
       method: 'POST',
       body: JSON.stringify({
         config: { ...config, ...meta } as any,
@@ -40,16 +47,20 @@ export class SessionService {
   };
 
   cloneSession = async (id: string, newTitle: string): Promise<string | undefined> => {
-    const result = await apiFetch<{ id?: string }>(`/api/v1/c-end/sessions/${id}/clone`, {
+    const result = await unwrap<{ id?: string }>(`/api/v1/c-end/sessions/${id}/clone`, {
       method: 'POST',
       body: JSON.stringify({ newTitle }),
     });
     return result.id;
   };
 
-  // 列表：GET /api/v1/c-end/sessions
-  getGroupedSessions = (): Promise<ChatSessionList> => {
-    return apiFetch<ChatSessionList>('/api/v1/c-end/sessions');
+  // 列表：GET /api/v1/c-end/sessions（后端分页 {items,total} → 前端 ChatSessionList {sessions, sessionGroups}）
+  getGroupedSessions = async (): Promise<ChatSessionList> => {
+    const data = await unwrap<{ items: any[]; total: number }>('/api/v1/c-end/sessions');
+    return {
+      sessions: data?.items ?? [],
+      sessionGroups: [],
+    };
   };
 
   countSessions = async (params?: {
@@ -65,12 +76,12 @@ export class SessionService {
           ),
         ).toString()
       : '';
-    return apiFetch<number>(`/api/v1/c-end/sessions/count${query}`);
+    return unwrap<number>(`/api/v1/c-end/sessions/count${query}`);
   };
 
   updateSession = (id: string, data: Partial<UpdateSessionParams>) => {
     const { group, pinned, meta, updatedAt } = data;
-    return apiFetch(`/api/v1/c-end/sessions/${id}`, {
+    return unwrap(`/api/v1/c-end/sessions/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({
         groupId: group === 'default' ? null : group,
@@ -115,7 +126,7 @@ export class SessionService {
   };
 
   removeSession = (id: string) => {
-    return apiFetch(`/api/v1/c-end/sessions/${id}`, { method: 'DELETE' });
+    return unwrap(`/api/v1/c-end/sessions/${id}`, { method: 'DELETE' });
   };
 
   // ************************************** //

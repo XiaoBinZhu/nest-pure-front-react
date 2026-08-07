@@ -10,6 +10,12 @@ import {
   type TopicRankItem,
 } from '@/types/topic';
 
+// 统一解包 { code, data } 信封（后端响应统一包装）
+async function unwrap<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await apiFetch<{ code: number; data: T }>(path, options);
+  return 'data' in (res as any) ? (res as any).data : (res as T);
+}
+
 /**
  * A row from `queryTopics`. It comes straight off the `topics` table, so it
  * carries `agentId` even though `ChatTopic` doesn't declare it, plus the
@@ -31,7 +37,7 @@ type UpdateTopicMetadataInput = Omit<Partial<ChatTopicMetadata>, 'onboardingSess
 export class TopicService {
   // 创建话题：POST /api/v1/c-end/topics
   createTopic = (params: CreateTopicParams): Promise<string> => {
-    return apiFetch<string>('/api/v1/c-end/topics', {
+    return unwrap<string>('/api/v1/c-end/topics', {
       method: 'POST',
       body: JSON.stringify({
         ...params,
@@ -72,7 +78,7 @@ export class TopicService {
     if (params.current) query.set('current', String(params.current));
     if (params.sortBy) query.set('sortBy', params.sortBy);
     const qs = query.toString();
-    return apiFetch<{ items: ChatTopic[]; total: number }>(
+    return unwrap<{ items: ChatTopic[]; total: number }>(
       `/api/v1/c-end/topics${qs ? `?${qs}` : ''}`,
     ) as any;
   };
@@ -109,7 +115,7 @@ export class TopicService {
 
   // 详情：GET /api/v1/c-end/topics/:id
   getTopicDetail = async (id: string): Promise<ChatTopic | null> => {
-    return apiFetch<ChatTopic | null>(`/api/v1/c-end/topics/${id}`);
+    return unwrap<ChatTopic | null>(`/api/v1/c-end/topics/${id}`);
   };
 
   // TODO: Wave 2 - 待对接 nest-admin recent 接口
@@ -129,7 +135,7 @@ export class TopicService {
 
   // 更新话题：PATCH /api/v1/c-end/topics/:id
   updateTopic = (id: string, data: Partial<ChatTopic>) => {
-    return apiFetch(`/api/v1/c-end/topics/${id}`, {
+    return unwrap(`/api/v1/c-end/topics/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ value: data }),
     });
@@ -162,7 +168,7 @@ export class TopicService {
 
   // 删除话题：DELETE /api/v1/c-end/topics/:id
   removeTopic = (id: string, _removeFiles?: boolean) => {
-    return apiFetch(`/api/v1/c-end/topics/${id}`, { method: 'DELETE' });
+    return unwrap(`/api/v1/c-end/topics/${id}`, { method: 'DELETE' });
   };
 
   // TODO: Wave 2 - 待对接 nest-admin 批量删除接口

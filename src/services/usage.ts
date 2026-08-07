@@ -1,6 +1,13 @@
 import { apiFetch } from '@/services/_api';
 import { type AgentUsageGranularity } from '@/types/usage/usageRecord';
 
+
+// 统一解包 { code, data } 信封（后端响应统一包装）
+async function unwrap<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await apiFetch<{ code: number; data: T }>(path, options);
+  return 'data' in (res as any) ? (res as any).data : (res as T);
+}
+
 class UsageService {
   // 月度用量：GET /api/v1/c-end/usage/monthly?year=xxx&month=xxx
   findByMonth = async (mo?: string) => {
@@ -12,7 +19,7 @@ class UsageService {
       if (month) query.set('month', month);
     }
     const qs = query.toString();
-    return apiFetch(`/api/v1/c-end/usage/monthly${qs ? `?${qs}` : ''}`);
+    return unwrap(`/api/v1/c-end/usage/monthly${qs ? `?${qs}` : ''}`);
   };
 
   // 日度用量：GET /api/v1/c-end/usage/daily?year=xxx&month=xxx
@@ -24,7 +31,7 @@ class UsageService {
       if (month) query.set('month', month);
     }
     const qs = query.toString();
-    return apiFetch(`/api/v1/c-end/usage/daily${qs ? `?${qs}` : ''}`);
+    return unwrap(`/api/v1/c-end/usage/daily${qs ? `?${qs}` : ''}`);
   };
 
   // Agent 用量统计：GET /api/v1/c-end/usage/agent-stats
@@ -40,7 +47,7 @@ class UsageService {
       granularity: params.granularity,
       startAt: params.startAt,
     });
-    return apiFetch(`/api/v1/c-end/usage/agent-stats?${query.toString()}`);
+    return unwrap(`/api/v1/c-end/usage/agent-stats?${query.toString()}`);
   };
 }
 

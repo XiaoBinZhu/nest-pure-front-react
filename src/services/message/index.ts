@@ -20,6 +20,13 @@ import { apiFetch } from '../_api';
 
 import { abortableRequest } from '../utils/abortableRequest';
 
+
+// 统一解包 { code, data } 信封（后端响应统一包装）
+async function unwrap<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await apiFetch<{ code: number; data: T }>(path, options);
+  return 'data' in (res as any) ? (res as any).data : (res as T);
+}
+
 /**
  * Query context for message operations
  * Contains identifiers needed for querying/filtering messages after mutations
@@ -117,7 +124,7 @@ export class MessageService {
       }),
     } as any;
 
-    return apiFetch<MessageBatchMutationResult>('/api/v1/c-end/messages/batch', {
+    return unwrap<MessageBatchMutationResult>('/api/v1/c-end/messages/batch', {
       method: 'POST',
       body: JSON.stringify(input),
       signal,
@@ -146,7 +153,7 @@ export class MessageService {
 
   // 创建消息：POST /api/v1/c-end/messages
   createMessage = async (params: CreateMessageParams): Promise<CreateMessageResult> => {
-    return apiFetch<CreateMessageResult>('/api/v1/c-end/messages', {
+    return unwrap<CreateMessageResult>('/api/v1/c-end/messages', {
       method: 'POST',
       body: JSON.stringify(params),
     });
@@ -160,7 +167,7 @@ export class MessageService {
     if (params.threadId) query.set('threadId', params.threadId);
     if (params.groupId) query.set('groupId', params.groupId);
     const qs = query.toString();
-    const data = await apiFetch<UIChatMessage[]>(
+    const data = await unwrap<UIChatMessage[]>(
       `/api/v1/c-end/messages${qs ? `?${qs}` : ''}`,
     );
     return data as unknown as UIChatMessage[];
@@ -190,7 +197,7 @@ export class MessageService {
           ),
         ).toString()
       : '';
-    return apiFetch<number>(`/api/v1/c-end/messages/count${query}`);
+    return unwrap<number>(`/api/v1/c-end/messages/count${query}`);
   };
 
   // TODO: Wave 2 - 待对接 nest-admin 统计接口
@@ -223,7 +230,7 @@ export class MessageService {
       ? value
       : { body: value, message: value.message, type: 'ApplicationRuntimeError' };
 
-    return apiFetch(`/api/v1/c-end/messages/${id}`, {
+    return unwrap(`/api/v1/c-end/messages/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ ...ctx, value: { error } }),
     });
@@ -252,7 +259,7 @@ export class MessageService {
     value: Partial<UpdateMessageParams>,
     ctx?: MessageQueryContext,
   ): Promise<UpdateMessageResult> => {
-    return apiFetch<UpdateMessageResult>(`/api/v1/c-end/messages/${id}`, {
+    return unwrap<UpdateMessageResult>(`/api/v1/c-end/messages/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ ...ctx, value }),
     });
@@ -330,7 +337,7 @@ export class MessageService {
 
   // 删除消息：DELETE /api/v1/c-end/messages/:id
   removeMessage = async (id: string, _ctx?: MessageQueryContext): Promise<UpdateMessageResult> => {
-    return apiFetch<UpdateMessageResult>(`/api/v1/c-end/messages/${id}`, { method: 'DELETE' });
+    return unwrap<UpdateMessageResult>(`/api/v1/c-end/messages/${id}`, { method: 'DELETE' });
   };
 
   // TODO: Wave 2 - 待对接 nest-admin 批量删除接口
