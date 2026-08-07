@@ -100,6 +100,23 @@
 
 **端到端验证**：首页/登录守卫/onboarding/Harness（会话→终端→文件写入→文件树）/teams/hitl/knowledge/market 全部浏览器实测通过。
 
+## 阶段 7：深度契约回归（2026-08-07）
+
+> 逐接口对比原有契约 vs nest-admin 返回，浏览器端到端复验。
+
+| # | 契约项 | 原契约（LobeHub） | nest-admin 返回 | 修复 | 状态 |
+|---|---|---|---|---|---|
+| C1 | 会话列表 | ChatSessionList {sessions, sessionGroups} | {items, total} 分页 | 前端适配转换 | ✅ |
+| C2 | 会话/话题/消息/线程 service | 直接取数组 | {code,data} 信封 | 7 个 service 补 unwrap | ✅ |
+| C3 | hasSessions | count > 0 | — | 逻辑反修复（===0 → >0） | ✅ |
+| C4 | connector.list | ConnectorWithTools[] | mock {connectors} 对象 | mock 改数组 | ✅ |
+| C5 | brief.listUnresolved | result.data（数组） | mock [] | mock 改 {data:[]} | ✅ |
+| C6 | taskTemplate 推荐 | {data, success} | 404 | mock 补充 | ✅ |
+| C7 | 首页组合 batch | 多端点逗号组合 | 部分 404 | mock 补 home.getDailyBrief/device/brief | ✅ |
+| C8 | dept 看板 4 端点 | 直接取数 | 信封 | deptUsage unwrap | ✅ |
+
+**浏览器复验**：首页（推荐卡片/无错误）/部门看板（11 人 42K token 全渲染）/Harness/teams/hitl/knowledge/market 全部通过。
+
 ---
 
 ## 执行须知（给任意 AI 工具）
