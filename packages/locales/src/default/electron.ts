@@ -151,4 +151,5 @@ export default {
   'window.pinToTop': 'Pin on top',
   'window.restore': 'Restore window',
   'window.unpinFromTop': 'Unpin from top',
+  'navigation.harness': 'Harness Coding Agent',
 };

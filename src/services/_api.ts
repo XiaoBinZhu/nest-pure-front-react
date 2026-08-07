@@ -16,8 +16,11 @@ export async function apiFetch<T = any>(
   options: RequestInit = {},
 ): Promise<T> {
   const token = getToken();
+  // 仅在有 body 时设置 Content-Type：无 body 请求（如 DELETE）带 JSON Content-Type
+  // 会被 Fastify 拒绝（Body cannot be empty when content-type is set to 'application/json'）
+  const hasBody = options.body != null && options.body !== '';
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
     ...((options.headers as Record<string, string>) || {}),
   };
   if (token) {

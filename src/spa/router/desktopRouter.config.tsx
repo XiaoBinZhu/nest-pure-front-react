@@ -2,6 +2,7 @@
 
 import {
   BrainCircuit,
+  Code2,
   Download,
   FilePenIcon,
   Home,
@@ -727,6 +728,14 @@ export const desktopRoutes: RouteObject[] = [
         path: 'downloads',
       },
 
+      // Harness page (personal-only — 代码智能体工作区)
+      {
+        element: dynamicElement(() => import('@/routes/(main)/harness'), 'Desktop > Harness'),
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Code2, titleKey: 'navigation.harness' }) },
+        path: 'harness',
+      },
+
       // Settings routes (personal-only — never mirrored under /:workspaceSlug)
       {
         children: [
@@ -761,6 +770,14 @@ export const desktopRoutes: RouteObject[] = [
               meta: routeMeta({ icon: Settings, titleKey: 'navigation.provider' }),
             },
             path: 'provider',
+          },
+          {
+            element: dynamicElement(
+              () => import('@/routes/(main)/dept-stats'),
+              'Desktop > Settings > Dept Stats',
+            ),
+            handle: { meta: routeMeta({ icon: Settings, titleKey: 'navigation.deptStats' }) },
+            path: 'dept-stats',
           },
           {
             element: dynamicElement(

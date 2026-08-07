@@ -144,5 +144,7 @@
   "window.minimize": "Minimize window",
   "window.pinToTop": "Pin on top",
   "window.restore": "Restore window",
-  "window.unpinFromTop": "Unpin from top"
+  "window.unpinFromTop": "Unpin from top",
+  "navigation.deptStats": "Department Stats",
+  "navigation.harness": "Harness Coding Agent"
 }

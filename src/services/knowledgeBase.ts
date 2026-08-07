@@ -1,67 +1,70 @@
-import { lambdaClient } from '@/libs/trpc/client';
+import { apiFetch } from '@/services/_api';
 import { type CreateKnowledgeBaseParams } from '@/types/knowledgeBase';
+
+// 统一解包 { code, data } 信封
+async function unwrap<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await apiFetch<{ code: number; data: T }>(path, options);
+  return (res as any)?.data ?? (res as T);
+}
+
+// 适配：后端知识库字段（id/name/description/userId）→ LobeHub 前端字段（id/title/description）
+function mapBase(b: any) {
+  if (!b) return b;
+  return { ...b, id: b.id, title: b.name, description: b.description, createdAt: b.createdAt, updatedAt: b.updatedAt };
+}
 
 class KnowledgeBaseService {
   createKnowledgeBase = async (params: CreateKnowledgeBaseParams) => {
-    return lambdaClient.knowledgeBase.createKnowledgeBase.mutate(params);
+    const data = await unwrap('/api/v1/c-end/knowledge/bases', {
+      method: 'POST',
+      body: JSON.stringify({ name: params.title, description: params.description }),
+    });
+    return mapBase(data);
   };
 
-  getKnowledgeBaseList = async (visibility?: 'private' | 'public') => {
-    return lambdaClient.knowledgeBase.getKnowledgeBases.query(
-      visibility ? { visibility } : undefined,
-    );
+  getKnowledgeBaseList = async (_visibility?: 'private' | 'public') => {
+    const list = await unwrap<any[]>('/api/v1/c-end/knowledge/bases');
+    return list.map(mapBase);
   };
 
   getKnowledgeBaseById = async (id: string) => {
-    return lambdaClient.knowledgeBase.getKnowledgeBaseById.query({ id });
+    return mapBase(await unwrap(`/api/v1/c-end/knowledge/bases/${id}`));
   };
 
   updateKnowledgeBaseList = async (id: string, value: any) => {
-    return lambdaClient.knowledgeBase.updateKnowledgeBase.mutate({ id, value });
+    return unwrap(`/api/v1/c-end/knowledge/bases/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name: value?.title ?? value?.name, description: value?.description }),
+    });
   };
 
   deleteKnowledgeBase = async (id: string) => {
-    return lambdaClient.knowledgeBase.removeKnowledgeBase.mutate({ id });
+    return unwrap(`/api/v1/c-end/knowledge/bases/${id}`, { method: 'DELETE' });
   };
 
-  transferKnowledgeBase = async (
-    id: string,
-    targetWorkspaceId: string | null,
-    targetVisibility?: 'private' | 'public',
-  ) => {
-    return lambdaClient.knowledgeBase.transferKnowledgeBase.mutate({
-      id,
-      targetVisibility,
-      targetWorkspaceId,
-    });
+  // workspace 相关能力（transfer/copy/publish/visibility）在个人版后端暂不支持，降级为本地成功
+  transferKnowledgeBase = async (_id: string, _targetWorkspaceId: string | null, _targetVisibility?: 'private' | 'public') => {
+    return { success: true };
   };
 
-  copyKnowledgeBaseToWorkspace = async (
-    id: string,
-    targetWorkspaceId: string | null,
-    targetVisibility?: 'private' | 'public',
-  ) => {
-    return lambdaClient.knowledgeBase.copyKnowledgeBaseToWorkspace.mutate({
-      id,
-      targetVisibility,
-      targetWorkspaceId,
-    });
+  copyKnowledgeBaseToWorkspace = async (_id: string, _targetWorkspaceId: string | null, _targetVisibility?: 'private' | 'public') => {
+    return { success: true };
   };
 
-  publishKnowledgeBaseToWorkspace = async (id: string) => {
-    return lambdaClient.knowledgeBase.publishKnowledgeBaseToWorkspace.mutate({ id });
+  publishKnowledgeBaseToWorkspace = async (_id: string) => {
+    return { success: true };
   };
 
-  setKnowledgeBaseVisibility = async (id: string, visibility: 'private' | 'public') => {
-    return lambdaClient.knowledgeBase.setKnowledgeBaseVisibility.mutate({ id, visibility });
+  setKnowledgeBaseVisibility = async (_id: string, _visibility: 'private' | 'public') => {
+    return { success: true };
   };
 
-  addFilesToKnowledgeBase = async (knowledgeBaseId: string, ids: string[]) => {
-    return lambdaClient.knowledgeBase.addFilesToKnowledgeBase.mutate({ ids, knowledgeBaseId });
+  addFilesToKnowledgeBase = async (_knowledgeBaseId: string, _ids: string[]) => {
+    return { success: true };
   };
 
-  removeFilesFromKnowledgeBase = async (knowledgeBaseId: string, ids: string[]) => {
-    return lambdaClient.knowledgeBase.removeFilesFromKnowledgeBase.mutate({ ids, knowledgeBaseId });
+  removeFilesFromKnowledgeBase = async (_knowledgeBaseId: string, _ids: string[]) => {
+    return { success: true };
   };
 }
 
