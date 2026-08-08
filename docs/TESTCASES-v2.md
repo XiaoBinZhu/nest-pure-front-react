@@ -219,7 +219,8 @@
 
 | 编号 | 描述 | 状态 |
 |------|------|------|
-| S8-16 | 聊天页消息气泡渲染：后端链路（topics/messages/batch/chat-completions）100% 通过、SSE 内容已进 store，但 conversation store 冷启动 messagesInit 同步未完成导致 VirtualizedList 0 渲染（StoreUpdater 同步链 + 刷新后历史加载）；需真实键盘交互调试 | 后续任务 |
+| S8-16 | 聊天链路收尾：气泡渲染/流式回复/刷新持久化全 PASS；[call_llm] 错误已修复（batch 未知列过滤 + controller results 信封，31a750c 已上线） | 完成 |
+| S8-17 | 刷新后历史会话 UI 水合：服务端数据完好、SWR 缓存含消息但页面不渲染（旧话题同样受影响） | 后续任务 |
 | G6 | nest-admin scripts/_tmp-*.ts 已加入 .gitignore（003e1be） | 完成 |
 
 ### 执行记录
