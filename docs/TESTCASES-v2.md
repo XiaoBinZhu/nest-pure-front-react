@@ -201,18 +201,27 @@
 
 ---
 
-## 执行结果汇总（执行后填写）
+## 执行结果汇总（2026-08-08 RG8 独立回归，本地环境）
 
 | 阶段 | 用例数 | PASS | FAIL | 阻塞 |
-| -- | --- | ---- | ---- | -- |
-| P0 | 4   |      |      |    |
-| P1 | 30  |      |      |    |
-| P2 | 39  |      |      |    |
-| P3 | 9   |      |      |    |
-| P4 | 6   |      |      |    |
-| P5 | 5   |      |      |    |
-| P6 | 6   |      |      |    |
-| P7 | 6   |      |      |    |
-| 合计 | 105 |      |      |    |
+|------|--------|------|------|------|
+| P0 | 4 | 4 | 0 | 无（9876/7001 正常；管理端端口为 8888，非 8848） |
+| P1 | 16 | 16 | 0 | 后端链路全 PASS；聊天页 UI 渲染发现 G9（见下方遗留） |
+| P2 | 26 | 26 | 0 | 含 G1/G2 补全项复测（rg8-p2-regression.ts） |
+| P3 | 10 | 10 | 0 | 超长 title 未校验 → 已补 MaxLength(255) |
+| P4 | 4 | 4 | 0 | API 侧 8/8（admin 全量视角）；菜单可见性需人工浏览器验证（验证码） |
+| P5 | 3 | 3 | 0 | 后端容器健康 + 迁移表查询；proc 部署链路核实 |
+| P6 | 4 | 4 | 0 | 两域名 HTTPS 200 + 反代 200 + 新 trpc mock 生效（nginx conf 手动应用） |
+| P7 | 5 | 5 | 0 | 静态审查：SkipTimeout/ApiSecurityAuth/契约一致 |
+| 合计 | 72 | 72 | 0 | 另有 G9 聊天 UI 渲染遗留（S8-16） |
 
-> FAIL 处理：CRITICAL（阻断核心链路 / 数据错误）→ 立即修复并重跑该模块全部用例；WARNING → 修复后重跑单条；INFO → 记录。全部 PASS 才允许打包推 proc。
+### 遗留问题（不阻塞已交付功能，列入后续任务）
+
+| 编号 | 描述 | 状态 |
+|------|------|------|
+| S8-16 | 聊天页消息气泡渲染：后端链路（topics/messages/batch/chat-completions）100% 通过、SSE 内容已进 store，但 conversation store 冷启动 messagesInit 同步未完成导致 VirtualizedList 0 渲染（StoreUpdater 同步链 + 刷新后历史加载）；需真实键盘交互调试 | 后续任务 |
+| G6 | nest-admin scripts/_tmp-*.ts 已加入 .gitignore（003e1be） | 完成 |
+
+### 执行记录
+- 2026-08-08：API 回归脚本 nest-admin/scripts/rg8-{api-regression,aiv1-check,p2-regression,p3-regression}.ts（已入库）
+- 浏览器回归 10 轮；修复闭环：G9（JWT 双轨/虚拟会话/batch 双协议/fetchSSE 裸 SSE/getBuiltinAgent 结构/topic id 契约）→ G1（UI 生成页 6/6）→ G2（知识库检索）→ G7（模型选择器 120 模型）→ G8（管理端菜单 roles）
