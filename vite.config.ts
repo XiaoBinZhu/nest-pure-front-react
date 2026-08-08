@@ -428,14 +428,22 @@ export default defineConfig({
             'lambda/brief.listUnresolved': { data: [] },
             'lambda/brief.markRead': { success: true },
             'lambda/device.listDevices': [],
+            // 首页“上新/最近/任务”区块组合中出现的端点（S8-17 补全，避免整批 404）
+            'lambda/task.groupList': { groups: [] },
+            'lambda/notebook.listDocuments': [],
+            'lambda/plugin.getPlugins': [],
+            'lambda/acceptance.getBySubject': null,
+            'lambda/agentDocument.getContextDocuments': [],
           };
 
-          // 组合请求：按逗号拆分后每个都有 mock 才返回数组，否则 404
-          const known = procedures.every((p) => p in mocks);
-          if (known) {
-            const json = isBatch
-              ? `[${procedures.map((p) => `{"result":{"data":{"json":${JSON.stringify(mocks[p])}}}}`).join(',')}]`
-              : `{"result":{"data":{"json":${JSON.stringify(mocks[procedures[0]])}}}}`;
+          // 组合请求：逐过程返回（已知→mock，未知→null 降级），避免整批 404 导致首页区块加载失败（S8-17 修复）
+          // 单过程未知仍 404（前端可容忍，且暴露真实缺口）
+          if (procedures.length === 1) {
+            if (!(procedures[0] in mocks)) {
+              sendError(res);
+              return;
+            }
+            const json = `{"result":{"data":{"json":${JSON.stringify(mocks[procedures[0]])}}}}`;
             res.statusCode = 200;
             res.setHeader('content-type', 'application/json');
             res.setHeader('cache-control', 'no-store');
@@ -443,7 +451,15 @@ export default defineConfig({
             return;
           }
 
-          sendError(res);
+          // 多过程组合（batch=1 或逗号分隔）：未知过程返回 json:null，保持数组长度，前端逐项取数
+          const json = isBatch
+            ? `[${procedures.map((p) => `{"result":{"data":{"json":${JSON.stringify(p in mocks ? mocks[p] : null)}}}}`).join(',')}]`
+            : `{"result":{"data":{"json":${JSON.stringify(procedures[0] in mocks ? mocks[procedures[0]] : null)}}}}`;
+          res.statusCode = 200;
+          res.setHeader('content-type', 'application/json');
+          res.setHeader('cache-control', 'no-store');
+          res.end(json);
+          return;
         });
       },
     },
