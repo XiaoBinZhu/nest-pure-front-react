@@ -141,7 +141,7 @@
 | S8-14 | 收尾：回填 TESTCASES-v2 结果表 + 更新本表状态 + 22-spec Status=Done（全 AC Pass 后）                                                                                                                                              | DoD（SKILL.md L780-807）                                                                                          | —             | ✅ PASS（本次回填） |
 | S8-15 | **补 G8**：管理端 `/ai/c-end` 组 + 8 子菜单补 `meta.auths: ["ai:portal:config:admin"]`（位置：`vue-pure-admin/src/router/modules/ai.ts` L470-552，对齐 gateway 菜单写法）；修后复测 developer 不可见、admin 可见                                 | C-END-ANALYSIS §4.2 G8；SKILL.md L463-475 admin 独占模块要求                                                           | P4-5          | ✅ PASS（代码完成 roles+auths；developer 浏览器验证待人工） |
 | S8-16 | **聊天链路收尾**：气泡渲染/流式回复/刷新持久化全部 PASS；[call_llm] 错误根因（batch 未知列 TypeORM 静默失败 + controller 未返回 results 信封）已修复并上线（31a750c） | TESTCASES-v2 遗留表 | P1-CHAT-10/11 | ✅ PASS（本地+线上验证） |
-| S8-17 | **遗留**：刷新后历史会话 UI 水合（服务端数据完好、SWR 缓存含消息，但页面不渲染；旧话题同样受影响，独立于 S8-16） | TESTCASES-v2 遗留表 | P1-CHAT-11 | PENDING（前端 store 水合，需单独排查） |
+| S8-17 | **遗留**：刷新后历史会话 UI 水合（服务端数据完好、SWR 缓存含消息，但页面不渲染；旧话题同样受影响，独立于 S8-16） | TESTCASES-v2 遗留表 | P1-CHAT-11 | ✅ PASS（水合正常；首页区块 trpc 组合 404 已修复并上线 2bc3864/c29a4af5；终验 7/7 PASS） |
 
 > 明确不做项（已在 C-END-ANALYSIS §4.2 记录依据）：G4 stub 能力保持 mock / G5 admin 独占 9 模块 / Copilot（spec Future Opt \[P1]）。
 > Wave 4（AC10/AC11/AC12 三角色端到端权限收尾）已并入 S8-5/S8-7 的三角色用例。
