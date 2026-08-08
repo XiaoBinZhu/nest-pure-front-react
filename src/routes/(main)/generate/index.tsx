@@ -70,12 +70,12 @@ const GenerationPage = memo(() => {
     setHistoryId(undefined);
     try {
       await generationPortalService.generate(text, framework, handleEvent);
-      // 生成完成后自动载入最新一条历史，使 refine 立即可用（historyId 由 SSE 不回传，取最新记录）
+      // 生成完成后自动载入最新一条历史 id，使 refine 立即可用；
+      // 不覆盖 code/previewHtml（SSE preview_ready 已给出最终产物，列表 code 可能滞后）
       const data = await generationPortalService.listHistory(1, 1);
       const latest = data?.items?.[0];
       if (latest) {
         setHistoryId(latest.id);
-        if (!previewHtml) setCode(latest.code ?? '');
       }
       void loadHistory();
     } catch (e: any) {
