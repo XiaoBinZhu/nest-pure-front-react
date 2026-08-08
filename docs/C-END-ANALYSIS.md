@@ -78,24 +78,77 @@
 
 ## 4. 功能缺口矩阵（13 项 C 端能力 × 后端状态 × AC）
 
-> 对应 SKILL.md L301-317 职责分工 + 22-spec AC1-AC20。✅= 可用 / ⚠️=stub / ❌= 未实现。
+> v2 盘点（2026-08-07，读代码核实）：对应 SKILL.md L301-317 职责分工 + 22-spec AC1-AC20。✅= 可用 / ⚠️= 部分 / ❌= 缺失。
 
-| C 端能力          | C 端页面                       | 后端模块                         | 后端状态                     | AC      |
-| -------------- | --------------------------- | ---------------------------- | ------------------------ | ------- |
-| 对话（流式）         | `src/routes/(main)/(chat)/` | #2 Agent + /ai/v1            | ⚠️ /ai/v1 ✅，Agent 编排 ❌   | AC2     |
-| 模型切换           | 模型选择器                       | /ai/v1/models                | ✅                        | AC14    |
-| 知识库 RAG        | 知识库页                        | #4 RAG                       | ⚠️ stub（knowledge-bases） | AC3     |
-| HITL 审批        | 审批弹窗                        | #5 HITL                      | ❌                        | AC8     |
-| UI 生成          | UI 生成页                      | #8 UI Generator              | ❌                        | AC9     |
-| 记忆画像           | `routes/(main)/memory/`     | #9 Memory                    | ❌（userMemory 未对接）        | AC6     |
-| Agent 团队       | 团队页                         | #10 多 Agent                  | ❌                        | —       |
-| 工作台            | `routes/(main)/task/`       | #13 Workspace                | ❌                        | AC4     |
-| 产物中心           | 产物页                         | #14 Artifact                 | ❌                        | AC4     |
-| Agent 市场       | 市场页                         | #18 Marketplace              | ❌                        | AC5     |
-| 用量 / 余额 / 令牌   | 用量账单页                       | #11 子集                       | ✅（c-end usage 9 端点）      | AC7     |
-| 前端 Copilot     | 浮动按钮                        | #20 page-agent               | ❌                        | —       |
-| Harness        | Harness 页                   | 聚合 #2+#3+#6+#15              | ❌                        | AC16-20 |
-| **部门负责人看板（新）** | stats 部门看板页                 | DataScope + ai\_gateway\_log | ❌（本次 T2 实现）              | AC11    |
+| C 端能力        | C 端页面                       | 后端模块                               | 后端状态                  | 前端对接                                    | AC       |
+| ------------ | --------------------------- | ---------------------------------- | --------------------- | --------------------------------------- | -------- |
+| 对话（流式）       | `src/routes/(main)/(chat)/` | c-end/agent-orchestration + /ai/v1 | ✅ SSE 实测 51 chunks    | ✅ session/topic/message REST            | AC2      |
+| 模型切换         | 模型选择器                       | /ai/v1/models                      | ✅ 120 模型              | ⚠️ 待验证 G7（aiModel service）              | AC14     |
+| 知识库 RAG      | /knowledge 页                | c-end/knowledge（bge-m3 1024 维）     | ✅ 11/11               | ⚠️ 页面已接；对话内 @知识库检索未接（G2）                | AC3      |
+| HITL 审批      | /hitl 页                     | c-end/hitl                         | ✅ 14/14               | ✅ hitl.ts REST                          | AC8      |
+| UI 生成        | ❌ 无页面（G1）                   | c-end/generation                   | ✅ SSE 实测 96KB         | ❌ generation.ts 仍是 LobeHub 图片 / 视频 tRPC | AC9      |
+| 记忆画像         | settings/memory 页           | c-end/memory                       | ✅ 19/19               | ✅ userMemory REST                       | AC6      |
+| Agent 团队     | /teams 页                    | c-end/agent-team                   | ✅ 11/11               | ✅ agentTeam REST+SSE                    | —        |
+| 工作台          | workspace service           | c-end/workspace                    | ✅ 19/19               | ✅ workspace.ts REST                     | AC4      |
+| 产物中心         | 工作台内产物 Tab                  | workspace/artifacts                | ✅ 版本 /diff/ 下载        | ✅ workspace.ts                          | AC4      |
+| Agent 市场     | /market 页                   | c-end/marketplace                  | ✅ 20/20               | ✅ marketplace.ts REST                   | AC5      |
+| 用量 / 余额 / 令牌 | settings/usage + dept-stats | c-end/usage（9+4 端点）                | ✅                     | ✅ usage/deptUsage REST                  | AC7/AC11 |
+| 前端 Copilot   | 无                           | #20 page-agent                     | ❌ 规划中（SKILL 标注新增・规划中） | ❌ 本期不做（spec Future Opt \[P1]）           | —        |
+| Harness      | /harness 页                  | c-end/harness                      | ✅ 19/19               | ✅ harness.ts REST+SSE                   | AC16-20  |
+
+### 4.1 ai-platform-sdd 22 模块完成度矩阵（读代码核实）
+
+| #  | 模块            | 后端                             | 管理端                     | C 端            | 结论                                       |
+| -- | ------------- | ------------------------------ | ----------------------- | -------------- | ---------------------------------------- |
+| 1  | 模型路由          | ✅ /ai/v1/models（Gateway）       | ✅ gateway 页面            | ✅ 模型选择器（G7 待验） | 已实现                                      |
+| 2  | Agent 编排      | ✅ c-end/agent-orchestration    | —                       | ✅ 对话           | 已实现                                      |
+| 3  | 工具系统          | ⚠️ 仅 harness MODE\_TOOLS 白名单替代 | ❌                       | —              | admin 独占・本期不做（SKILL 标注新增，无 spec）         |
+| 4  | 知识库 RAG       | ✅ c-end/knowledge              | ✅ ai/c-end/knowledge    | ⚠️ G2          | 已实现（对话内检索待补）                             |
+| 5  | HITL          | ✅ c-end/hitl                   | ✅ ai/c-end/hitl         | ✅              | 已实现                                      |
+| 6  | Harness 可靠性   | ⚠️ C 端用虚拟文件系统 + 白名单替代          | ❌ 配置层未做                 | —              | admin 独占・本期不做（#22 子能力已覆盖用户侧）             |
+| 7  | 模型微调          | ❌                              | ❌                       | —              | admin 独占 P2・明确不做（SKILL 新增无 spec）         |
+| 8  | UI 生成         | ✅ c-end/generation             | ✅ ai/c-end/generation   | ❌ G1 缺页面       | 后端已实现，C 端页面待补                            |
+| 9  | 记忆画像          | ✅ c-end/memory                 | ✅ ai/c-end/memory       | ✅              | 已实现                                      |
+| 10 | Agent 团队      | ✅ c-end/agent-team             | ✅ ai/c-end/agent-team   | ✅              | 已实现                                      |
+| 11 | AI Gateway    | ✅ v1.5.0（7 子模块）                | ✅ gateway 34 页          | ✅ 用量子集         | 已实现                                      |
+| 12 | 浏览器 Agent     | ❌                              | ❌                       | —              | admin 独占・明确不做（SKILL 新增无 spec）            |
+| 13 | Workspace     | ✅ c-end/workspace              | ✅ ai/c-end/workspace    | ✅              | 已实现                                      |
+| 14 | Artifact      | ✅ 并入 workspace                 | ✅                       | ✅ 下载 /diff     | 已实现                                      |
+| 15 | Runtime       | ❌                              | ❌                       | —              | admin 独占・明确不做（SKILL 新增无 spec）            |
+| 16 | Governance    | ❌                              | ❌                       | —              | admin 独占・明确不做（SKILL 新增无 spec）            |
+| 17 | Prompt Studio | ⚠️ 仅 UI 生成专用 Prompt/few-shot   | ✅ ai/c-end/generation 内 | —              | 部分实现；独立平台明确不做（SKILL 新增无 spec）            |
+| 18 | Marketplace   | ✅ c-end/marketplace            | ✅ ai/c-end/marketplace  | ✅              | 已实现                                      |
+| 19 | Protocol Hub  | ❌                              | ❌                       | —              | P3 规划中（SKILL 明确标注）                       |
+| 20 | 前端 Copilot    | ❌                              | ❌                       | ❌              | P2 规划中（SKILL 明确标注；spec Future Opt \[P1]） |
+| 21 | 动态 BUG 修复     | ❌                              | ❌                       | —              | 规划中（SKILL 明确标注）                          |
+| 22 | C 端前端         | ✅ 18 子模块                       | —                       | 进行中            | Wave 0-3 Done，Wave 4 权限收尾未做              |
+
+> 结论：本期 C 端交付 scope（13 项能力）内，已实现 11 项，缺口 2 项（G1 UI 生成页面 / G2 对话内知识库检索）；Copilot 明确规划中不做；admin 独占 9 模块不影响 C 端交付。
+
+### 4.2 缺口清单（G 编号，任务流引用）
+
+| 编号 | 严重级               | 描述                                                                                                                                                               | 决策                                                    |
+| -- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| G1 | CRITICAL（AC9 不达标） | C 端无 UI 生成页：需新建 `src/routes/(main)/generate/` 页面 + service 对接 `/api/v1/c-end/generation/generate` SSE（code\_chunk/preview\_ready）+ iframe 预览 + 下载 + refine       | 本期补全（TASKFLOW S8-2）                                   |
+| G2 | WARNING（AC3 部分）   | 对话内 @知识库 检索未接：`services/rag.ts` semanticSearchForChat 仍走 tRPC mock                                                                                               | 本期补全：改接 c-end/knowledge search（TASKFLOW S8-3）         |
+| G3 | INFO（spec 滞后）     | 22-spec Status 表 Wave 0/1/2 仍 Not Started、AC1-15 未勾选，与实际不符（DoD 要求 spec 同步）                                                                                       | 补更（TASKFLOW S8-4）                                     |
+| G4 | INFO（明确不做）        | stub 501 能力（mcp/discover/plugins/social/devices/acceptance/web-browsing/tools-search）非 13 项能力，LobeHub 原有非核心页靠 tRPC mock 兼容                                       | 保持 stub+mock，已在本文档标注理由                                |
+| G5 | INFO（明确不做）        | #3/#6/#7/#12/#15/#16/#17/#19/#21 admin 独占或规划中模块                                                                                                                  | SKILL 依据：职责分工 B 表 + 状态标注新增 / 规划中                      |
+| G6 | WARNING（工程卫生）     | nest-admin `scripts/_tmp-*.ts` 40+ 临时脚本入库                                                                                                                        | 清理或加 .gitignore（TASKFLOW S8-6）                        |
+| G7 | INFO（待验证）         | 前端模型选择器（aiModel service）是否已接 /ai/v1/models                                                                                                                       | 测试用例 P2-MODEL 验证，FAIL 则补接                             |
+| G8 | WARNING（权限缺口）     | 管理端 `/ai/c-end` 8 个菜单（`vue-pure-admin/src/router/modules/ai.ts` L478-551）meta 无 `auths`，无 auths 的路由不被 filterNoPermissionTree 过滤 → developer 等任意登录账号可见 admin 独占菜单 | 补 `auths: ["ai:portal:config:admin"]`（TASKFLOW S8-15） |
+
+### 4.3 管理端新增页面 / 菜单位置约定（vue-pure-admin）
+
+> 菜单机制：静态路由（constantMenus）+ 后端 getAccountMenus 合并，`wholeMenus = filterNoPermissionTree(constantMenus.concat(后端菜单))`。c-end 管理页走静态路由三件套，**无需 sys\_menu 种子**：
+
+| 件   | 位置                                                       | 说明                                                                                   |
+| --- | -------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| 页面  | `src/views/ai/c-end/<模块>/index.vue`                      | 参考现有 8 页                                                                             |
+| API | `src/api/ai/c-end.ts`                                    | 统一封装 admin 全量接口                                                                      |
+| 菜单  | `src/router/modules/ai.ts` → `/ai/c-end` 组 children 追加子项 | path=`/ai/c-end/<模块>`、component、meta.title/icon；**必须带 `auths` 权限码**（对齐 gateway 菜单写法） |
+
+> G1/G2 为 C 端能力，无需新增管理端菜单；仅未来新增 admin 管理模块时按上表三件套落地。
 
 ## 5. 部署架构与命令
 

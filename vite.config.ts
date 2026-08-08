@@ -290,6 +290,76 @@ export default defineConfig({
           // 组合 batch（逗号分隔多个 procedure）逐个 mock
           // 注意：组合后续项可能不带 lambda/ 前缀（如 agent.getBuiltinAgent,agent.getBuiltinAgent）
           const procedures = procedure.split(',').map((p: string) => (p.startsWith('lambda/') ? p : `lambda/${p}`));
+
+          // G7/G9：aiModel.list 动态透传后端真实模型目录（/ai/v1/models 已公开，避免 mock 硬编码）
+          if (procedures.length === 1 && procedures[0] === 'lambda/aiModel.list') {
+            void (async () => {
+              try {
+                const upstream = await fetch('http://127.0.0.1:7001/ai/v1/models');
+                const json = (await upstream.json()) as { data?: { id: string }[] };
+                const list = (json.data || []).map((m) => ({
+                  id: m.id,
+                  displayName: m.id,
+                  enabled: true,
+                  isCustom: false,
+                }));
+                sendJson(res, { data: list }, 200, isBatch);
+              } catch {
+                sendJson(res, { data: [] }, 200, isBatch);
+              }
+            })();
+            return;
+          }
+
+          // G7/G9：provider 运行时状态透传真实模型（AiProviderRuntimeState 结构），驱动模型选择器/能力判定
+          if (procedures.length === 1 && procedures[0] === 'lambda/aiProvider.getAiProviderRuntimeState') {
+            void (async () => {
+              try {
+                const upstream = await fetch('http://127.0.0.1:7001/ai/v1/models');
+                const json = (await upstream.json()) as { data?: { id: string }[] };
+                const ids = (json.data || []).map((m) => m.id);
+                const enabledAiModels = ids.map((id) => ({
+                  providerId: 'openai',
+                  id,
+                  type: 'chat',
+                  displayName: id,
+                  enabled: true,
+                  isCustom: false,
+                  functionCall: false,
+                  vision: false,
+                }));
+                sendJson(
+                  res,
+                  {
+                    enabledAiModels,
+                    enabledAiProviders: [],
+                    enabledChatAiProviders: [{ id: 'openai', name: 'OpenAI', enabled: true, isSystem: true }],
+                    enabledImageAiProviders: [],
+                    enabledVideoAiProviders: [],
+                    runtimeConfig: {},
+                  },
+                  200,
+                  isBatch,
+                );
+              } catch {
+                sendJson(
+                  res,
+                  {
+                    enabledAiModels: [],
+                    enabledAiProviders: [],
+                    enabledChatAiProviders: [],
+                    enabledImageAiProviders: [],
+                    enabledVideoAiProviders: [],
+                    runtimeConfig: {},
+                  },
+                  200,
+                  isBatch,
+                );
+              }
+            })();
+            return;
+          }
+
           const mocks: Record<string, unknown> = {
             'lambda/config.getGlobalConfig': {
               serverConfig: { telemetry: { langfuse: false } },
@@ -298,31 +368,22 @@ export default defineConfig({
             },
             'lambda/config.getDefaultAgentConfig': { model: 'gpt-4o-mini', provider: 'openai', params: {} },
             'lambda/user.getUserState': null,
+            // getBuiltinAgent 需顶层含 id（builtin action 检查 data?.id，G9 修复）；原 {agent:{agentId}} 包裹导致发送按钮禁用
             'lambda/agent.getBuiltinAgent': {
-              agent: {
-                agentId: 'inbox',
-                slug: 'inbox',
-                title: '收件箱',
-                description: '默认助手',
-                model: 'deepseek-ai/DeepSeek-V4-Pro',
-                provider: 'siliconflow',
-                settings: {},
-                createAt: 0,
-              },
+              id: 'inbox',
+              agentId: 'inbox',
+              slug: 'inbox',
+              title: '收件箱',
+              description: '默认助手',
+              model: 'deepseek-ai/deepseek-v4-pro',
+              provider: 'openai',
+              settings: {},
+              createAt: 0,
             },
             // connector.list 返回 ConnectorWithTools[]（数组），不能包对象否则 connectors.filter 崩溃
             'lambda/connector.list': [],
             'lambda/connector.listAgentBound': [],
             'lambda/connector.listByAgent': [],
-            'lambda/aiProvider.getAiProviderRuntimeState': {
-              runtimeState: {
-                isLogin: false,
-                isServerSide: false,
-                canUse: false,
-                enabledList: [],
-                disabledList: [],
-              },
-            },
             // SidebarAgentListResponse: { groups, pinned, privateGroups?, privateUngrouped?, ungrouped }
             'lambda/home.getSidebarAgentList': {
               groups: [],
@@ -335,6 +396,27 @@ export default defineConfig({
             'lambda/recent.getAll': [],
             'lambda/aiModel.list': { data: [] },
             'lambda/agent.list': { agents: [] },
+            // 聊天页初始化必需（G9 修复）：inbox 助手配置 + 列表类空数组，缺失会报“助理配置加载失败”
+            'lambda/agent.getAgentConfigById': {
+              agentId: 'inbox',
+              slug: 'inbox',
+              title: '收件箱',
+              description: '默认助手',
+              model: 'deepseek-ai/deepseek-v4-pro',
+              provider: 'openai',
+              settings: {},
+              createAt: 0,
+            },
+            'lambda/agent.getAgentConfig': {
+              agentId: 'inbox',
+              model: 'deepseek-ai/deepseek-v4-pro',
+              provider: 'openai',
+              settings: {},
+            },
+            'lambda/agent.queryAgents': [],
+            'lambda/agent.countAgents': 0,
+            'lambda/agentSkills.list': [],
+            'lambda/agentDocument.listDocuments': [],
             'lambda/agentGroup.list': { groups: [] },
             'lambda/topic.list': { items: [], total: 0 },
             // 首页任务推荐（返回 { data, success }）

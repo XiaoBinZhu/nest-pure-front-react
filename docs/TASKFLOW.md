@@ -67,55 +67,82 @@
 
 ## 阶段 4：部署与线上回归
 
-| 任务   | 描述                                                                  | 状态      |
-| ---- | ------------------------------------------------------------------- | ------- |
-| S4-1 | `bun run build:spa` 构建 → 上传 proc（GIT 自动化部署 `morgan@43.155.185.180`） | ✅ PASS（已推 proc：nest-admin 274838e / C端 c02bd06a / 管理端 3c40211；修复 bun.lock frozen-lockfile 部署失败） |
-| S4-2 | 线上回归 `https://www.007icu.top/`（登录 / 对话 / 用量 / 部门看板）                 | 🔄 部署中（首页已含 harness 路由，页面 200） |
-| S4-3 | 更新 22-spec Status 表 + 本表最终状态                                        | ✅ PASS |
+| 任务   | 描述                                                                  | 状态                                                                                               |
+| ---- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| S4-1 | `bun run build:spa` 构建 → 上传 proc（GIT 自动化部署 `morgan@43.155.185.180`） | ✅ PASS（已推 proc：nest-admin 274838e / C 端 c02bd06a / 管理端 3c40211；修复 bun.lock frozen-lockfile 部署失败） |
+| S4-2 | 线上回归 `https://www.007icu.top/`（登录 / 对话 / 用量 / 部门看板）                 | 🔄 部署中（首页已含 harness 路由，页面 200）                                                                   |
+| S4-3 | 更新 22-spec Status 表 + 本表最终状态                                        | ✅ PASS                                                                                           |
 
 ## 阶段 5：后台管理端（vue-pure-admin）
 
 > 职责边界（modules.md L4956-4963）：13 个用户可见模块在后台做 CRUD 管理 / 策略配置 / 审计查看。
 
-| 任务   | 描述                                                  | 状态      |
-| ---- | --------------------------------------------------- | ------- |
-| M1 | 后端 admin 全量视角接口（memory/knowledge/workspace/team/harness 5 模块 list/delete + ROOT_USER_ID） | ✅ PASS（API 回归 8/8） |
-| M2 | 管理端 8 页面（Harness 会话 / Agent 团队 / 记忆画像 / 知识库 / 工作台产物 / Agent 市场 / HITL 审批 / UI 生成） | ✅ PASS（编译通过 + 已推 proc） |
-| M3 | 路由菜单组 /ai/c-end + api/ai/c-end.ts 封装 | ✅ PASS |
+| 任务 | 描述                                                                                         | 状态                     |
+| -- | ------------------------------------------------------------------------------------------ | ---------------------- |
+| M1 | 后端 admin 全量视角接口（memory/knowledge/workspace/team/harness 5 模块 list/delete + ROOT\_USER\_ID） | ✅ PASS（API 回归 8/8）     |
+| M2 | 管理端 8 页面（Harness 会话 / Agent 团队 / 记忆画像 / 知识库 / 工作台产物 / Agent 市场 / HITL 审批 / UI 生成）          | ✅ PASS（编译通过 + 已推 proc） |
+| M3 | 路由菜单组 /ai/c-end + api/ai/c-end.ts 封装                                                       | ✅ PASS                 |
 
 ## 阶段 6：C 端界面修复（2026-08-07）
 
-> 用户反馈"C 端界面问题很多"后全面排查修复，浏览器端到端验证通过。
+> 用户反馈 "C 端界面问题很多" 后全面排查修复，浏览器端到端验证通过。
 
-| # | 问题 | 根因 | 修复 | 状态 |
-|---|---|---|---|---|
-| F1 | 首页/页面空白 + tRPC 404 崩页面 | tRPC mock 仅 3 端点，其余 404 | vite mock 扩 11 端点 + 组合 batch + nginx 同步 | ✅ |
-| F2 | settings 无限 PUT 循环 | UserSettingsDto whitelist 剥离任意字段 | PUT 透传 + preference/settings 隔离 | ✅ |
-| F3 | onboarding 无限跳转 | updateGuide/getUserState 空实现 + completed 被 stepUpdateQueue 覆盖 | init-state 聚合接口 + updateOnboarding 只升不降 | ✅ |
-| F4 | 用户数据全空（settings/profile） | user service 未解包 {code,data} 信封 | 统一 unwrap 15 处 | ✅ |
-| F5 | 429 限流 | Throttler 100/min | 600/min | ✅ |
-| F6 | Harness 工具调用丢失 | deepseek 输出 <thinking>+```json 围栏，首行解析失败 | extractToolCall 兼容三格式（harness/agent/team） | ✅ |
-| F7 | market 页 categories.map 崩溃 | 后端返回 {list:[{name}]} 非数组 | service 适配 | ✅ |
-| F8 | 新页面缺失 | teams/hitl/knowledge/market 未建 | 4 页面 + 3 service + 路由 + i18n | ✅ |
+| #  | 问题                         | 根因                                                            | 修复                                        | 状态 |
+| -- | -------------------------- | ------------------------------------------------------------- | ----------------------------------------- | -- |
+| F1 | 首页 / 页面空白 + tRPC 404 崩页面   | tRPC mock 仅 3 端点，其余 404                                       | vite mock 扩 11 端点 + 组合 batch + nginx 同步   | ✅  |
+| F2 | settings 无限 PUT 循环         | UserSettingsDto whitelist 剥离任意字段                              | PUT 透传 + preference/settings 隔离           | ✅  |
+| F3 | onboarding 无限跳转            | updateGuide/getUserState 空实现 + completed 被 stepUpdateQueue 覆盖 | init-state 聚合接口 + updateOnboarding 只升不降   | ✅  |
+| F4 | 用户数据全空（settings/profile）   | user service 未解包 {code,data} 信封                               | 统一 unwrap 15 处                            | ✅  |
+| F5 | 429 限流                     | Throttler 100/min                                             | 600/min                                   | ✅  |
+| F6 | Harness 工具调用丢失             | deepseek 输出 <thinking>+\`\`\`json 围栏，首行解析失败                   | extractToolCall 兼容三格式（harness/agent/team） | ✅  |
+| F7 | market 页 categories.map 崩溃 | 后端返回 {list:\[{name}]} 非数组                                     | service 适配                                | ✅  |
+| F8 | 新页面缺失                      | teams/hitl/knowledge/market 未建                                | 4 页面 + 3 service + 路由 + i18n              | ✅  |
 
-**端到端验证**：首页/登录守卫/onboarding/Harness（会话→终端→文件写入→文件树）/teams/hitl/knowledge/market 全部浏览器实测通过。
+**端到端验证**：首页 / 登录守卫 /onboarding/Harness（会话→终端→文件写入→文件树）/teams/hitl/knowledge/market 全部浏览器实测通过。
 
 ## 阶段 7：深度契约回归（2026-08-07）
 
 > 逐接口对比原有契约 vs nest-admin 返回，浏览器端到端复验。
 
-| # | 契约项 | 原契约（LobeHub） | nest-admin 返回 | 修复 | 状态 |
-|---|---|---|---|---|---|
-| C1 | 会话列表 | ChatSessionList {sessions, sessionGroups} | {items, total} 分页 | 前端适配转换 | ✅ |
-| C2 | 会话/话题/消息/线程 service | 直接取数组 | {code,data} 信封 | 7 个 service 补 unwrap | ✅ |
-| C3 | hasSessions | count > 0 | — | 逻辑反修复（===0 → >0） | ✅ |
-| C4 | connector.list | ConnectorWithTools[] | mock {connectors} 对象 | mock 改数组 | ✅ |
-| C5 | brief.listUnresolved | result.data（数组） | mock [] | mock 改 {data:[]} | ✅ |
-| C6 | taskTemplate 推荐 | {data, success} | 404 | mock 补充 | ✅ |
-| C7 | 首页组合 batch | 多端点逗号组合 | 部分 404 | mock 补 home.getDailyBrief/device/brief | ✅ |
-| C8 | dept 看板 4 端点 | 直接取数 | 信封 | deptUsage unwrap | ✅ |
+| #  | 契约项                       | 原契约（LobeHub）                              | nest-admin 返回        | 修复                                     | 状态 |
+| -- | ------------------------- | ----------------------------------------- | -------------------- | -------------------------------------- | -- |
+| C1 | 会话列表                      | ChatSessionList {sessions, sessionGroups} | {items, total} 分页    | 前端适配转换                                 | ✅  |
+| C2 | 会话 / 话题 / 消息 / 线程 service | 直接取数组                                     | {code,data} 信封       | 7 个 service 补 unwrap                   | ✅  |
+| C3 | hasSessions               | count > 0                                 | —                    | 逻辑反修复（===0 → >0）                       | ✅  |
+| C4 | connector.list            | ConnectorWithTools\[]                     | mock {connectors} 对象 | mock 改数组                               | ✅  |
+| C5 | brief.listUnresolved      | result.data（数组）                           | mock \[]             | mock 改 {data:\[]}                      | ✅  |
+| C6 | taskTemplate 推荐           | {data, success}                           | 404                  | mock 补充                                | ✅  |
+| C7 | 首页组合 batch                | 多端点逗号组合                                   | 部分 404               | mock 补 home.getDailyBrief/device/brief | ✅  |
+| C8 | dept 看板 4 端点              | 直接取数                                      | 信封                   | deptUsage unwrap                       | ✅  |
 
-**浏览器复验**：首页（推荐卡片/无错误）/部门看板（11 人 42K token 全渲染）/Harness/teams/hitl/knowledge/market 全部通过。
+**浏览器复验**：首页（推荐卡片 / 无错误）/ 部门看板（11 人 42K token 全渲染）/Harness/teams/hitl/knowledge/market 全部通过。
+
+## 阶段 8：缺口补全 + 独立回归校验 + 部署（2026-08-07 新增，PENDING）
+
+> 背景：对照 ai-platform-sdd SKILL.md（L196-335 22 模块 / L301-317 职责分工 / L562-598 Wave 实施顺序）全量盘点，结论见 `docs/C-END-ANALYSIS.md` §4.1/§4.2；独立用例集见 `docs/TESTCASES-v2.md`（105 条）。
+> 执行铁律：本地优先、串行门控（每任务回归 PASS 再下一个）、No spec no code（补全前先改 22-spec）。
+> 本地环境：后端 7001 / C 端 `bun run dev:spa` / 管理端 8848。
+
+| 任务    | 描述                                                                                                                                                                                                              | 关键引用                                                                                                            | 对应用例          | 状态      |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------- | ------- |
+| S8-1  | 本地冒烟 + C 端**原有功能**全量回归（登录 / 会话 / 对话流式 / 模型 / 用量 /settings）                                                                                                                                                      | TESTCASES-v2 P0+P1                                                                                              | P0-1\~4、P1-\* | PENDING |
+| S8-2  | **补 G1**：C 端 UI 生成页（AC9）—— 新建 `src/routes/(main)/generate/` + service 接 `/api/v1/c-end/generation/generate` SSE（code\_chunk/preview\_ready）+ iframe 沙箱预览 + 下载 + refine；先更新 22-spec §3 Pages/§4 条目（v1.8.0 MINOR） | 22-spec §3/AC9；后端参考 `nest-admin/src/modules/c-end/generation/` + `_tmp-gen-test.ts`；SKILL.md L1677-2035 UI 生成模式 | P2-GEN-4      | PENDING |
+| S8-3  | **补 G2**：对话内 @知识库检索（AC3）——`services/rag.ts` semanticSearchForChat/semanticSearch 从 tRPC mock 改接 c-end/knowledge search                                                                                          | 22-spec AC3；后端 `c-end/knowledge` search 端点；SKILL.md L1279-1396 BGE-M3 模式                                        | P2-G2-1/2     | PENDING |
+| S8-4  | **补 G3**：同步 22-spec Status 表（Wave 0/1/2 改 Done + 勾选 AC1-15 已达标项 + Change Log v1.8.0）                                                                                                                            | 22-spec §9；DoD spec 层面要求（SKILL.md L797-802）                                                                     | —             | PENDING |
+| S8-5  | 新增功能回归（部门看板 / 记忆 / 知识库 / 工作台 / 市场 / HITL / 团队 / Harness + S8-2/S8-3 补全项复测）                                                                                                                                      | TESTCASES-v2 P2                                                                                                 | P2-\*         | PENDING |
+| S8-6  | 异常边界回归（无效 token / 越权 / 空列表 / 分页 / 限流 / SSE 超时）                                                                                                                                                                  | TESTCASES-v2 P3                                                                                                 | P3-1\~9       | PENDING |
+| S8-7  | 管理端回归（admin/developer 双角色 + /ai/c-end 菜单 + 8 页面）；菜单机制与页面位置约定见 C-END-ANALYSIS §4.3（静态路由三件套：views/ai/c-end/<模块> + api/ai/c-end.ts + router/modules/ai.ts children）                                                | TESTCASES-v2 P4                                                                                                 | P4-1\~6       | PENDING |
+| S8-8  | **补 G6**：清理 nest-admin `scripts/_tmp-*.ts`（删除或 .gitignore，保留有长期价值的改正式名）                                                                                                                                         | C-END-ANALYSIS §4.2 G6                                                                                          | P7-6          | PENDING |
+| S8-9  | 代码级审查（鉴权装饰器 / SkipTimeout/DTO whitelist/unwrap 一致性）                                                                                                                                                             | verify-feature SKILL 9 阶段；TESTCASES-v2 P7                                                                       | P7-1\~5       | PENDING |
+| S8-10 | 打包部署：`bun.lock` 同步 → `bun run build:spa` 验证 → commit+push → 上传 proc（`morgan@43.155.185.180`）；后端若有改动同步推 `morgan@115.190.150.8`                                                                                   | 历史教训 c02bd06a（frozen-lockfile）                                                                                  | P5-5          | PENDING |
+| S8-11 | **触发 proc 后 SSH 上服务器查打包**：proc 看 GIT 自动部署日志 /git log 最新 hash/front 产物时间戳 /bun install+build 结果 /nginx reload；后端看 docker ps/logs/migration/7001 探活；失败即修复重推直至成功                                                   | 部署架构见 C-END-ANALYSIS §5                                                                                         | P5-3/4        | PENDING |
+| S8-12 | 数据库校验（8 个 migration + 25 张表，只读）                                                                                                                                                                                 | SSH 115.190.150.8                                                                                               | P5-1/2        | PENDING |
+| S8-13 | 线上精简复验（两域名冒烟 + 核心链路 + 版本一致性）                                                                                                                                                                                    | TESTCASES-v2 P6                                                                                                 | P6-1\~6       | PENDING |
+| S8-14 | 收尾：回填 TESTCASES-v2 结果表 + 更新本表状态 + 22-spec Status=Done（全 AC Pass 后）                                                                                                                                              | DoD（SKILL.md L780-807）                                                                                          | —             | PENDING |
+| S8-15 | **补 G8**：管理端 `/ai/c-end` 组 + 8 子菜单补 `meta.auths: ["ai:portal:config:admin"]`（位置：`vue-pure-admin/src/router/modules/ai.ts` L470-552，对齐 gateway 菜单写法）；修后复测 developer 不可见、admin 可见                                 | C-END-ANALYSIS §4.2 G8；SKILL.md L463-475 admin 独占模块要求                                                           | P4-5          | PENDING |
+
+> 明确不做项（已在 C-END-ANALYSIS §4.2 记录依据）：G4 stub 能力保持 mock / G5 admin 独占 9 模块 / Copilot（spec Future Opt \[P1]）。
+> Wave 4（AC10/AC11/AC12 三角色端到端权限收尾）已并入 S8-5/S8-7 的三角色用例。
 
 ---
 

@@ -9,6 +9,7 @@ import {
   Home,
   Image,
   LibraryBigIcon,
+  Palette,
   Settings,
   ShapesIcon,
   ShieldCheck,
@@ -770,6 +771,14 @@ export const desktopRoutes: RouteObject[] = [
         errorElement: <ErrorBoundary />,
         handle: { meta: routeMeta({ icon: Store, titleKey: 'navigation.market' }) },
         path: 'market',
+      },
+
+      // UI 生成页（G1 补全，AC9：一句话生成 UI 原型 + iframe 预览 + 下载 + refine）
+      {
+        element: dynamicElement(() => import('@/routes/(main)/generate'), 'Desktop > UI Generator'),
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Palette, titleKey: 'navigation.uiGenerator' }) },
+        path: 'generate',
       },
 
       // Settings routes (personal-only — never mirrored under /:workspaceSlug)

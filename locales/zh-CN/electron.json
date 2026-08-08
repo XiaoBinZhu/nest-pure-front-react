@@ -150,5 +150,7 @@
   "navigation.teams": "Agent 团队",
   "navigation.hitl": "HITL 审批",
   "navigation.knowledge": "知识库",
-  "navigation.market": "Agent 市场"
+  "navigation.market": "Agent 市场",
+  "navigation.uiGenerator": "UI 生成",
+  "navigation.uiGeneratorDesc": "React + Ant Design / HTML + Tailwind"
 }

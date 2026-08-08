@@ -1,4 +1,3 @@
-import { INBOX_SESSION_ID } from '@/const/session';
 import { apiFetch } from '@/services/_api';
 import { type BatchTaskResult } from '@/types/service';
 import {
@@ -36,14 +35,16 @@ type UpdateTopicMetadataInput = Omit<Partial<ChatTopicMetadata>, 'onboardingSess
 
 export class TopicService {
   // 创建话题：POST /api/v1/c-end/topics
-  createTopic = (params: CreateTopicParams): Promise<string> => {
-    return unwrap<string>('/api/v1/c-end/topics', {
+  // 后端 data 为整个话题实体，返回其 id 字符串（G9 修复，此前返回实体导致 topicId 写入 [object Object]）
+  createTopic = async (params: CreateTopicParams): Promise<string> => {
+    const data = await unwrap<{ id: string }>('/api/v1/c-end/topics', {
       method: 'POST',
       body: JSON.stringify({
         ...params,
         sessionId: this.toDbSessionId(params.sessionId),
       }),
     });
+    return typeof data === 'string' ? data : data.id;
   };
 
   // TODO: Wave 2 - 待对接 nest-admin 批量创建接口
@@ -71,6 +72,7 @@ export class TopicService {
   };
 
   // 列表：GET /api/v1/c-end/topics?sessionId=xxx
+  // 后端返回裸数组，store 期望 {items,total}，此处统一转换（G9 修复）
   getTopics = async (params: QueryTopicParams): Promise<{ items: ChatTopic[]; total: number }> => {
     const query = new URLSearchParams();
     if (params.agentId) query.set('sessionId', params.agentId);
@@ -78,9 +80,10 @@ export class TopicService {
     if (params.current) query.set('current', String(params.current));
     if (params.sortBy) query.set('sortBy', params.sortBy);
     const qs = query.toString();
-    return unwrap<{ items: ChatTopic[]; total: number }>(
+    const data = await unwrap<ChatTopic[] | { items: ChatTopic[]; total: number }>(
       `/api/v1/c-end/topics${qs ? `?${qs}` : ''}`,
-    ) as any;
+    );
+    return Array.isArray(data) ? { items: data, total: data.length } : data;
   };
 
   // TODO: Wave 2 - 待对接 nest-admin queryTopics 接口
@@ -196,8 +199,10 @@ export class TopicService {
     return Promise.resolve();
   };
 
-  private toDbSessionId = (sessionId?: string | null) =>
-    sessionId === INBOX_SESSION_ID ? null : sessionId;
+  private toDbSessionId = (sessionId?: string | null) => {
+    // G9 修复：inbox 等 agentId 键不再转 null，由后端按 userId+agentId 派生 UUID 虚拟会话
+    return sessionId ?? undefined;
+  };
 }
 
 export const topicService = new TopicService();

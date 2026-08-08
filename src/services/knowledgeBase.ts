@@ -80,31 +80,22 @@ class KnowledgeBaseService {
     );
   };
 
-  /** 上传文档并索引（multipart/form-data） */
+  /** 上传文档并索引（G2 修复：后端契约为 JSON {name, content} 文本，非 multipart） */
   indexDoc = async (baseId: string, file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    const token =
-      typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-    const res = await fetch(`/api/v1/c-end/knowledge/bases/${baseId}/documents`, {
+    const content = await file.text();
+    return unwrap(`/api/v1/c-end/knowledge/bases/${baseId}/documents`, {
       method: 'POST',
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      body: formData,
+      body: JSON.stringify({ name: file.name, content }),
     });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: `HTTP ${res.status}` }));
-      throw new Error(err.message || `HTTP ${res.status}`);
-    }
-    return res.json();
   };
 
-  /** 语义检索（pgvector 余弦相似度） */
+  /** 语义检索（pgvector 余弦相似度，后端 SearchDto 字段为 topK，返回裸数组，G2 修复） */
   search = async (baseId: string, query: string, limit = 5) => {
-    return unwrap<{ results: Array<{ content: string; score: number }> }>(
+    return unwrap<Array<{ chunkId: string; content: string; chunkIndex: number; docId: string; score: number; docName: string }>>(
       `/api/v1/c-end/knowledge/bases/${baseId}/search`,
       {
         method: 'POST',
-        body: JSON.stringify({ query, limit }),
+        body: JSON.stringify({ query, topK: limit }),
       },
     );
   };

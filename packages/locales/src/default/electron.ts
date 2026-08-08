@@ -156,4 +156,6 @@ export default {
   'navigation.hitl': 'HITL Approval',
   'navigation.knowledge': 'Knowledge Base',
   'navigation.market': 'Agent Market',
+  'navigation.uiGenerator': 'UI Generator',
+  'navigation.uiGeneratorDesc': 'React + Ant Design / HTML + Tailwind',
 };

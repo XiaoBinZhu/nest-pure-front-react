@@ -111,5 +111,14 @@ export const createPayloadWithKeyVaults = (provider: string) => {
 };
 
 export const createHeaderWithAuth = async (params?: AuthParams): Promise<HeadersInit> => {
-  return { ...params?.headers };
+  const headers: Record<string, string> = { ...(params?.headers as Record<string, string> | undefined) };
+
+  // G9 修复：纯 SPA 模式聊天/模型请求直连 nest-admin /ai/v1 网关，
+  // 无 provider apiKey，注入系统 JWT（网关 JWT 双轨鉴权，22-spec v1.8.0）
+  const accessToken = typeof localStorage !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  if (accessToken && !headers.Authorization) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  return headers;
 };
