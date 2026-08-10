@@ -20,7 +20,6 @@ import { apiFetch } from '../_api';
 
 import { abortableRequest } from '../utils/abortableRequest';
 
-
 // 统一解包 { code, data } 信封（后端响应统一包装）
 async function unwrap<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await apiFetch<{ code: number; data: T }>(path, options);
@@ -105,7 +104,7 @@ const getBatchMutationAbortKey = (operations: MessageBatchOperation[]) => {
 };
 
 export class MessageService {
-  // 批量操作：POST /api/v1/c-end/messages/batch
+  // 批量操作：POST /app/front-hub/messages/batch
   batchMutate = async (operations: MessageBatchOperation[], signal?: AbortSignal) => {
     const input = {
       operations: operations.map((operation) => {
@@ -124,7 +123,7 @@ export class MessageService {
       }),
     } as any;
 
-    return unwrap<MessageBatchMutationResult>('/api/v1/c-end/messages/batch', {
+    return unwrap<MessageBatchMutationResult>('/app/front-hub/messages/batch', {
       method: 'POST',
       body: JSON.stringify(input),
       signal,
@@ -151,15 +150,15 @@ export class MessageService {
     return abortKey ? abortableRequest.execute(abortKey, execute) : execute();
   };
 
-  // 创建消息：POST /api/v1/c-end/messages
+  // 创建消息：POST /app/front-hub/messages
   createMessage = async (params: CreateMessageParams): Promise<CreateMessageResult> => {
-    return unwrap<CreateMessageResult>('/api/v1/c-end/messages', {
+    return unwrap<CreateMessageResult>('/app/front-hub/messages', {
       method: 'POST',
       body: JSON.stringify(params),
     });
   };
 
-  // 列表：GET /api/v1/c-end/messages?sessionId=xxx
+  // 列表：GET /app/front-hub/messages?sessionId=xxx
   getMessages = async (params: MessageReadQueryContext): Promise<UIChatMessage[]> => {
     const query = new URLSearchParams();
     if (params.agentId) query.set('sessionId', params.agentId);
@@ -167,9 +166,7 @@ export class MessageService {
     if (params.threadId) query.set('threadId', params.threadId);
     if (params.groupId) query.set('groupId', params.groupId);
     const qs = query.toString();
-    const data = await unwrap<UIChatMessage[]>(
-      `/api/v1/c-end/messages${qs ? `?${qs}` : ''}`,
-    );
+    const data = await unwrap<UIChatMessage[]>(`/app/front-hub/messages${qs ? `?${qs}` : ''}`);
     return data as unknown as UIChatMessage[];
   };
 
@@ -183,7 +180,7 @@ export class MessageService {
     return Promise.resolve({ restoredMessageIds: [] } as any);
   };
 
-  // 计数：GET /api/v1/c-end/messages/count
+  // 计数：GET /app/front-hub/messages/count
   countMessages = async (params?: {
     endDate?: string;
     range?: [string, string];
@@ -193,11 +190,18 @@ export class MessageService {
       ? '?' +
         new URLSearchParams(
           Object.entries(params).flatMap(([k, v]) =>
-            Array.isArray(v) ? [[k, v[0]], [k, v[1]]] : v != null ? [[k, String(v)]] : [],
+            Array.isArray(v)
+              ? [
+                  [k, v[0]],
+                  [k, v[1]],
+                ]
+              : v != null
+                ? [[k, String(v)]]
+                : [],
           ),
         ).toString()
       : '';
-    return unwrap<number>(`/api/v1/c-end/messages/count${query}`);
+    return unwrap<number>(`/app/front-hub/messages/count${query}`);
   };
 
   // TODO: Wave 2 - 待对接 nest-admin 统计接口
@@ -224,23 +228,20 @@ export class MessageService {
     return Promise.resolve([] as HeatmapsProps['data']);
   };
 
-  // 更新消息（含 error）：PATCH /api/v1/c-end/messages/:id
+  // 更新消息（含 error）：PATCH /app/front-hub/messages/:id
   updateMessageError = async (id: string, value: ChatMessageError, ctx?: MessageQueryContext) => {
     const error = value.type
       ? value
       : { body: value, message: value.message, type: 'ApplicationRuntimeError' };
 
-    return unwrap(`/api/v1/c-end/messages/${id}`, {
+    return unwrap(`/app/front-hub/messages/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ ...ctx, value: { error } }),
     });
   };
 
   // TODO: Wave 2 - 待对接 nest-admin plugin 接口
-  updateMessagePluginArguments = async (
-    _id: string,
-    _value: string | Record<string, any>,
-  ) => {
+  updateMessagePluginArguments = async (_id: string, _value: string | Record<string, any>) => {
     return Promise.resolve();
   };
 
@@ -253,13 +254,13 @@ export class MessageService {
     return Promise.resolve({ success: false, messages: [] } as any);
   };
 
-  // 更新消息：PATCH /api/v1/c-end/messages/:id
+  // 更新消息：PATCH /app/front-hub/messages/:id
   updateMessage = async (
     id: string,
     value: Partial<UpdateMessageParams>,
     ctx?: MessageQueryContext,
   ): Promise<UpdateMessageResult> => {
-    return unwrap<UpdateMessageResult>(`/api/v1/c-end/messages/${id}`, {
+    return unwrap<UpdateMessageResult>(`/app/front-hub/messages/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ ...ctx, value }),
     });
@@ -335,9 +336,9 @@ export class MessageService {
     return Promise.resolve() as unknown as Promise<UpdateMessageResult>;
   };
 
-  // 删除消息：DELETE /api/v1/c-end/messages/:id
+  // 删除消息：DELETE /app/front-hub/messages/:id
   removeMessage = async (id: string, _ctx?: MessageQueryContext): Promise<UpdateMessageResult> => {
-    return unwrap<UpdateMessageResult>(`/api/v1/c-end/messages/${id}`, { method: 'DELETE' });
+    return unwrap<UpdateMessageResult>(`/app/front-hub/messages/${id}`, { method: 'DELETE' });
   };
 
   // TODO: Wave 2 - 待对接 nest-admin 批量删除接口

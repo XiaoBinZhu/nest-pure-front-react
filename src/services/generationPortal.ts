@@ -1,6 +1,6 @@
 import { apiFetch, apiStream } from '@/services/_api';
 
-// C 端 UI 生成 API（对应 nest-admin /api/v1/c-end/generation）
+// C 端 UI 生成 API（对应 nest-admin /app/front-hub/generation）
 // SSE 事件：code_chunk {text,language} → preview_ready {html,componentCode,framework} → error {code,message}
 
 // 统一解包 { code, data } 信封
@@ -40,7 +40,7 @@ class GenerationPortalService {
     signal?: AbortSignal,
   ): Promise<void> => {
     const stream = await apiStream(
-      '/api/v1/c-end/generation/generate',
+      '/app/front-hub/generation/generate',
       { message, framework },
       signal,
     );
@@ -79,7 +79,7 @@ class GenerationPortalService {
     signal?: AbortSignal,
   ): Promise<void> => {
     const stream = await apiStream(
-      '/api/v1/c-end/generation/refine',
+      '/app/front-hub/generation/refine',
       { historyId, message, currentCode, framework },
       signal,
     );
@@ -111,15 +111,15 @@ class GenerationPortalService {
   // ============ 历史 ============
   listHistory = async (page = 1, pageSize = 20) =>
     unwrap<{ items: GenerationHistoryItem[]; total: number }>(
-      `/api/v1/c-end/generation/history?page=${page}&pageSize=${pageSize}`,
+      `/app/front-hub/generation/history?page=${page}&pageSize=${pageSize}`,
     );
 
   getHistory = async (id: string) =>
-    unwrap<GenerationHistoryItem>(`/api/v1/c-end/generation/history/${id}`);
+    unwrap<GenerationHistoryItem>(`/app/front-hub/generation/history/${id}`);
 
   // ============ 预设模板 ============
   getTemplates = async () =>
-    unwrap<{ list: GenerationTemplate[] }>('/api/v1/c-end/generation/templates');
+    unwrap<{ list: GenerationTemplate[] }>('/app/front-hub/generation/templates');
 }
 
 export const generationPortalService = new GenerationPortalService();

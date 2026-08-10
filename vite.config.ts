@@ -289,13 +289,15 @@ export default defineConfig({
           const isBatch = url.includes('batch=1');
           // 组合 batch（逗号分隔多个 procedure）逐个 mock
           // 注意：组合后续项可能不带 lambda/ 前缀（如 agent.getBuiltinAgent,agent.getBuiltinAgent）
-          const procedures = procedure.split(',').map((p: string) => (p.startsWith('lambda/') ? p : `lambda/${p}`));
+          const procedures = procedure
+            .split(',')
+            .map((p: string) => (p.startsWith('lambda/') ? p : `lambda/${p}`));
 
           // G7/G9：aiModel.list 动态透传后端真实模型目录（/ai/v1/models 已公开，避免 mock 硬编码）
           if (procedures.length === 1 && procedures[0] === 'lambda/aiModel.list') {
             void (async () => {
               try {
-                const upstream = await fetch('http://127.0.0.1:7001/ai/v1/models');
+                const upstream = await fetch('http://127.0.0.1:7001/v1/models');
                 const json = (await upstream.json()) as { data?: { id: string }[] };
                 const list = (json.data || []).map((m) => ({
                   id: m.id,
@@ -312,10 +314,13 @@ export default defineConfig({
           }
 
           // G7/G9：provider 运行时状态透传真实模型（AiProviderRuntimeState 结构），驱动模型选择器/能力判定
-          if (procedures.length === 1 && procedures[0] === 'lambda/aiProvider.getAiProviderRuntimeState') {
+          if (
+            procedures.length === 1 &&
+            procedures[0] === 'lambda/aiProvider.getAiProviderRuntimeState'
+          ) {
             void (async () => {
               try {
-                const upstream = await fetch('http://127.0.0.1:7001/ai/v1/models');
+                const upstream = await fetch('http://127.0.0.1:7001/v1/models');
                 const json = (await upstream.json()) as { data?: { id: string }[] };
                 const ids = (json.data || []).map((m) => m.id);
                 const enabledAiModels = ids.map((id) => ({
@@ -333,7 +338,9 @@ export default defineConfig({
                   {
                     enabledAiModels,
                     enabledAiProviders: [],
-                    enabledChatAiProviders: [{ id: 'openai', name: 'OpenAI', enabled: true, isSystem: true }],
+                    enabledChatAiProviders: [
+                      { id: 'openai', name: 'OpenAI', enabled: true, isSystem: true },
+                    ],
                     enabledImageAiProviders: [],
                     enabledVideoAiProviders: [],
                     runtimeConfig: {},
@@ -366,7 +373,11 @@ export default defineConfig({
               serverFeatureFlags: {},
               billboard: null,
             },
-            'lambda/config.getDefaultAgentConfig': { model: 'gpt-4o-mini', provider: 'openai', params: {} },
+            'lambda/config.getDefaultAgentConfig': {
+              model: 'gpt-4o-mini',
+              provider: 'openai',
+              params: {},
+            },
             'lambda/user.getUserState': null,
             // getBuiltinAgent 需顶层含 id（builtin action 检查 data?.id，G9 修复）；原 {agent:{agentId}} 包裹导致发送按钮禁用
             'lambda/agent.getBuiltinAgent': {
@@ -533,7 +544,9 @@ export default defineConfig({
       // 对接 nest-admin 后端（开发期代理，生产由 Nginx 转发）
       '/api': { target: 'http://127.0.0.1:7001', changeOrigin: true },
       '/auth': { target: 'http://127.0.0.1:7001', changeOrigin: true },
-      '/ai': { target: 'http://127.0.0.1:7001', changeOrigin: true, ws: false },
+      '/v1': { target: 'http://127.0.0.1:7001', changeOrigin: true, ws: false },
+      // C 端业务前缀 /app/front-hub（项目前缀规范，替代原 /api/v1/c-end）
+      '/app': { target: 'http://127.0.0.1:7001', changeOrigin: true },
       '/oidc': `http://localhost:${process.env.PORT || 3010}`,
       // /trpc 在纯 SPA 模式下无 Next.js 后端，由下方 trpc-mock 插件返回 mock JSON
       '/webapi': `http://localhost:${process.env.PORT || 3010}`,

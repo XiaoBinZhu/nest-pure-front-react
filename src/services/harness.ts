@@ -1,6 +1,6 @@
 import { apiFetch, apiStream } from '@/services/_api';
 
-// C 端 Harness 代码智能体 API（对应 nest-admin /api/v1/c-end/harness）
+// C 端 Harness 代码智能体 API（对应 nest-admin /app/front-hub/harness）
 // 数据按 userId 隔离（scope=self）
 
 // 统一解包 { code, data } 信封
@@ -54,38 +54,53 @@ export type HarnessEvent =
   | { event: 'harness_state'; data: { sessionId: string; model: string; mode: string } }
   | { event: 'harness_content'; data: { text: string } }
   | { event: 'harness_tool_call'; data: { tool: string; args: any; callId: string } }
-  | { event: 'harness_tool_result'; data: { tool: string; callId: string; success: boolean; result: any } }
+  | {
+      event: 'harness_tool_result';
+      data: { tool: string; callId: string; success: boolean; result: any };
+    }
   | { event: 'harness_file_change'; data: { action: string; path: string; size?: number } }
   | { event: 'harness_terminal'; data: { command: string; exitCode: number; output: string } }
-  | { event: 'harness_approval'; data: { callId: string; tool: string; args: any; risk: string; description: string } }
+  | {
+      event: 'harness_approval';
+      data: { callId: string; tool: string; args: any; risk: string; description: string };
+    }
   | { event: 'harness_done'; data: { steps: number } }
   | { event: 'error'; data: { code: string; message: string; recoverable?: boolean } };
 
 class HarnessService {
   // ============ 会话 ============
-  listSessions = async () => unwrap<HarnessSession[]>('/api/v1/c-end/harness/sessions');
+  listSessions = async () => unwrap<HarnessSession[]>('/app/front-hub/harness/sessions');
 
   createSession = async (data: { name?: string; mode?: string; model?: string }) =>
-    unwrap<HarnessSession>('/api/v1/c-end/harness/sessions', {
+    unwrap<HarnessSession>('/app/front-hub/harness/sessions', {
       method: 'POST',
       body: JSON.stringify(data),
     });
 
   getSession = async (id: string) =>
-    unwrap<HarnessSessionDetail>(`/api/v1/c-end/harness/sessions/${id}`);
+    unwrap<HarnessSessionDetail>(`/app/front-hub/harness/sessions/${id}`);
 
   updateSession = async (id: string, data: { name?: string; mode?: string; model?: string }) =>
-    unwrap(`/api/v1/c-end/harness/sessions/${id}`, {
+    unwrap(`/app/front-hub/harness/sessions/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
 
   deleteSession = async (id: string) =>
-    unwrap(`/api/v1/c-end/harness/sessions/${id}`, { method: 'DELETE' });
+    unwrap(`/app/front-hub/harness/sessions/${id}`, { method: 'DELETE' });
 
   // ============ 对话（SSE 流式，onEvent 回调） ============
-  chat = async (sessionId: string, message: string, onEvent: (evt: HarnessEvent) => void, signal?: AbortSignal) => {
-    const stream = await apiStream(`/api/v1/c-end/harness/sessions/${sessionId}/chat`, { message }, signal);
+  chat = async (
+    sessionId: string,
+    message: string,
+    onEvent: (evt: HarnessEvent) => void,
+    signal?: AbortSignal,
+  ) => {
+    const stream = await apiStream(
+      `/app/front-hub/harness/sessions/${sessionId}/chat`,
+      { message },
+      signal,
+    );
     const reader = stream.getReader();
     const decoder = new TextDecoder();
     let buf = '';
@@ -113,34 +128,36 @@ class HarnessService {
 
   // ============ 虚拟文件系统 ============
   listFiles = async (sessionId: string) =>
-    unwrap<HarnessFileNode[]>(`/api/v1/c-end/harness/sessions/${sessionId}/files`);
+    unwrap<HarnessFileNode[]>(`/app/front-hub/harness/sessions/${sessionId}/files`);
 
   getFileContent = async (sessionId: string, path: string) => {
     const p = encodeURIComponent(path);
     return unwrap<{ path: string; content: string; size: number }>(
-      `/api/v1/c-end/harness/sessions/${sessionId}/files/content?path=${p}`,
+      `/app/front-hub/harness/sessions/${sessionId}/files/content?path=${p}`,
     );
   };
 
   saveFile = async (sessionId: string, path: string, content: string) =>
-    unwrap<{ path: string; action: string }>(`/api/v1/c-end/harness/sessions/${sessionId}/files`, {
+    unwrap<{ path: string; action: string }>(`/app/front-hub/harness/sessions/${sessionId}/files`, {
       method: 'PUT',
       body: JSON.stringify({ path, content }),
     });
 
   deleteFile = async (sessionId: string, path: string) => {
     const p = encodeURIComponent(path);
-    return unwrap(`/api/v1/c-end/harness/sessions/${sessionId}/files?path=${p}`, { method: 'DELETE' });
+    return unwrap(`/app/front-hub/harness/sessions/${sessionId}/files?path=${p}`, {
+      method: 'DELETE',
+    });
   };
 
   // ============ 终端 ============
   listCommands = async (sessionId: string) =>
-    unwrap<HarnessCommand[]>(`/api/v1/c-end/harness/sessions/${sessionId}/commands`);
+    unwrap<HarnessCommand[]>(`/app/front-hub/harness/sessions/${sessionId}/commands`);
 
   // ============ 工具元信息 ============
   getTools = async (mode?: string) => {
     const q = mode ? `?mode=${mode}` : '';
-    return unwrap<{ mode: string; tools: HarnessToolInfo[] }>(`/api/v1/c-end/harness/tools${q}`);
+    return unwrap<{ mode: string; tools: HarnessToolInfo[] }>(`/app/front-hub/harness/tools${q}`);
   };
 }
 

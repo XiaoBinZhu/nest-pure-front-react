@@ -1,6 +1,6 @@
 import { apiFetch } from '@/services/_api';
 
-// C 端 Agent 市场 API（对应 nest-admin /api/v1/c-end/marketplace）
+// C 端 Agent 市场 API（对应 nest-admin /app/front-hub/marketplace）
 
 async function unwrap<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await apiFetch<{ code: number; data: T }>(path, options);
@@ -23,7 +23,12 @@ export interface MarketAgent {
 }
 
 class MarketplaceService {
-  listAgents = async (params?: { category?: string; status?: string; page?: number; pageSize?: number }) => {
+  listAgents = async (params?: {
+    category?: string;
+    status?: string;
+    page?: number;
+    pageSize?: number;
+  }) => {
     const qs = new URLSearchParams();
     if (params?.category) qs.set('category', params.category);
     if (params?.status) qs.set('status', params.status);
@@ -31,34 +36,41 @@ class MarketplaceService {
     if (params?.pageSize) qs.set('pageSize', String(params.pageSize));
     const q = qs.toString();
     return unwrap<{ items: MarketAgent[]; total: number }>(
-      `/api/v1/c-end/marketplace/agents${q ? `?${q}` : ''}`,
+      `/app/front-hub/marketplace/agents${q ? `?${q}` : ''}`,
     );
   };
 
-  getAgent = async (id: string) => unwrap<MarketAgent>(`/api/v1/c-end/marketplace/agents/${id}`);
+  getAgent = async (id: string) => unwrap<MarketAgent>(`/app/front-hub/marketplace/agents/${id}`);
 
   getCategories = async () => {
     const res = await unwrap<{ list: Array<{ name: string; agentCount: number }> }>(
-      '/api/v1/c-end/marketplace/categories',
+      '/app/front-hub/marketplace/categories',
     );
     return (res?.list || []).map((c) => c.name);
   };
 
-  clone = async (id: string) => unwrap(`/api/v1/c-end/marketplace/${id}/clone`, { method: 'POST' });
+  clone = async (id: string) =>
+    unwrap(`/app/front-hub/marketplace/${id}/clone`, { method: 'POST' });
 
   rate = async (id: string, rating: number, comment?: string) =>
-    unwrap(`/api/v1/c-end/marketplace/${id}/rate`, {
+    unwrap(`/app/front-hub/marketplace/${id}/rate`, {
       method: 'POST',
       body: JSON.stringify({ rating, comment }),
     });
 
-  publish = async (data: { title: string; description?: string; category?: string; tags?: string[]; agentId?: string }) =>
-    unwrap('/api/v1/c-end/marketplace/publish', {
+  publish = async (data: {
+    title: string;
+    description?: string;
+    category?: string;
+    tags?: string[];
+    agentId?: string;
+  }) =>
+    unwrap('/app/front-hub/marketplace/publish', {
       method: 'POST',
       body: JSON.stringify(data),
     });
 
-  mine = async () => unwrap<MarketAgent[]>('/api/v1/c-end/marketplace/mine');
+  mine = async () => unwrap<MarketAgent[]>('/app/front-hub/marketplace/mine');
 }
 
 export const marketplaceService = new MarketplaceService();

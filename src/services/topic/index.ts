@@ -34,10 +34,10 @@ type UpdateTopicMetadataInput = Omit<Partial<ChatTopicMetadata>, 'onboardingSess
 };
 
 export class TopicService {
-  // 创建话题：POST /api/v1/c-end/topics
+  // 创建话题：POST /app/front-hub/topics
   // 后端 data 为整个话题实体，返回其 id 字符串（G9 修复，此前返回实体导致 topicId 写入 [object Object]）
   createTopic = async (params: CreateTopicParams): Promise<string> => {
-    const data = await unwrap<{ id: string }>('/api/v1/c-end/topics', {
+    const data = await unwrap<{ id: string }>('/app/front-hub/topics', {
       method: 'POST',
       body: JSON.stringify({
         ...params,
@@ -71,7 +71,7 @@ export class TopicService {
     return Promise.resolve({ messageCount: 0, topicId: '' });
   };
 
-  // 列表：GET /api/v1/c-end/topics?sessionId=xxx
+  // 列表：GET /app/front-hub/topics?sessionId=xxx
   // 后端返回裸数组，store 期望 {items,total}，此处统一转换（G9 修复）
   getTopics = async (params: QueryTopicParams): Promise<{ items: ChatTopic[]; total: number }> => {
     const query = new URLSearchParams();
@@ -81,7 +81,7 @@ export class TopicService {
     if (params.sortBy) query.set('sortBy', params.sortBy);
     const qs = query.toString();
     const data = await unwrap<ChatTopic[] | { items: ChatTopic[]; total: number }>(
-      `/api/v1/c-end/topics${qs ? `?${qs}` : ''}`,
+      `/app/front-hub/topics${qs ? `?${qs}` : ''}`,
     );
     return Array.isArray(data) ? { items: data, total: data.length } : data;
   };
@@ -116,9 +116,9 @@ export class TopicService {
     return Promise.resolve(0);
   };
 
-  // 详情：GET /api/v1/c-end/topics/:id
+  // 详情：GET /app/front-hub/topics/:id
   getTopicDetail = async (id: string): Promise<ChatTopic | null> => {
-    return unwrap<ChatTopic | null>(`/api/v1/c-end/topics/${id}`);
+    return unwrap<ChatTopic | null>(`/app/front-hub/topics/${id}`);
   };
 
   // TODO: Wave 2 - 待对接 nest-admin recent 接口
@@ -132,13 +132,17 @@ export class TopicService {
   };
 
   // TODO: Wave 2
-  searchTopics = (_keywords: string, _agentId?: string, _groupId?: string): Promise<ChatTopic[]> => {
+  searchTopics = (
+    _keywords: string,
+    _agentId?: string,
+    _groupId?: string,
+  ): Promise<ChatTopic[]> => {
     return Promise.resolve([]);
   };
 
-  // 更新话题：PATCH /api/v1/c-end/topics/:id
+  // 更新话题：PATCH /app/front-hub/topics/:id
   updateTopic = (id: string, data: Partial<ChatTopic>) => {
-    return unwrap(`/api/v1/c-end/topics/${id}`, {
+    return unwrap(`/app/front-hub/topics/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ value: data }),
     });
@@ -169,9 +173,9 @@ export class TopicService {
     return Promise.resolve({} as any);
   };
 
-  // 删除话题：DELETE /api/v1/c-end/topics/:id
+  // 删除话题：DELETE /app/front-hub/topics/:id
   removeTopic = (id: string, _removeFiles?: boolean) => {
-    return unwrap(`/api/v1/c-end/topics/${id}`, { method: 'DELETE' });
+    return unwrap(`/app/front-hub/topics/${id}`, { method: 'DELETE' });
   };
 
   // TODO: Wave 2 - 待对接 nest-admin 批量删除接口

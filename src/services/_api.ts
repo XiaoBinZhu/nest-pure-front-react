@@ -11,10 +11,7 @@ function getToken(): string | null {
 }
 
 // 统一 fetch 封装
-export async function apiFetch<T = any>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
+export async function apiFetch<T = any>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   // 仅在有 body 时设置 Content-Type：无 body 请求（如 DELETE）带 JSON Content-Type
   // 会被 Fastify 拒绝（Body cannot be empty when content-type is set to 'application/json'）
@@ -33,10 +30,10 @@ export async function apiFetch<T = any>(
   });
 
   if (res.status === 401) {
-    // 尝试刷新 token
+    // 尝试刷新 token（nest-admin 实际路径 /system/auth/refresh-token）
     const refreshToken = localStorage.getItem('refreshToken');
     if (refreshToken) {
-      const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
+      const refreshRes = await fetch(`${API_BASE}/system/auth/refresh-token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken }),

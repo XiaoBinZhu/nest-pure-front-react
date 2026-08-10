@@ -1,6 +1,6 @@
 import { apiFetch } from '@/services/_api';
 
-// C 端 HITL 审批 API（对应 nest-admin /api/v1/c-end/hitl）
+// C 端 HITL 审批 API（对应 nest-admin /app/front-hub/hitl）
 
 async function unwrap<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await apiFetch<{ code: number; data: T }>(path, options);
@@ -38,26 +38,26 @@ class HitlService {
     if (params?.pageSize) qs.set('pageSize', String(params.pageSize));
     const q = qs.toString();
     return unwrap<{ items: HitlApproval[]; total: number }>(
-      `/api/v1/c-end/hitl/approvals${q ? `?${q}` : ''}`,
+      `/app/front-hub/hitl/approvals${q ? `?${q}` : ''}`,
     );
   };
 
   approve = async (id: string, reason?: string) =>
-    unwrap(`/api/v1/c-end/hitl/approvals/${id}/approve`, {
+    unwrap(`/app/front-hub/hitl/approvals/${id}/approve`, {
       method: 'POST',
       body: JSON.stringify({ reason: reason || '确认执行' }),
     });
 
   reject = async (id: string, reason?: string) =>
-    unwrap(`/api/v1/c-end/hitl/approvals/${id}/reject`, {
+    unwrap(`/app/front-hub/hitl/approvals/${id}/reject`, {
       method: 'POST',
       body: JSON.stringify({ reason: reason || '拒绝执行' }),
     });
 
-  listPolicies = async () => unwrap<HitlPolicy[]>('/api/v1/c-end/hitl/policies');
+  listPolicies = async () => unwrap<HitlPolicy[]>('/app/front-hub/hitl/policies');
 
   createPolicy = async (data: { tool: string; defaultRisk?: string; forceApproval?: boolean }) =>
-    unwrap<HitlPolicy>('/api/v1/c-end/hitl/policies', {
+    unwrap<HitlPolicy>('/app/front-hub/hitl/policies', {
       method: 'POST',
       body: JSON.stringify(data),
     });

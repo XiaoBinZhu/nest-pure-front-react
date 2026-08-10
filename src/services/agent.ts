@@ -3,6 +3,14 @@ import { type PartialDeep } from 'type-fest';
 
 import { lambdaClient } from '@/libs/trpc/client';
 
+import { apiFetch } from './_api';
+
+// REST 解包（兼容 nest-admin { code, data } 信封）
+async function unwrap<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await apiFetch<{ code: number; data: T }>(path, options);
+  return (res as any)?.data ?? (res as T);
+}
+
 export const AVAILABLE_AGENTS_CONTEXT_LIMIT = 10;
 export const AVAILABLE_AGENTS_CONTEXT_QUERY_LIMIT = AVAILABLE_AGENTS_CONTEXT_LIMIT + 2;
 
@@ -90,7 +98,10 @@ class AgentService {
    * Check if an agent with the given marketIdentifier already exists
    */
   checkByMarketIdentifier = async (marketIdentifier: string): Promise<boolean> => {
-    return lambdaClient.agent.checkByMarketIdentifier.query({ marketIdentifier });
+    const id = await unwrap<string | null>(
+      `/app/front-hub/agents/identifier/marketIdentifier/${encodeURIComponent(marketIdentifier)}`,
+    );
+    return !!id;
   };
 
   /**
@@ -98,7 +109,9 @@ class AgentService {
    * @returns agent id if exists, null otherwise
    */
   getAgentByMarketIdentifier = async (marketIdentifier: string): Promise<string | null> => {
-    return lambdaClient.agent.getAgentByMarketIdentifier.query({ marketIdentifier });
+    return unwrap<string | null>(
+      `/app/front-hub/agents/identifier/marketIdentifier/${encodeURIComponent(marketIdentifier)}`,
+    );
   };
 
   /**
@@ -106,7 +119,9 @@ class AgentService {
    * @returns agent id if exists, null otherwise
    */
   getAgentByForkedFromIdentifier = async (forkedFromIdentifier: string): Promise<string | null> => {
-    return lambdaClient.agent.getAgentByForkedFromIdentifier.query({ forkedFromIdentifier });
+    return unwrap<string | null>(
+      `/app/front-hub/agents/identifier/forkedFromIdentifier/${encodeURIComponent(forkedFromIdentifier)}`,
+    );
   };
 
   /**
@@ -115,12 +130,20 @@ class AgentService {
    */
   createAgent = async (params: CreateAgentParams): Promise<CreateAgentResult> => {
     const normalizedConfig = normalizeMarketAgentModel(params.config);
-
-    return lambdaClient.agent.createAgent.mutate({
-      config: normalizedConfig as any,
-      groupId: params.groupId,
-      visibility: params.visibility,
+    const created = await unwrap<{ id: string }>(`/app/front-hub/agents`, {
+      method: 'POST',
+      body: JSON.stringify({
+        title: (normalizedConfig as any)?.title || '新助手',
+        description: (normalizedConfig as any)?.description,
+        systemPrompt:
+          (normalizedConfig as any)?.systemRole || (normalizedConfig as any)?.systemPrompt,
+        model: (normalizedConfig as any)?.model,
+        slug: (normalizedConfig as any)?.slug,
+        tags: (normalizedConfig as any)?.meta?.tags,
+        config: normalizedConfig as any,
+      }),
     });
+    return { agentId: created.id };
   };
 
   /**
@@ -201,15 +224,22 @@ class AgentService {
     );
   };
 
+  /**
+   * Get an agent by id (REST 化，LobeAgentConfig 兼容)
+   */
   getAgentConfigById = async (agentId: string) => {
-    return lambdaClient.agent.getAgentConfigById.query({ agentId });
+    return unwrap<Record<string, any>>(
+      `/app/front-hub/agents/${encodeURIComponent(agentId)}/config`,
+    );
   };
 
   /**
    * @deprecated use getAgentConfigById instead
    */
   getSessionConfig = async (sessionId: string) => {
-    return lambdaClient.agent.getAgentConfig.query({ sessionId });
+    return unwrap<Record<string, any>>(
+      `/app/front-hub/agents/${encodeURIComponent(sessionId)}/config`,
+    );
   };
 
   /**
@@ -220,9 +250,13 @@ class AgentService {
     config: PartialDeep<LobeAgentConfig>,
     signal?: AbortSignal,
   ) => {
-    return lambdaClient.agent.updateAgentConfig.mutate(
-      { agentId, value: config },
-      { context: { showNotification: false }, signal },
+    return unwrap<Record<string, any>>(
+      `/app/front-hub/agents/${encodeURIComponent(agentId)}/config`,
+      {
+        method: 'PUT',
+        body: JSON.stringify({ value: config }),
+        signal,
+      },
     );
   };
 
@@ -230,7 +264,14 @@ class AgentService {
    * Update agent meta and return the updated agent data
    */
   updateAgentMeta = async (agentId: string, meta: AgentMetaUpdate, signal?: AbortSignal) => {
-    return lambdaClient.agent.updateAgentConfig.mutate({ agentId, value: meta }, { signal });
+    return unwrap<Record<string, any>>(
+      `/app/front-hub/agents/${encodeURIComponent(agentId)}/config`,
+      {
+        method: 'PUT',
+        body: JSON.stringify({ value: { ...meta, meta } }),
+        signal,
+      },
+    );
   };
 
   /**
@@ -238,14 +279,14 @@ class AgentService {
    * This is a generic interface for all builtin agents (page-copilot, inbox, etc.)
    */
   getBuiltinAgent = async (slug: string) => {
-    return lambdaClient.agent.getBuiltinAgent.query({ slug });
+    return unwrap<Record<string, any>>(`/app/front-hub/agents/builtin/${encodeURIComponent(slug)}`);
   };
 
   /**
    * Remove an agent and its associated session
    */
   removeAgent = async (agentId: string) => {
-    return lambdaClient.agent.removeAgent.mutate({ agentId });
+    return unwrap(`/app/front-hub/agents/${encodeURIComponent(agentId)}`, { method: 'DELETE' });
   };
 
   /**
@@ -257,27 +298,35 @@ class AgentService {
     limit?: number;
     offset?: number;
   }): Promise<AvailableAgentItem[]> => {
-    return lambdaClient.agent.queryAgents.query(params);
+    const qs = new URLSearchParams();
+    if (params?.keyword) qs.set('keyword', params.keyword);
+    if (params?.limit) qs.set('limit', String(params.limit));
+    if (params?.offset) qs.set('offset', String(params.offset));
+    const q = qs.toString();
+    return unwrap<AvailableAgentItem[]>(`/app/front-hub/agents/query${q ? `?${q}` : ''}`);
   };
 
   /**
    * Count non-virtual agents with optional keyword and date filters,
    * matching queryAgents conditions.
    */
-  countAgents = async (params?: {
+  countAgents = async (_params?: {
     endDate?: string;
     keyword?: string;
     range?: [string, string];
     startDate?: string;
   }) => {
-    return lambdaClient.agent.countAgents.query(params);
+    return unwrap<number>(`/app/front-hub/agents/count`);
   };
 
   /**
    * Pin or unpin an agent
    */
   updateAgentPinned = async (agentId: string, pinned: boolean) => {
-    return lambdaClient.agent.updateAgentPinned.mutate({ id: agentId, pinned });
+    return unwrap(`/app/front-hub/agents/${encodeURIComponent(agentId)}/pinned`, {
+      method: 'PATCH',
+      body: JSON.stringify({ pinned }),
+    });
   };
 
   /**
@@ -288,14 +337,20 @@ class AgentService {
     agentId: string,
     newTitle?: string,
   ): Promise<{ agentId: string } | null> => {
-    return lambdaClient.agent.duplicateAgent.mutate({ agentId, newTitle });
+    return unwrap<{ agentId: string }>(
+      `/app/front-hub/agents/${encodeURIComponent(agentId)}/duplicate`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ newTitle }),
+      },
+    );
   };
 
   /**
    * Rank the user's agents by topic count (agent usage ranking).
    */
   rankAgents = async (limit?: number): Promise<AgentRankItem[]> => {
-    return lambdaClient.agent.rankAgents.query(limit);
+    return unwrap<AgentRankItem[]>(`/app/front-hub/agents/rank${limit ? `?limit=${limit}` : ''}`);
   };
 
   transferAgent = async (

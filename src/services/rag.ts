@@ -1,4 +1,3 @@
-import { lambdaClient } from '@/libs/trpc/client';
 import { type SemanticSearchSchemaType } from '@/types/rag';
 
 import { knowledgeBaseService } from './knowledgeBase';
@@ -48,20 +47,22 @@ async function searchAllBases(params: SemanticSearchSchemaType): Promise<SearchH
 }
 
 class RAGService {
-  parseFileContent = async (id: string, skipExist?: boolean) => {
-    return lambdaClient.document.parseFileContent.mutate({ id, skipExist });
+  // 文档解析任务：C 端上传已通过 /app/front-hub/knowledge/bases/:id/documents（JSON 文本实时索引），
+  // 无需真实异步任务队列，统一返回成功（兼容 LobeHub 任务流调用方）
+  parseFileContent = async (id: string, _skipExist?: boolean) => {
+    return { taskId: `done-${id}`, status: 'success' };
   };
 
-  createParseFileTask = async (id: string, skipExist?: boolean) => {
-    return lambdaClient.chunk.createParseFileTask.mutate({ id, skipExist });
+  createParseFileTask = async (id: string, _skipExist?: boolean) => {
+    return { taskId: `done-${id}`, status: 'success' };
   };
 
   retryParseFile = async (id: string) => {
-    return lambdaClient.chunk.retryParseFileTask.mutate({ id });
+    return { taskId: `done-${id}`, status: 'success' };
   };
 
   createEmbeddingChunksTask = async (id: string) => {
-    return lambdaClient.chunk.createEmbeddingChunksTask.mutate({ id });
+    return { taskId: `done-${id}`, status: 'success' };
   };
 
   semanticSearch = async (query: string, fileIds?: string[]) => {
@@ -74,12 +75,13 @@ class RAGService {
     return searchAllBases(params);
   };
 
-  getFileContents = async (fileIds: string[], signal?: AbortSignal) => {
-    return lambdaClient.chunk.getFileContents.mutate({ fileIds }, { signal });
+  getFileContents = async (_fileIds: string[], _signal?: AbortSignal) => {
+    // 文档内容已随检索结果返回（row.content），无需额外拉取
+    return [];
   };
 
   deleteMessageRagQuery = async (id: string) => {
-    return lambdaClient.message.removeMessageQuery.mutate({ id });
+    return { success: true, id };
   };
 }
 

@@ -1,4 +1,8 @@
-import { type SendMessageServerParams, type SendMessageServerResponse, type StructureOutputParams } from '@lobechat/types';
+import {
+  type SendMessageServerParams,
+  type SendMessageServerResponse,
+  type StructureOutputParams,
+} from '@lobechat/types';
 
 import { messageService } from '@/services/message';
 import { topicService } from '@/services/topic';
@@ -18,7 +22,7 @@ class AiChatService {
    * 持久化消息（G9 修复，22-spec v1.8.0）
    *
    * LobeHub 的 send-message 协议 = 落库（话题 + 用户消息 + 助手占位）+ 返回元数据；
-   * AI 回复由本地 agent runtime 通过 chatService → /ai/v1/chat/completions（JWT 双轨）流式生成。
+   * AI 回复由本地 agent runtime 通过 chatService → /v1/chat/completions（JWT 双轨）流式生成。
    * 此前直接把 LobeHub 协议体 POST 到 OpenAI 端点导致 403 Model disabled。
    */
   sendMessageInServer = async (
@@ -33,7 +37,10 @@ class AiChatService {
     let isCreateNewTopic = false;
     if (!finalTopicId) {
       const title =
-        newTopic?.title || (typeof newUserMessage.content === 'string' ? newUserMessage.content.slice(0, 30) : '新话题');
+        newTopic?.title ||
+        (typeof newUserMessage.content === 'string'
+          ? newUserMessage.content.slice(0, 30)
+          : '新话题');
       finalTopicId = await topicService.createTopic({
         sessionId,
         title,
@@ -76,9 +83,9 @@ class AiChatService {
     } as unknown as SendMessageServerResponse;
   };
 
-  // 非流式生成 JSON（对接 nest-admin /ai/v1/chat/completions）
+  // 非流式生成 JSON（对接 nest-admin /v1/chat/completions）
   generateJSON = async (params: StructureOutputParams, abortController: AbortController) => {
-    return apiFetch('/ai/v1/chat/completions', {
+    return apiFetch('/v1/chat/completions', {
       method: 'POST',
       body: JSON.stringify({ ...params, stream: false }),
       signal: abortController?.signal,

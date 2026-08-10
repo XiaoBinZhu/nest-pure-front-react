@@ -21,7 +21,7 @@ export class AiModelService {
     return Promise.resolve();
   };
 
-  // 模型列表：GET /ai/v1/models
+  // 模型列表：GET /v1/models
   getAiProviderModelList = async (
     id: string,
     params?: GetAiProviderModelListParams,
@@ -32,15 +32,13 @@ export class AiModelService {
     if (params?.limit) query.set('limit', String(params.limit));
     if (params?.offset) query.set('offset', String(params.offset));
     const qs = query.toString();
-    const models = await apiFetch<AiProviderModelListItem[]>(
-      `/ai/v1/models${qs ? `?${qs}` : ''}`,
-    );
+    const models = await apiFetch<AiProviderModelListItem[]>(`/v1/models${qs ? `?${qs}` : ''}`);
     return models.filter(isAiModelVisible);
   };
 
-  // 模型详情：GET /ai/v1/models/:id
+  // 模型详情：GET /v1/models/:id
   getAiModelById = async (id: string) => {
-    return apiFetch(`/ai/v1/models/${encodeURIComponent(id)}`);
+    return apiFetch(`/v1/models/${encodeURIComponent(id)}`);
   };
 
   // TODO: Wave 2 - 待对接 nest-admin aiModel toggle 接口

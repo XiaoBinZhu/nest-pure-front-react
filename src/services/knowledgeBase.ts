@@ -10,12 +10,19 @@ async function unwrap<T>(path: string, options?: RequestInit): Promise<T> {
 // 适配：后端知识库字段（id/name/description/userId）→ LobeHub 前端字段（id/title/description）
 function mapBase(b: any) {
   if (!b) return b;
-  return { ...b, id: b.id, title: b.name, description: b.description, createdAt: b.createdAt, updatedAt: b.updatedAt };
+  return {
+    ...b,
+    id: b.id,
+    title: b.name,
+    description: b.description,
+    createdAt: b.createdAt,
+    updatedAt: b.updatedAt,
+  };
 }
 
 class KnowledgeBaseService {
   createKnowledgeBase = async (params: CreateKnowledgeBaseParams) => {
-    const data = await unwrap('/api/v1/c-end/knowledge/bases', {
+    const data = await unwrap('/app/front-hub/knowledge/bases', {
       method: 'POST',
       body: JSON.stringify({ name: params.title, description: params.description }),
     });
@@ -23,31 +30,39 @@ class KnowledgeBaseService {
   };
 
   getKnowledgeBaseList = async (_visibility?: 'private' | 'public') => {
-    const list = await unwrap<any[]>('/api/v1/c-end/knowledge/bases');
+    const list = await unwrap<any[]>('/app/front-hub/knowledge/bases');
     return list.map(mapBase);
   };
 
   getKnowledgeBaseById = async (id: string) => {
-    return mapBase(await unwrap(`/api/v1/c-end/knowledge/bases/${id}`));
+    return mapBase(await unwrap(`/app/front-hub/knowledge/bases/${id}`));
   };
 
   updateKnowledgeBaseList = async (id: string, value: any) => {
-    return unwrap(`/api/v1/c-end/knowledge/bases/${id}`, {
+    return unwrap(`/app/front-hub/knowledge/bases/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ name: value?.title ?? value?.name, description: value?.description }),
     });
   };
 
   deleteKnowledgeBase = async (id: string) => {
-    return unwrap(`/api/v1/c-end/knowledge/bases/${id}`, { method: 'DELETE' });
+    return unwrap(`/app/front-hub/knowledge/bases/${id}`, { method: 'DELETE' });
   };
 
   // workspace 相关能力（transfer/copy/publish/visibility）在个人版后端暂不支持，降级为本地成功
-  transferKnowledgeBase = async (_id: string, _targetWorkspaceId: string | null, _targetVisibility?: 'private' | 'public') => {
+  transferKnowledgeBase = async (
+    _id: string,
+    _targetWorkspaceId: string | null,
+    _targetVisibility?: 'private' | 'public',
+  ) => {
     return { success: true };
   };
 
-  copyKnowledgeBaseToWorkspace = async (_id: string, _targetWorkspaceId: string | null, _targetVisibility?: 'private' | 'public') => {
+  copyKnowledgeBaseToWorkspace = async (
+    _id: string,
+    _targetWorkspaceId: string | null,
+    _targetVisibility?: 'private' | 'public',
+  ) => {
     return { success: true };
   };
 
@@ -67,7 +82,7 @@ class KnowledgeBaseService {
     return { success: true };
   };
 
-  // ============ C 端扩展：文档/上传/搜索（对接 /api/v1/c-end/knowledge） ============
+  // ============ C 端扩展：文档/上传/搜索（对接 /app/front-hub/knowledge） ============
 
   /** 文档列表 */
   listDocs = async (baseId: string, params?: { page?: number; pageSize?: number }) => {
@@ -76,14 +91,14 @@ class KnowledgeBaseService {
     if (params?.pageSize) qs.set('pageSize', String(params.pageSize));
     const q = qs.toString();
     return unwrap<{ items: any[]; total: number }>(
-      `/api/v1/c-end/knowledge/bases/${baseId}/documents${q ? `?${q}` : ''}`,
+      `/app/front-hub/knowledge/bases/${baseId}/documents${q ? `?${q}` : ''}`,
     );
   };
 
   /** 上传文档并索引（G2 修复：后端契约为 JSON {name, content} 文本，非 multipart） */
   indexDoc = async (baseId: string, file: File) => {
     const content = await file.text();
-    return unwrap(`/api/v1/c-end/knowledge/bases/${baseId}/documents`, {
+    return unwrap(`/app/front-hub/knowledge/bases/${baseId}/documents`, {
       method: 'POST',
       body: JSON.stringify({ name: file.name, content }),
     });
@@ -91,13 +106,19 @@ class KnowledgeBaseService {
 
   /** 语义检索（pgvector 余弦相似度，后端 SearchDto 字段为 topK，返回裸数组，G2 修复） */
   search = async (baseId: string, query: string, limit = 5) => {
-    return unwrap<Array<{ chunkId: string; content: string; chunkIndex: number; docId: string; score: number; docName: string }>>(
-      `/api/v1/c-end/knowledge/bases/${baseId}/search`,
-      {
-        method: 'POST',
-        body: JSON.stringify({ query, topK: limit }),
-      },
-    );
+    return unwrap<
+      Array<{
+        chunkId: string;
+        content: string;
+        chunkIndex: number;
+        docId: string;
+        score: number;
+        docName: string;
+      }>
+    >(`/app/front-hub/knowledge/bases/${baseId}/search`, {
+      method: 'POST',
+      body: JSON.stringify({ query, topK: limit }),
+    });
   };
 }
 

@@ -1,6 +1,6 @@
 import { apiFetch, apiStream } from '@/services/_api';
 
-// C 端 Agent 团队 API（对应 nest-admin /api/v1/c-end/teams）
+// C 端 Agent 团队 API（对应 nest-admin /app/front-hub/teams）
 // 数据按 userId 隔离
 
 async function unwrap<T>(path: string, options?: RequestInit): Promise<T> {
@@ -37,38 +37,51 @@ export interface TeamRun {
 }
 
 export type TeamEvent =
-  | { event: 'team_start'; data: { teamId: string; task: string; plan: Array<{ member: string; subTask: string }> } }
+  | {
+      event: 'team_start';
+      data: { teamId: string; task: string; plan: Array<{ member: string; subTask: string }> };
+    }
   | { event: 'member_action'; data: { agent: string; thought: string; action: string } }
   | { event: 'member_result'; data: { agent: string; result: string } }
   | { event: 'team_done'; data: { summary: string } }
   | { event: 'error'; data: { code: string; message: string } };
 
 class AgentTeamService {
-  listTeams = async () => unwrap<AgentTeam[]>('/api/v1/c-end/teams');
+  listTeams = async () => unwrap<AgentTeam[]>('/app/front-hub/teams');
 
-  createTeam = async (data: { name: string; description?: string; supervisorPrompt?: string; members: TeamMember[] }) =>
-    unwrap<AgentTeam>('/api/v1/c-end/teams', {
+  createTeam = async (data: {
+    name: string;
+    description?: string;
+    supervisorPrompt?: string;
+    members: TeamMember[];
+  }) =>
+    unwrap<AgentTeam>('/app/front-hub/teams', {
       method: 'POST',
       body: JSON.stringify(data),
     });
 
-  getTeam = async (id: string) => unwrap<AgentTeam>(`/api/v1/c-end/teams/${id}`);
+  getTeam = async (id: string) => unwrap<AgentTeam>(`/app/front-hub/teams/${id}`);
 
   updateTeam = async (id: string, data: Partial<AgentTeam>) =>
-    unwrap(`/api/v1/c-end/teams/${id}`, {
+    unwrap(`/app/front-hub/teams/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
 
-  deleteTeam = async (id: string) => unwrap(`/api/v1/c-end/teams/${id}`, { method: 'DELETE' });
+  deleteTeam = async (id: string) => unwrap(`/app/front-hub/teams/${id}`, { method: 'DELETE' });
 
-  listRuns = async (teamId: string) => unwrap<TeamRun[]>(`/api/v1/c-end/teams/${teamId}/runs`);
+  listRuns = async (teamId: string) => unwrap<TeamRun[]>(`/app/front-hub/teams/${teamId}/runs`);
 
   getRun = async (teamId: string, runId: string) =>
-    unwrap<TeamRun>(`/api/v1/c-end/teams/${teamId}/runs/${runId}`);
+    unwrap<TeamRun>(`/app/front-hub/teams/${teamId}/runs/${runId}`);
 
-  runTeam = async (teamId: string, task: string, onEvent: (evt: TeamEvent) => void, signal?: AbortSignal) => {
-    const stream = await apiStream(`/api/v1/c-end/teams/${teamId}/run`, { task }, signal);
+  runTeam = async (
+    teamId: string,
+    task: string,
+    onEvent: (evt: TeamEvent) => void,
+    signal?: AbortSignal,
+  ) => {
+    const stream = await apiStream(`/app/front-hub/teams/${teamId}/run`, { task }, signal);
     const reader = stream.getReader();
     const decoder = new TextDecoder();
     let buf = '';

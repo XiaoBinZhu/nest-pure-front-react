@@ -32,15 +32,23 @@ class MemoryExtractionService {
   /**
    * 从对话话题请求记忆提取（同步规则提取，返回任务摘要）
    */
-  requestFromChatTopics = async (params: RequestMemoryExtractionParams): Promise<RequestMemoryExtractionResult> => {
-    const result = await unwrap<{ newMemories: number; total: number }>('/api/v1/c-end/memory/extract', {
-      method: 'POST',
-      body: JSON.stringify({ messages: [{ role: 'user', content: '提取我的记忆' }] }),
-    });
+  requestFromChatTopics = async (
+    params: RequestMemoryExtractionParams,
+  ): Promise<RequestMemoryExtractionResult> => {
+    const result = await unwrap<{ newMemories: number; total: number }>(
+      '/app/front-hub/memory/extract',
+      {
+        method: 'POST',
+        body: JSON.stringify({ messages: [{ role: 'user', content: '提取我的记忆' }] }),
+      },
+    );
     return {
       id: `extract-${Date.now()}`,
       status: 'completed',
-      metadata: { newMemories: result.newMemories, total: result.total } as unknown as UserMemoryExtractionMetadata,
+      metadata: {
+        newMemories: result.newMemories,
+        total: result.total,
+      } as unknown as UserMemoryExtractionMetadata,
       deduped: false,
     };
   };

@@ -35,7 +35,7 @@ export class SessionService {
     data: Partial<LobeAgentSession>,
   ): Promise<string> => {
     const { config, group, meta, ...session } = data;
-    const result = await unwrap<{ id: string }>('/api/v1/c-end/sessions', {
+    const result = await unwrap<{ id: string }>('/app/front-hub/sessions', {
       method: 'POST',
       body: JSON.stringify({
         config: { ...config, ...meta } as any,
@@ -47,16 +47,16 @@ export class SessionService {
   };
 
   cloneSession = async (id: string, newTitle: string): Promise<string | undefined> => {
-    const result = await unwrap<{ id?: string }>(`/api/v1/c-end/sessions/${id}/clone`, {
+    const result = await unwrap<{ id?: string }>(`/app/front-hub/sessions/${id}/clone`, {
       method: 'POST',
       body: JSON.stringify({ newTitle }),
     });
     return result.id;
   };
 
-  // 列表：GET /api/v1/c-end/sessions（后端分页 {items,total} → 前端 ChatSessionList {sessions, sessionGroups}）
+  // 列表：GET /app/front-hub/sessions（后端分页 {items,total} → 前端 ChatSessionList {sessions, sessionGroups}）
   getGroupedSessions = async (): Promise<ChatSessionList> => {
-    const data = await unwrap<{ items: any[]; total: number }>('/api/v1/c-end/sessions');
+    const data = await unwrap<{ items: any[]; total: number }>('/app/front-hub/sessions');
     return {
       sessions: data?.items ?? [],
       sessionGroups: [],
@@ -72,16 +72,23 @@ export class SessionService {
       ? '?' +
         new URLSearchParams(
           Object.entries(params).flatMap(([k, v]) =>
-            Array.isArray(v) ? [[k, v[0]], [k, v[1]]] : v != null ? [[k, String(v)]] : [],
+            Array.isArray(v)
+              ? [
+                  [k, v[0]],
+                  [k, v[1]],
+                ]
+              : v != null
+                ? [[k, String(v)]]
+                : [],
           ),
         ).toString()
       : '';
-    return unwrap<number>(`/api/v1/c-end/sessions/count${query}`);
+    return unwrap<number>(`/app/front-hub/sessions/count${query}`);
   };
 
   updateSession = (id: string, data: Partial<UpdateSessionParams>) => {
     const { group, pinned, meta, updatedAt } = data;
-    return unwrap(`/api/v1/c-end/sessions/${id}`, {
+    return unwrap(`/app/front-hub/sessions/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({
         groupId: group === 'default' ? null : group,
@@ -126,7 +133,7 @@ export class SessionService {
   };
 
   removeSession = (id: string) => {
-    return unwrap(`/api/v1/c-end/sessions/${id}`, { method: 'DELETE' });
+    return unwrap(`/app/front-hub/sessions/${id}`, { method: 'DELETE' });
   };
 
   // ************************************** //
