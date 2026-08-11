@@ -40,10 +40,11 @@ export async function apiFetch<T = any>(path: string, options: RequestInit = {})
       });
       if (refreshRes.ok) {
         const data = await refreshRes.json();
-        localStorage.setItem('accessToken', data.accessToken);
+        // nest-admin LoginToken 字段为 token / refreshToken（非 accessToken）
+        localStorage.setItem('accessToken', data.token);
         localStorage.setItem('refreshToken', data.refreshToken);
         // 重试原请求
-        headers.Authorization = `Bearer ${data.accessToken}`;
+        headers.Authorization = `Bearer ${data.token}`;
         const retryRes = await fetch(`${API_BASE}${path}`, { ...options, headers });
         if (!retryRes.ok) throw new Error(`HTTP ${retryRes.status}`);
         return retryRes.json();
@@ -52,7 +53,7 @@ export async function apiFetch<T = any>(path: string, options: RequestInit = {})
     // 刷新失败，清除 token
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-    window.location.href = '/login';
+    window.location.href = '/signin';
     throw new Error('Unauthorized');
   }
 
