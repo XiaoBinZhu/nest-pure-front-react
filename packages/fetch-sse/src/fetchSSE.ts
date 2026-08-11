@@ -348,7 +348,7 @@ export const fetchSSE = async (url: string, options: RequestInit & FetchSSEOptio
     onmessage: (ev) => {
       triggerOnMessageHandler = true;
 
-      // G9：裸 OpenAI SSE 流结束标记（直连 /ai/v1 网关时无 event 行，[DONE] 需特判）
+      // G9：裸 OpenAI SSE 流结束标记（直连 /v1 网关时无 event 行，[DONE] 需特判）
       if (typeof ev.data === 'string' && ev.data.trim() === '[DONE]') {
         finishedType = 'stop';
         return;
@@ -517,7 +517,7 @@ export const fetchSSE = async (url: string, options: RequestInit & FetchSSEOptio
           break;
         }
 
-        // G9：裸 OpenAI SSE 默认分支（直连 /ai/v1 网关，无 event 行）——
+        // G9：裸 OpenAI SSE 默认分支（直连 /v1 网关，无 event 行）——
         // 解析 choices[0].delta { content, reasoning_content, tool_calls } + usage
         default: {
           if (!data || typeof data !== 'object') break;

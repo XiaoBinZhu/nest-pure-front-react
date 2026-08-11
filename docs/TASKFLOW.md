@@ -21,15 +21,15 @@
 
 > 目标：确保 C 端原有功能完整可用。启动方式：nest-admin `bun run dev` + C 端 `bun run dev:spa`。
 
-| #    | 回归项                       | 验证方式                                           | 对应 AC | 状态                                     |
-| ---- | ---------------------------- | -------------------------------------------------- | ------- | ---------------------------------------- |
-| T1-1 | 登录页 + nest-admin JWT 登录 | 浏览器 + POST /auth/login                          | AC1     | ✅ PASS                                  |
-| T1-2 | 会话列表 / 创建 / 删除       | GET/POST/DELETE `/app/front-hub/sessions`          | AC1     | ✅ PASS（修复 group→group\_id 列名 bug） |
-| T1-3 | 话题 / 消息 CRUD             | `/app/front-hub/topics`、`/messages`               | AC1     | ✅ PASS                                  |
-| T1-4 | 对话流式 SSE                 | POST `/ai/v1/chat/completions`（stream，sk- 令牌） | AC2     | ✅ PASS（deepseek-v4-pro，51 chunks）    |
-| T1-5 | 模型列表动态获取             | GET `/ai/v1/models`（sk- 令牌）                    | AC14    | ✅ PASS（120 模型）                      |
-| T1-6 | 用量 9 端点                  | GET `/app/front-hub/usage/*`                       | AC7     | ✅ PASS（修复 orderBy 小写化 bug ×2）    |
-| T1-7 | 构建验证                     | 改由 proc GIT 自动打包（本地不打包，用户要求）     | AC13    | ⏭️ 延期至 S4-1                           |
+| #    | 回归项                       | 验证方式                                        | 对应 AC | 状态                                     |
+| ---- | ---------------------------- | ----------------------------------------------- | ------- | ---------------------------------------- |
+| T1-1 | 登录页 + nest-admin JWT 登录 | 浏览器 + POST /auth/login                       | AC1     | ✅ PASS                                  |
+| T1-2 | 会话列表 / 创建 / 删除       | GET/POST/DELETE `/app/front-hub/sessions`       | AC1     | ✅ PASS（修复 group→group\_id 列名 bug） |
+| T1-3 | 话题 / 消息 CRUD             | `/app/front-hub/topics`、`/messages`            | AC1     | ✅ PASS                                  |
+| T1-4 | 对话流式 SSE                 | POST `/v1/chat/completions`（stream，sk- 令牌） | AC2     | ✅ PASS（deepseek-v4-pro，51 chunks）    |
+| T1-5 | 模型列表动态获取             | GET `/v1/models`（sk- 令牌）                    | AC14    | ✅ PASS（120 模型）                      |
+| T1-6 | 用量 9 端点                  | GET `/app/front-hub/usage/*`                    | AC7     | ✅ PASS（修复 orderBy 小写化 bug ×2）    |
+| T1-7 | 构建验证                     | 改由 proc GIT 自动打包（本地不打包，用户要求）  | AC13    | ⏭️ 延期至 S4-1                           |
 
 ## 阶段 2：部门负责人数据看板（T2-T4，新功能）
 

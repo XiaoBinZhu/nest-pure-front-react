@@ -33,8 +33,8 @@
 | 2.1 | 会话列表 / 创建 / 删除        | \[API] GET/POST/DELETE /app/front-hub/sessions | CRUD 正常       | ✅   |
 | 2.2 | 会话分组 group\_id 字段       | \[API] 创建分组会话                            | 200（无 500）   | ✅   |
 | 2.3 | 话题 / 消息 CRUD              | \[API] /topics /messages                       | CRUD 正常       | ✅   |
-| 2.4 | 对话流式 SSE                  | \[API] POST /ai/v1/chat/completions（stream）  | 51+ chunks      | ✅   |
-| 2.5 | 模型列表动态获取              | \[API] GET /ai/v1/models                       | 120 模型        | ✅   |
+| 2.4 | 对话流式 SSE                  | \[API] POST /v1/chat/completions（stream）     | 51+ chunks      | ✅   |
+| 2.5 | 模型列表动态获取              | \[API] GET /v1/models                          | 120 模型        | ✅   |
 | 2.6 | C 端首页渲染（欢迎页 / 导航） | \[UI] GET /                                    | 欢迎语 + 导航栏 | ✅   |
 | 2.7 | 聊天页渲染（已登录）          | \[UI] GET /agent                               | 聊天界面        | ✅   |
 

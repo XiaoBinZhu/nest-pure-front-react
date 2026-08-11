@@ -14,7 +14,7 @@
                   ▼
           nginx 反代（服务器 43.155.185.180）
                   ├─ /app/front-hub/*  → nest-admin 后端 (7001, 服务器 115.190.150.8)
-                  ├─ /ai/v1/*         → nest-admin relay（OpenAI 兼容 7 端点）
+                  ├─ /v1/*         → nest-admin relay（OpenAI 兼容 7 端点）
                   └─ /auth/* /system/* → nest-admin 认证子系统
 ```
 
@@ -71,7 +71,7 @@
 
 ### 3.2 ai-gateway 模块（已实现 v1.5.0，`src/modules/ai-gateway/`）
 
-- `/ai/v1/chat/completions`、`/completions`、`/embeddings`、`/models`、`/images/generations`、`/audio/speech`、`/audio/transcriptions`（relay.controller.ts L81-139）
+- `/v1/chat/completions`、`/completions`、`/embeddings`、`/models`、`/images/generations`、`/audio/speech`、`/audio/transcriptions`（relay.controller.ts L81-139）
 - 渠道 / 模型 / 令牌 / 日志 / 账单 / 兑换码 / 策略 / 护栏 / 积分（19 子模块）
 - **定价引擎 6 级优先级 + 积分第 7 级**（SKILL.md L4805-4872）
 - **DataScopeService**（`src/modules/ai-gateway/shared/data-scope.ts`）：`resolve(uid, roles)` → `{ all, userIds }`；admin→all /dept leader→本部门全员 / 普通用户→self；`applyDataScope(qb, scope, alias)` 通用 SQL 过滤
@@ -80,27 +80,27 @@
 
 > v2 盘点（2026-08-07，读代码核实）：对应 SKILL.md L301-317 职责分工 + 22-spec AC1-AC20。✅= 可用 / ⚠️= 部分 / ❌= 缺失。
 
-| C 端能力           | C 端页面                    | 后端模块                           | 后端状态                            | 前端对接                                       | AC       |
-| ------------------ | --------------------------- | ---------------------------------- | ----------------------------------- | ---------------------------------------------- | -------- |
-| 对话（流式）       | `src/routes/(main)/(chat)/` | c-end/agent-orchestration + /ai/v1 | ✅ SSE 实测 51 chunks               | ✅ session/topic/message REST                  | AC2      |
-| 模型切换           | 模型选择器                  | /ai/v1/models                      | ✅ 120 模型                         | ⚠️ 待验证 G7（aiModel service）                | AC14     |
-| 知识库 RAG         | /knowledge 页               | c-end/knowledge（bge-m3 1024 维）  | ✅ 11/11                            | ⚠️ 页面已接；对话内 @知识库检索未接（G2）      | AC3      |
-| HITL 审批          | /hitl 页                    | c-end/hitl                         | ✅ 14/14                            | ✅ hitl.ts REST                                | AC8      |
-| UI 生成            | ❌ 无页面（G1）             | c-end/generation                   | ✅ SSE 实测 96KB                    | ❌ generation.ts 仍是 LobeHub 图片 / 视频 tRPC | AC9      |
-| 记忆画像           | settings/memory 页          | c-end/memory                       | ✅ 19/19                            | ✅ userMemory REST                             | AC6      |
-| Agent 团队         | /teams 页                   | c-end/agent-team                   | ✅ 11/11                            | ✅ agentTeam REST+SSE                          | —        |
-| 工作台             | workspace service           | c-end/workspace                    | ✅ 19/19                            | ✅ workspace.ts REST                           | AC4      |
-| 产物中心           | 工作台内产物 Tab            | workspace/artifacts                | ✅ 版本 /diff/ 下载                 | ✅ workspace.ts                                | AC4      |
-| Agent 市场         | /market 页                  | c-end/marketplace                  | ✅ 20/20                            | ✅ marketplace.ts REST                         | AC5      |
-| 用量 / 余额 / 令牌 | settings/usage + dept-stats | c-end/usage（9+4 端点）            | ✅                                  | ✅ usage/deptUsage REST                        | AC7/AC11 |
-| 前端 Copilot       | 无                          | #20 page-agent                     | ❌ 规划中（SKILL 标注新增・规划中） | ❌ 本期不做（spec Future Opt \[P1]）           | —        |
-| Harness            | /harness 页                 | c-end/harness                      | ✅ 19/19                            | ✅ harness.ts REST+SSE                         | AC16-20  |
+| C 端能力           | C 端页面                    | 后端模块                          | 后端状态                            | 前端对接                                       | AC       |
+| ------------------ | --------------------------- | --------------------------------- | ----------------------------------- | ---------------------------------------------- | -------- |
+| 对话（流式）       | `src/routes/(main)/(chat)/` | c-end/agent-orchestration + /v1   | ✅ SSE 实测 51 chunks               | ✅ session/topic/message REST                  | AC2      |
+| 模型切换           | 模型选择器                  | /v1/models                        | ✅ 120 模型                         | ⚠️ 待验证 G7（aiModel service）                | AC14     |
+| 知识库 RAG         | /knowledge 页               | c-end/knowledge（bge-m3 1024 维） | ✅ 11/11                            | ⚠️ 页面已接；对话内 @知识库检索未接（G2）      | AC3      |
+| HITL 审批          | /hitl 页                    | c-end/hitl                        | ✅ 14/14                            | ✅ hitl.ts REST                                | AC8      |
+| UI 生成            | ❌ 无页面（G1）             | c-end/generation                  | ✅ SSE 实测 96KB                    | ❌ generation.ts 仍是 LobeHub 图片 / 视频 tRPC | AC9      |
+| 记忆画像           | settings/memory 页          | c-end/memory                      | ✅ 19/19                            | ✅ userMemory REST                             | AC6      |
+| Agent 团队         | /teams 页                   | c-end/agent-team                  | ✅ 11/11                            | ✅ agentTeam REST+SSE                          | —        |
+| 工作台             | workspace service           | c-end/workspace                   | ✅ 19/19                            | ✅ workspace.ts REST                           | AC4      |
+| 产物中心           | 工作台内产物 Tab            | workspace/artifacts               | ✅ 版本 /diff/ 下载                 | ✅ workspace.ts                                | AC4      |
+| Agent 市场         | /market 页                  | c-end/marketplace                 | ✅ 20/20                            | ✅ marketplace.ts REST                         | AC5      |
+| 用量 / 余额 / 令牌 | settings/usage + dept-stats | c-end/usage（9+4 端点）           | ✅                                  | ✅ usage/deptUsage REST                        | AC7/AC11 |
+| 前端 Copilot       | 无                          | #20 page-agent                    | ❌ 规划中（SKILL 标注新增・规划中） | ❌ 本期不做（spec Future Opt \[P1]）           | —        |
+| Harness            | /harness 页                 | c-end/harness                     | ✅ 19/19                            | ✅ harness.ts REST+SSE                         | AC16-20  |
 
 ### 4.1 ai-platform-sdd 22 模块完成度矩阵（读代码核实）
 
 | #   | 模块           | 后端                                 | 管理端                    | C 端                     | 结论                                               |
 | --- | -------------- | ------------------------------------ | ------------------------- | ------------------------ | -------------------------------------------------- |
-| 1   | 模型路由       | ✅ /ai/v1/models（Gateway）          | ✅ gateway 页面           | ✅ 模型选择器（G7 待验） | 已实现                                             |
+| 1   | 模型路由       | ✅ /v1/models（Gateway）             | ✅ gateway 页面           | ✅ 模型选择器（G7 待验） | 已实现                                             |
 | 2   | Agent 编排     | ✅ c-end/agent-orchestration         | —                         | ✅ 对话                  | 已实现                                             |
 | 3   | 工具系统       | ⚠️ 仅 harness MODE\_TOOLS 白名单替代 | ❌                        | —                        | admin 独占・本期不做（SKILL 标注新增，无 spec）    |
 | 4   | 知识库 RAG     | ✅ c-end/knowledge                   | ✅ ai/c-end/knowledge     | ⚠️ G2                    | 已实现（对话内检索待补）                           |
@@ -135,7 +135,7 @@
 | G4   | INFO（明确不做）       | stub 501 能力（mcp/discover/plugins/social/devices/acceptance/web-browsing/tools-search）非 13 项能力，LobeHub 原有非核心页靠 tRPC mock 兼容                                                    | 保持 stub+mock，已在本文档标注理由                       |
 | G5   | INFO（明确不做）       | #3/#6/#7/#12/#15/#16/#17/#19/#21 admin 独占或规划中模块                                                                                                                                         | SKILL 依据：职责分工 B 表 + 状态标注新增 / 规划中        |
 | G6   | WARNING（工程卫生）    | nest-admin `scripts/_tmp-*.ts` 40+ 临时脚本入库                                                                                                                                                 | 清理或加 .gitignore（TASKFLOW S8-6）                     |
-| G7   | INFO（待验证）         | 前端模型选择器（aiModel service）是否已接 /ai/v1/models                                                                                                                                         | 测试用例 P2-MODEL 验证，FAIL 则补接                      |
+| G7   | INFO（待验证）         | 前端模型选择器（aiModel service）是否已接 /v1/models                                                                                                                                            | 测试用例 P2-MODEL 验证，FAIL 则补接                      |
 | G8   | WARNING（权限缺口）    | 管理端 `/ai/c-end` 8 个菜单（`vue-pure-admin/src/router/modules/ai.ts` L478-551）meta 无 `auths`，无 auths 的路由不被 filterNoPermissionTree 过滤 → developer 等任意登录账号可见 admin 独占菜单 | 补 `auths: ["ai:portal:config:admin"]`（TASKFLOW S8-15） |
 
 ### 4.3 管理端新增页面 / 菜单位置约定（vue-pure-admin）

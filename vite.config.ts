@@ -293,7 +293,7 @@ export default defineConfig({
             .split(',')
             .map((p: string) => (p.startsWith('lambda/') ? p : `lambda/${p}`));
 
-          // G7/G9：aiModel.list 动态透传后端真实模型目录（/ai/v1/models 已公开，避免 mock 硬编码）
+          // G7/G9：aiModel.list 动态透传后端真实模型目录（/v1/models 已公开，避免 mock 硬编码）
           if (procedures.length === 1 && procedures[0] === 'lambda/aiModel.list') {
             void (async () => {
               try {

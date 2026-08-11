@@ -50,20 +50,20 @@
 
 ### P1-CHAT 会话与对话
 
-| #          | 用例                     | 方法                                                      | 预期                                                 | 状态 |
-| ---------- | ------------------------ | --------------------------------------------------------- | ---------------------------------------------------- | ---- |
-| P1-CHAT-1  | 会话列表                 | \[API] GET /app/front-hub/sessions                        | 200 解包后 {sessions,sessionGroups} 结构（前端转换） |      |
-| P1-CHAT-2  | 创建会话（含 group\_id） | \[API] POST sessions                                      | 200，无 500                                          |      |
-| P1-CHAT-3  | 话题 CRUD                | \[API] /topics                                            | CRUD 正常                                            |      |
-| P1-CHAT-4  | 消息 CRUD + 批量         | \[API] /messages                                          | CRUD 正常                                            |      |
-| P1-CHAT-5  | 线程 CRUD                | \[API] /threads                                           | 200                                                  |      |
-| P1-CHAT-6  | 删除会话                 | \[API] DELETE（无 body 不带 Content-Type）                | 200（13.5 回归）                                     |      |
-| P1-CHAT-7  | 对话流式 SSE             | \[SSE] POST /ai/v1/chat/completions stream（最短 prompt） | chunks + \[DONE]                                     |      |
-| P1-CHAT-8  | 模型列表                 | \[API] GET /ai/v1/models                                  | 200 模型数组（不硬编码）                             |      |
-| P1-CHAT-9  | 前端模型选择器数据源     | \[UI] 聊天页打开模型选择器                                | 列表来自 /ai/v1/models（G7 验证）                    |      |
-| P1-CHAT-10 | 聊天发消息流式渲染       | \[UI]                                                     | 气泡流式输出，无控制台错误                           |      |
-| P1-CHAT-11 | 会话切换 / 删除 UI       | \[UI]                                                     | 列表同步更新                                         |      |
-| P1-CHAT-12 | 超长输入（>10KB prompt） | \[API]                                                    | 正常响应或明确错误，不 500 崩溃                      |      |
+| #          | 用例                     | 方法                                                   | 预期                                                 | 状态 |
+| ---------- | ------------------------ | ------------------------------------------------------ | ---------------------------------------------------- | ---- |
+| P1-CHAT-1  | 会话列表                 | \[API] GET /app/front-hub/sessions                     | 200 解包后 {sessions,sessionGroups} 结构（前端转换） |      |
+| P1-CHAT-2  | 创建会话（含 group\_id） | \[API] POST sessions                                   | 200，无 500                                          |      |
+| P1-CHAT-3  | 话题 CRUD                | \[API] /topics                                         | CRUD 正常                                            |      |
+| P1-CHAT-4  | 消息 CRUD + 批量         | \[API] /messages                                       | CRUD 正常                                            |      |
+| P1-CHAT-5  | 线程 CRUD                | \[API] /threads                                        | 200                                                  |      |
+| P1-CHAT-6  | 删除会话                 | \[API] DELETE（无 body 不带 Content-Type）             | 200（13.5 回归）                                     |      |
+| P1-CHAT-7  | 对话流式 SSE             | \[SSE] POST /v1/chat/completions stream（最短 prompt） | chunks + \[DONE]                                     |      |
+| P1-CHAT-8  | 模型列表                 | \[API] GET /v1/models                                  | 200 模型数组（不硬编码）                             |      |
+| P1-CHAT-9  | 前端模型选择器数据源     | \[UI] 聊天页打开模型选择器                             | 列表来自 /v1/models（G7 验证）                       |      |
+| P1-CHAT-10 | 聊天发消息流式渲染       | \[UI]                                                  | 气泡流式输出，无控制台错误                           |      |
+| P1-CHAT-11 | 会话切换 / 删除 UI       | \[UI]                                                  | 列表同步更新                                         |      |
+| P1-CHAT-12 | 超长输入（>10KB prompt） | \[API]                                                 | 正常响应或明确错误，不 500 崩溃                      |      |
 
 ### P1-USER 用户 / 设置
 
