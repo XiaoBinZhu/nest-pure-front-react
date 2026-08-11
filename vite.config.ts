@@ -547,6 +547,8 @@ export default defineConfig({
       '/v1': { target: 'http://127.0.0.1:7001', changeOrigin: true, ws: false },
       // C 端业务前缀 /app/front-hub（项目前缀规范，替代原 /api/v1/c-end）
       '/app': { target: 'http://127.0.0.1:7001', changeOrigin: true },
+      // token 刷新等系统接口（_api.ts 401 自动刷新调用 /system/auth/refresh-token）
+      '/system': { target: 'http://127.0.0.1:7001', changeOrigin: true },
       '/oidc': `http://localhost:${process.env.PORT || 3010}`,
       // /trpc 在纯 SPA 模式下无 Next.js 后端，由下方 trpc-mock 插件返回 mock JSON
       '/webapi': `http://localhost:${process.env.PORT || 3010}`,
