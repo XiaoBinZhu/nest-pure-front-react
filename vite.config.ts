@@ -491,6 +491,9 @@ export default defineConfig({
             /^\/auth\//,
             /^\/system\//,
             /^\/ai\//,
+            /^\/signin/,
+            /^\/signup/,
+            /^\/_spa-auth\//,
             /\.(?:png|jpg|jpeg|svg|gif|webp|ico|avif|woff2?)$/,
           ],
           runtimeCaching: [
