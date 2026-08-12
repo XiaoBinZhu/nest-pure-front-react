@@ -3,6 +3,8 @@ import { type SWRResponse } from 'swr';
 import { useOnlyFetchOnceSWR } from '@/libs/swr';
 import { serverConfigKeys } from '@/libs/swr/keys';
 import { globalService } from '@/services/global';
+import { useUserStore } from '@/store/user';
+import { authSelectors } from '@/store/user/slices/auth/selectors';
 import { type StoreSetter } from '@/store/types';
 import { type GlobalRuntimeConfig } from '@/types/serverConfig';
 
@@ -33,8 +35,10 @@ export class ServerConfigActionImpl {
   }
 
   useInitServerConfig = (): SWRResponse<GlobalRuntimeConfig> => {
+    // 仅在认证状态加载完成后才发起请求，避免未登录时 401 触发硬跳转循环
+    const isAuthLoaded = useUserStore(authSelectors.isLoaded);
     return useOnlyFetchOnceSWR<GlobalRuntimeConfig>(
-      serverConfigKeys.get,
+      isAuthLoaded ? serverConfigKeys.get : null,
       () => globalService.getGlobalConfig(),
       {
         onError: () => {
