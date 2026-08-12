@@ -53,7 +53,13 @@ export async function apiFetch<T = any>(path: string, options: RequestInit = {})
     // 刷新失败，清除 token
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-    window.location.href = '/signin';
+    // 避免在 auth 页面（/signin 等）重定向到自己，导致页面循环重载 + 请求 ERR_ABORTED
+    const isOnAuthPage = /^\/(signin|signup|verify-email|reset-password|auth-error)/.test(
+      window.location.pathname,
+    );
+    if (!isOnAuthPage) {
+      window.location.href = '/signin';
+    }
     throw new Error('Unauthorized');
   }
 

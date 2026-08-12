@@ -158,4 +158,5 @@ export default {
   'navigation.market': 'Agent Market',
   'navigation.uiGenerator': 'UI Generator',
   'navigation.uiGeneratorDesc': 'React + Ant Design / HTML + Tailwind',
+  'navigation.workspace': 'Workspace',
 };

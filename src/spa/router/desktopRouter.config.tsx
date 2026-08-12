@@ -781,6 +781,14 @@ export const desktopRoutes: RouteObject[] = [
         path: 'generate',
       },
 
+      // 工作台页（personal-only — 任务列表 + 产物中心 + 版本/diff/下载）
+      {
+        element: dynamicElement(() => import('@/routes/(main)/workspace'), 'Desktop > Workspace'),
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: BrainCircuit, titleKey: 'navigation.workspace' }) },
+        path: 'workspace',
+      },
+
       // Settings routes (personal-only — never mirrored under /:workspaceSlug)
       {
         children: [
