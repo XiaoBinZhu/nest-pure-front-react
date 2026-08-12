@@ -261,9 +261,67 @@ export default defineConfig({
     // 纯 SPA 模式下 mock tRPC 端点（与生产 Nginx c-end.conf 保持一致）
     // LobeHub 前端在纯 SPA 模式下无 Next.js 后端，/trpc 请求需返回 mock JSON
     // 避免 TRPCClientError: Unexpected end of JSON input
+    // c-end-trpc-mock-and-console-fix：market.* / messenger.availablePlatforms /
+    // connector.syncBuiltinTool 共 9 个过程已由 nest-admin 后端真实实现，
+    // 本地开发直接透传 127.0.0.1:7001（与 /api /app /v1 代理同源），不再 mock。
     {
       name: 'trpc-spa-mock',
       configureServer(server: ViteDevServer) {
+        const UPSTREAM = 'http://127.0.0.1:7001';
+        // 后端已真实实现的过程：直接代理到 nest-admin，不走本地 mock
+        const REAL_BACKEND_PROCEDURES = new Set([
+          'market.getMcpCategories',
+          'market.getMcpList',
+          'market.getModelCategories',
+          'market.getModelList',
+          'market.getProviderList',
+          'market.getAssistantList',
+          'market.registerClientInMarketplace',
+          'connector.syncBuiltinTool',
+          'messenger.availablePlatforms',
+        ]);
+        const isRealBackendProcedure = (procedures: string[]) => {
+          if (procedures.length !== 1) return false;
+          const bare = procedures[0].startsWith('lambda/') ? procedures[0].slice(7) : procedures[0];
+          return REAL_BACKEND_PROCEDURES.has(bare);
+        };
+
+        const readBody = (req: any): Promise<string> =>
+          new Promise((resolve) => {
+            if (req.body)
+              return resolve(typeof req.body === 'string' ? req.body : JSON.stringify(req.body));
+            const chunks: Buffer[] = [];
+            req.on('data', (chunk: Buffer) => chunks.push(chunk));
+            req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+            req.on('error', () => resolve(''));
+          });
+
+        const proxyToBackend = async (req: any, res: any) => {
+          try {
+            const targetUrl = `${UPSTREAM}/trpc/${req.url}`;
+            const headers: Record<string, string> = { 'content-type': 'application/json' };
+            if (req.headers.authorization) headers.authorization = req.headers.authorization;
+            if (req.headers.cookie) headers.cookie = req.headers.cookie;
+            const body =
+              req.method !== 'GET' && req.method !== 'HEAD' ? await readBody(req) : undefined;
+            const upstream = await fetch(targetUrl, {
+              method: req.method || 'GET',
+              headers,
+              ...(body !== undefined ? { body } : {}),
+            });
+            const text = await upstream.text();
+            res.statusCode = upstream.status;
+            res.setHeader('content-type', 'application/json');
+            res.setHeader('cache-control', 'no-store');
+            res.end(text);
+          } catch (e) {
+            // 后端不可用时返回空信封（batch 数组），避免整批 404
+            res.statusCode = 200;
+            res.setHeader('content-type', 'application/json');
+            res.end(JSON.stringify({ result: { data: { json: null } } }));
+          }
+        };
+
         const sendJson = (res: any, data: unknown, status = 200, batch = false) => {
           const body = batch
             ? `[{"result":{"data":{"json":${JSON.stringify(data)}}}}]`
@@ -292,6 +350,12 @@ export default defineConfig({
           const procedures = procedure
             .split(',')
             .map((p: string) => (p.startsWith('lambda/') ? p : `lambda/${p}`));
+
+          // c-end-trpc-mock-and-console-fix：9 个真实后端过程直接代理 nest-admin
+          if (isRealBackendProcedure(procedures)) {
+            void proxyToBackend(req, res);
+            return;
+          }
 
           // G7/G9：aiModel.list 动态透传后端真实模型目录（/v1/models 已公开，避免 mock 硬编码）
           if (procedures.length === 1 && procedures[0] === 'lambda/aiModel.list') {
