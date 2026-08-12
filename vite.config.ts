@@ -445,6 +445,13 @@ export default defineConfig({
             'lambda/plugin.getPlugins': [],
             'lambda/acceptance.getBySubject': null,
             'lambda/agentDocument.getContextDocuments': [],
+            // 设置页/工作区：workspace_user_settings 偏好（与 c-end-trpc-mock.controller.ts 保持一致）
+            'lambda/workspaceUserSettings.getPreference': {},
+            'lambda/workspaceUserSettings.updatePreference': {
+              data: {},
+              message: 'Updated',
+              success: true,
+            },
           };
 
           // 组合请求：逐过程返回（已知→mock，未知→null 降级），避免整批 404 导致首页区块加载失败（S8-17 修复）

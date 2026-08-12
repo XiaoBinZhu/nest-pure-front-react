@@ -30,13 +30,13 @@ class NotificationService {
     return unwrap<number>('/app/front-hub/notifications/unread-count');
   };
 
-  // 标记已读：POST /app/front-hub/notifications/:id/read
+  // 标记已读：PATCH /app/front-hub/notifications/:id/read
   markAsRead = async (ids: string[]) => {
-    // 逐个标记已读（nest-admin 接口为单条 :id/read）
+    // 逐个标记已读（nest-admin 接口为单条 :id/read，方法为 PATCH）
     await Promise.all(
       ids.map((id) =>
         unwrap(`/app/front-hub/notifications/${encodeURIComponent(id)}/read`, {
-          method: 'POST',
+          method: 'PATCH',
         }),
       ),
     );
