@@ -279,6 +279,11 @@ export default defineConfig({
           'market.registerClientInMarketplace',
           'connector.syncBuiltinTool',
           'messenger.availablePlatforms',
+          // G3 真实化：首页侧边栏 agent 列表 / 最近会话 / 工作区偏好
+          'home.getSidebarAgentList',
+          'recent.getAll',
+          'workspaceUserSettings.getPreference',
+          'workspaceUserSettings.updatePreference',
         ]);
         const isRealBackendProcedure = (procedures: string[]) => {
           if (procedures.length !== 1) return false;
