@@ -61,6 +61,12 @@ export const useNavLayout = (): NavLayout => {
           url: '/tasks',
         },
         {
+          icon: getRouteById('generate')!.icon,
+          key: 'generate',
+          title: t('tab.uiGenerator'),
+          url: '/generate',
+        },
+        {
           icon: getRouteById('page')!.icon,
           key: SidebarTabKey.Pages,
           title: t('tab.pages'),
