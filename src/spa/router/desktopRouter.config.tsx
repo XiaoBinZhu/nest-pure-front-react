@@ -2,13 +2,19 @@
 
 import {
   BrainCircuit,
+  Code2,
+  Database,
   Download,
   FilePenIcon,
   Home,
   Image,
   LibraryBigIcon,
+  Palette,
   Settings,
   ShapesIcon,
+  ShieldCheck,
+  Store,
+  Users,
 } from 'lucide-react';
 import { type RouteObject } from 'react-router';
 
@@ -727,6 +733,62 @@ export const desktopRoutes: RouteObject[] = [
         path: 'downloads',
       },
 
+      // Harness page (personal-only — 代码智能体工作区)
+      {
+        element: dynamicElement(() => import('@/routes/(main)/harness'), 'Desktop > Harness'),
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Code2, titleKey: 'navigation.harness' }) },
+        path: 'harness',
+      },
+
+      // Agent 团队页
+      {
+        element: dynamicElement(() => import('@/routes/(main)/teams'), 'Desktop > Teams'),
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Users, titleKey: 'navigation.teams' }) },
+        path: 'teams',
+      },
+
+      // HITL 审批中心
+      {
+        element: dynamicElement(() => import('@/routes/(main)/hitl'), 'Desktop > HITL'),
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: ShieldCheck, titleKey: 'navigation.hitl' }) },
+        path: 'hitl',
+      },
+
+      // 知识库
+      {
+        element: dynamicElement(() => import('@/routes/(main)/knowledge'), 'Desktop > Knowledge'),
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Database, titleKey: 'navigation.knowledge' }) },
+        path: 'knowledge',
+      },
+
+      // Agent 市场
+      {
+        element: dynamicElement(() => import('@/routes/(main)/market'), 'Desktop > Market'),
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Store, titleKey: 'navigation.market' }) },
+        path: 'market',
+      },
+
+      // UI 生成页（G1 补全，AC9：一句话生成 UI 原型 + iframe 预览 + 下载 + refine）
+      {
+        element: dynamicElement(() => import('@/routes/(main)/generate'), 'Desktop > UI Generator'),
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Palette, titleKey: 'navigation.uiGenerator' }) },
+        path: 'generate',
+      },
+
+      // 工作台页（personal-only — 任务列表 + 产物中心 + 版本/diff/下载）
+      {
+        element: dynamicElement(() => import('@/routes/(main)/workspace'), 'Desktop > Workspace'),
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: BrainCircuit, titleKey: 'navigation.workspace' }) },
+        path: 'workspace',
+      },
+
       // Settings routes (personal-only — never mirrored under /:workspaceSlug)
       {
         children: [
@@ -761,6 +823,14 @@ export const desktopRoutes: RouteObject[] = [
               meta: routeMeta({ icon: Settings, titleKey: 'navigation.provider' }),
             },
             path: 'provider',
+          },
+          {
+            element: dynamicElement(
+              () => import('@/routes/(main)/dept-stats'),
+              'Desktop > Settings > Dept Stats',
+            ),
+            handle: { meta: routeMeta({ icon: Settings, titleKey: 'navigation.deptStats' }) },
+            path: 'dept-stats',
           },
           {
             element: dynamicElement(

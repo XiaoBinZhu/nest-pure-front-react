@@ -47,9 +47,12 @@ function unwrapData<T = any>(json: any): T {
 // 统一 fetch 封装
 export async function apiFetch<T = any>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
+  // 仅在有 body 时设置 Content-Type：无 body 请求（如 DELETE）带 JSON Content-Type
+  // 会被 Fastify 拒绝（Body cannot be empty when content-type is set to 'application/json'）
+  const hasBody = options.body != null && options.body !== '';
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
+    ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
+    ...((options.headers as Record<string, string>) || {}),
   };
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -61,7 +64,7 @@ export async function apiFetch<T = any>(path: string, options: RequestInit = {})
   });
 
   if (res.status === 401) {
-    // 尝试刷新 token
+    // 尝试刷新 token（nest-admin 实际路径 /system/auth/refresh-token）
     const refreshToken = localStorage.getItem('refreshToken');
     if (refreshToken) {
       const refreshRes = await fetch(REFRESH_URL, {
@@ -85,7 +88,13 @@ export async function apiFetch<T = any>(path: string, options: RequestInit = {})
     }
     // 刷新失败，清除 token
     clearAuthTokens();
-    window.location.href = '/signin';
+    // 避免在 auth 页面（/signin 等）重定向到自己，导致页面循环重载 + 请求 ERR_ABORTED
+    const isOnAuthPage = /^\/(signin|signup|verify-email|reset-password|auth-error)/.test(
+      window.location.pathname,
+    );
+    if (!isOnAuthPage) {
+      window.location.href = '/signin';
+    }
     throw new Error('Unauthorized');
   }
 

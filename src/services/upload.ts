@@ -67,7 +67,7 @@ class UploadService {
     file: File,
     { onProgress, directory, pathname, abortController }: UploadFileToS3Options,
   ): Promise<{ data: FileMetadata; success: boolean }> => {
-    // 对接 nest-admin 上传接口：POST /api/v1/c-end/files
+    // 对接 nest-admin 上传接口：POST /app/front-hub/files
     const data = await this.uploadToServerS3(file, {
       abortController,
       directory,
@@ -132,7 +132,7 @@ class UploadService {
     return await this.uploadFileToS3(file, options);
   };
 
-  // 直接 multipart 上传到 nest-admin：POST /api/v1/c-end/files
+  // 直接 multipart 上传到 nest-admin：POST /app/front-hub/files
   uploadToServerS3 = async (
     file: File,
     {
@@ -222,7 +222,7 @@ class UploadService {
         reject(new Error('Upload cancelled by user'));
       });
 
-      xhr.open('POST', `${API_BASE}/api/v1/c-end/files`);
+      xhr.open('POST', `${API_BASE}/app/front-hub/files`);
       // 注入 JWT（multipart 上传不设置 Content-Type，由浏览器自动添加 boundary）
       const token = getToken();
       if (token) {

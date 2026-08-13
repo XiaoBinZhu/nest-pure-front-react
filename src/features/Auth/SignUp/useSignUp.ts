@@ -102,7 +102,8 @@ export const useSignUp = () => {
         return;
       }
 
-      // 注册成功即自动登录：把 JWT 写入 localStorage，与 better-auth cookie 双轨打通
+      // 注册成功即自动登录：把 nest-admin JWT 写入 localStorage，
+      // 与 better-auth cookie 双轨打通，供 REST 层（_api.ts）作为 Authorization 头使用。
       if (data?.token) {
         setAuthTokens(data.token, data.refreshToken);
       }

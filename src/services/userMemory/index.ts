@@ -1,13 +1,4 @@
 import {
-  type ActivityMemoryItemSchema,
-  type AddIdentityActionSchema,
-  type ContextMemoryItemSchema,
-  type ExperienceMemoryItemSchema,
-  type PreferenceMemoryItemSchema,
-  type RemoveIdentityActionSchema,
-  type UpdateIdentityActionSchema,
-} from '@lobechat/memory-user-memory/schemas';
-import {
   type ActivityListParams,
   type ActivityListResult,
   type AddActivityMemoryResult,
@@ -25,118 +16,149 @@ import {
   type RemoveIdentityMemoryResult,
   type SearchMemoryParams,
   type SearchMemoryResult,
-  type TypesEnum,
   type UpdateIdentityMemoryResult,
 } from '@lobechat/types';
-import { type z } from 'zod';
 
-import { lambdaClient } from '@/libs/trpc/client';
+import { apiFetch } from '@/services/_api';
+
+// 统一解包 { code, data } 信封
+async function unwrap<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await apiFetch<{ code: number; data: T }>(path, options);
+  return (res as any)?.data ?? (res as T);
+}
+
+// layer 参数映射（LobeHub LayersEnum 与后端 MemoryLayer 一致）
+function layerOf(layer?: LayersEnum | string): string | undefined {
+  return layer;
+}
 
 class UserMemoryService {
-  addActivityMemory = async (
-    params: z.infer<typeof ActivityMemoryItemSchema>,
-  ): Promise<AddActivityMemoryResult> => {
-    return lambdaClient.userMemories.toolAddActivityMemory.mutate(params);
+  addActivityMemory = async (params: any): Promise<AddActivityMemoryResult> => {
+    return unwrap('/app/front-hub/memory/activities', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
   };
 
-  addContextMemory = async (
-    params: z.infer<typeof ContextMemoryItemSchema>,
-  ): Promise<AddContextMemoryResult> => {
-    return lambdaClient.userMemories.toolAddContextMemory.mutate(params);
+  addContextMemory = async (params: any): Promise<AddContextMemoryResult> => {
+    return unwrap('/app/front-hub/memory/contexts', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
   };
 
-  addExperienceMemory = async (
-    params: z.infer<typeof ExperienceMemoryItemSchema>,
-  ): Promise<AddExperienceMemoryResult> => {
-    return lambdaClient.userMemories.toolAddExperienceMemory.mutate(params);
+  addExperienceMemory = async (params: any): Promise<AddExperienceMemoryResult> => {
+    return unwrap('/app/front-hub/memory/experiences', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
   };
 
-  addIdentityMemory = async (
-    params: z.infer<typeof AddIdentityActionSchema>,
-  ): Promise<AddIdentityMemoryResult> => {
-    return lambdaClient.userMemories.toolAddIdentityMemory.mutate(params);
+  addIdentityMemory = async (params: any): Promise<AddIdentityMemoryResult> => {
+    return unwrap('/app/front-hub/memory/identities', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
   };
 
-  addPreferenceMemory = async (
-    params: z.infer<typeof PreferenceMemoryItemSchema>,
-  ): Promise<AddPreferenceMemoryResult> => {
-    return lambdaClient.userMemories.toolAddPreferenceMemory.mutate(params);
+  addPreferenceMemory = async (params: any): Promise<AddPreferenceMemoryResult> => {
+    return unwrap('/app/front-hub/memory/preferences', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
   };
 
-  removeIdentityMemory = async (
-    params: z.infer<typeof RemoveIdentityActionSchema>,
-  ): Promise<RemoveIdentityMemoryResult> => {
-    return lambdaClient.userMemories.toolRemoveIdentityMemory.mutate(params);
+  removeIdentityMemory = async (params: any): Promise<RemoveIdentityMemoryResult> => {
+    return unwrap(`/app/front-hub/memory/identities/${params?.id}`, { method: 'DELETE' });
   };
 
   getMemoryDetail = async (params: { id: string; layer: LayersEnum }) => {
-    return lambdaClient.userMemories.getMemoryDetail.query(params);
+    const qs = new URLSearchParams({ id: params.id });
+    if (params.layer) qs.set('layer', params.layer);
+    return unwrap(`/app/front-hub/memory/detail?${qs.toString()}`);
   };
 
   getPersona = async () => {
-    return lambdaClient.userMemory.getPersona.query();
+    return unwrap('/app/front-hub/memory/profile');
   };
 
-  /**
-   * Query experiences with pagination, search, and sorting
-   * Returns flat structure optimized for frontend display
-   */
   queryExperiences = async (params?: ExperienceListParams): Promise<ExperienceListResult> => {
-    return lambdaClient.userMemories.queryExperiences.query(params);
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.pageSize) qs.set('pageSize', String(params.pageSize));
+    if (params?.q) qs.set('q', params.q);
+    if (params?.status?.length) qs.set('status', params.status.join(','));
+    const query = qs.toString();
+    return unwrap(`/app/front-hub/memory/experiences${query ? `?${query}` : ''}`);
   };
 
-  /**
-   * Query activities with pagination, search, and sorting
-   * Returns flat structure optimized for frontend display
-   */
   queryActivities = async (params?: ActivityListParams): Promise<ActivityListResult> => {
-    return lambdaClient.userMemories.queryActivities.query(params);
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.pageSize) qs.set('pageSize', String(params.pageSize));
+    if (params?.q) qs.set('q', params.q);
+    if (params?.status?.length) qs.set('status', params.status.join(','));
+    const query = qs.toString();
+    return unwrap(`/app/front-hub/memory/activities${query ? `?${query}` : ''}`);
   };
 
-  /**
-   * Query identities with pagination, search, and sorting
-   * Returns flat structure optimized for frontend display
-   */
   queryIdentities = async (params?: IdentityListParams): Promise<IdentityListResult> => {
-    return lambdaClient.userMemories.queryIdentities.query(params);
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.pageSize) qs.set('pageSize', String(params.pageSize));
+    if (params?.q) qs.set('q', params.q);
+    if (params?.types?.length) qs.set('types', params.types.join(','));
+    const query = qs.toString();
+    return unwrap(`/app/front-hub/memory/identities${query ? `?${query}` : ''}`);
   };
 
   retrieveMemory = async (params: SearchMemoryParams): Promise<SearchMemoryResult> => {
-    return lambdaClient.userMemories.toolSearchMemory.query(params);
+    const qs = new URLSearchParams();
+    if (params?.q) qs.set('q', params.q);
+    if (params?.limit) qs.set('limit', String(params.limit));
+    const query = qs.toString();
+    return unwrap(`/app/front-hub/memory/search${query ? `?${query}` : ''}`);
   };
 
-  /**
-   * Retrieve memories for a specific topic
-   * Uses the topic's historySummary as the search query
-   */
   retrieveMemoryForTopic = async (topicId: string): Promise<SearchMemoryResult> => {
-    return lambdaClient.userMemories.retrieveMemoryForTopic.query({ topicId });
+    const topic = await unwrap<{ title?: string; topicId?: string }>(
+      `/app/front-hub/topics/${topicId}`,
+    ).catch(() => null);
+    const q = topic?.title || '';
+    return unwrap(`/app/front-hub/memory/search?q=${encodeURIComponent(q)}`);
   };
 
   searchMemory = async (params: SearchMemoryParams): Promise<SearchMemoryResult> => {
-    return lambdaClient.userMemories.toolSearchMemory.query(params);
+    return this.retrieveMemory(params);
   };
 
   queryTags = async (params?: { layers?: LayersEnum[]; page?: number; size?: number }) => {
-    return lambdaClient.userMemories.queryTags.query(params);
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.size) qs.set('pageSize', String(params.size));
+    const query = qs.toString();
+    return unwrap(`/app/front-hub/memory/tags${query ? `?${query}` : ''}`);
   };
 
   queryIdentityRoles = async (params?: { page?: number; size?: number }) => {
-    return lambdaClient.userMemories.queryIdentityRoles.query(params);
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.size) qs.set('pageSize', String(params.size));
+    const query = qs.toString();
+    return unwrap(`/app/front-hub/memory/identities/roles${query ? `?${query}` : ''}`);
   };
 
   queryTaxonomyOptions = async (
     params?: QueryTaxonomyOptionsParams,
   ): Promise<QueryTaxonomyOptionsResult> => {
-    return lambdaClient.userMemories.queryTaxonomyOptions.query(params);
+    return unwrap('/app/front-hub/memory/taxonomy-options');
   };
 
-  /**
-   * Query identities for chat context injection
-   * Only returns user's own identities (relationship === 'self' or null)
-   */
   queryIdentitiesForInjection = async (params?: { limit?: number }) => {
-    return lambdaClient.userMemories.queryIdentitiesForInjection.query(params);
+    const qs = new URLSearchParams();
+    if (params?.limit) qs.set('limit', String(params.limit));
+    const query = qs.toString();
+    return unwrap(`/app/front-hub/memory/identities/for-injection${query ? `?${query}` : ''}`);
   };
 
   queryMemories = async (params?: {
@@ -146,24 +168,27 @@ class UserMemoryService {
     page?: number;
     pageSize?: number;
     q?: string;
-    sort?:
-      | 'capturedAt'
-      | 'scoreConfidence'
-      | 'scoreImpact'
-      | 'scorePriority'
-      | 'scoreUrgency'
-      | 'startsAt';
+    sort?: string;
     status?: string[];
     tags?: string[];
-    types?: TypesEnum[];
+    types?: string[];
   }) => {
-    return lambdaClient.userMemories.queryMemories.query(params);
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.pageSize) qs.set('pageSize', String(params.pageSize));
+    if (params?.q) qs.set('q', params.q);
+    const layer = params?.layer || params?.types?.[0] || params?.categories?.[0];
+    if (layer) qs.set('layer', layerOf(layer) as string);
+    if (params?.order) qs.set('order', params.order);
+    const query = qs.toString();
+    return unwrap(`/app/front-hub/memory/query${query ? `?${query}` : ''}`);
   };
 
-  updateIdentityMemory = async (
-    params: z.infer<typeof UpdateIdentityActionSchema>,
-  ): Promise<UpdateIdentityMemoryResult> => {
-    return lambdaClient.userMemories.toolUpdateIdentityMemory.mutate(params);
+  updateIdentityMemory = async (params: any): Promise<UpdateIdentityMemoryResult> => {
+    return unwrap(`/app/front-hub/memory/identities/${params?.id}`, {
+      method: 'PUT',
+      body: JSON.stringify(params?.data ?? params),
+    });
   };
 }
 

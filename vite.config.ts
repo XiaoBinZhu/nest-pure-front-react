@@ -261,11 +261,76 @@ export default defineConfig({
     // 纯 SPA 模式下 mock tRPC 端点（与生产 Nginx c-end.conf 保持一致）
     // LobeHub 前端在纯 SPA 模式下无 Next.js 后端，/trpc 请求需返回 mock JSON
     // 避免 TRPCClientError: Unexpected end of JSON input
+    // c-end-trpc-mock-and-console-fix：market.* / messenger.availablePlatforms /
+    // connector.syncBuiltinTool 共 9 个过程已由 nest-admin 后端真实实现，
+    // 本地开发直接透传 127.0.0.1:7001（与 /api /app /v1 代理同源），不再 mock。
     {
       name: 'trpc-spa-mock',
       configureServer(server: ViteDevServer) {
-        const sendJson = (res: any, data: unknown, status = 200) => {
-          const body = `{"result":{"data":{"json":${JSON.stringify(data)}}}}`;
+        const UPSTREAM = 'http://127.0.0.1:7001';
+        // 后端已真实实现的过程：直接代理到 nest-admin，不走本地 mock
+        const REAL_BACKEND_PROCEDURES = new Set([
+          'market.getMcpCategories',
+          'market.getMcpList',
+          'market.getModelCategories',
+          'market.getModelList',
+          'market.getProviderList',
+          'market.getAssistantList',
+          'market.registerClientInMarketplace',
+          'connector.syncBuiltinTool',
+          'messenger.availablePlatforms',
+          // G3 真实化：首页侧边栏 agent 列表 / 最近会话 / 工作区偏好
+          'home.getSidebarAgentList',
+          'recent.getAll',
+          'workspaceUserSettings.getPreference',
+          'workspaceUserSettings.updatePreference',
+        ]);
+        const isRealBackendProcedure = (procedures: string[]) => {
+          if (procedures.length !== 1) return false;
+          const bare = procedures[0].startsWith('lambda/') ? procedures[0].slice(7) : procedures[0];
+          return REAL_BACKEND_PROCEDURES.has(bare);
+        };
+
+        const readBody = (req: any): Promise<string> =>
+          new Promise((resolve) => {
+            if (req.body)
+              return resolve(typeof req.body === 'string' ? req.body : JSON.stringify(req.body));
+            const chunks: Buffer[] = [];
+            req.on('data', (chunk: Buffer) => chunks.push(chunk));
+            req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+            req.on('error', () => resolve(''));
+          });
+
+        const proxyToBackend = async (req: any, res: any) => {
+          try {
+            const targetUrl = `${UPSTREAM}/trpc/${req.url}`;
+            const headers: Record<string, string> = { 'content-type': 'application/json' };
+            if (req.headers.authorization) headers.authorization = req.headers.authorization;
+            if (req.headers.cookie) headers.cookie = req.headers.cookie;
+            const body =
+              req.method !== 'GET' && req.method !== 'HEAD' ? await readBody(req) : undefined;
+            const upstream = await fetch(targetUrl, {
+              method: req.method || 'GET',
+              headers,
+              ...(body !== undefined ? { body } : {}),
+            });
+            const text = await upstream.text();
+            res.statusCode = upstream.status;
+            res.setHeader('content-type', 'application/json');
+            res.setHeader('cache-control', 'no-store');
+            res.end(text);
+          } catch (e) {
+            // 后端不可用时返回空信封（batch 数组），避免整批 404
+            res.statusCode = 200;
+            res.setHeader('content-type', 'application/json');
+            res.end(JSON.stringify({ result: { data: { json: null } } }));
+          }
+        };
+
+        const sendJson = (res: any, data: unknown, status = 200, batch = false) => {
+          const body = batch
+            ? `[{"result":{"data":{"json":${JSON.stringify(data)}}}}]`
+            : `{"result":{"data":{"json":${JSON.stringify(data)}}}}`;
           res.statusCode = status;
           res.setHeader('content-type', 'application/json');
           res.setHeader('cache-control', 'no-store');
@@ -284,24 +349,204 @@ export default defineConfig({
           const url = req.url || '';
           // 提取 trpc procedure 名（去掉 query string）
           const procedure = url.split('?')[0].replace(/^\//, '');
+          const isBatch = url.includes('batch=1');
+          // 组合 batch（逗号分隔多个 procedure）逐个 mock
+          // 注意：组合后续项可能不带 lambda/ 前缀（如 agent.getBuiltinAgent,agent.getBuiltinAgent）
+          const procedures = procedure
+            .split(',')
+            .map((p: string) => (p.startsWith('lambda/') ? p : `lambda/${p}`));
 
-          switch (procedure) {
-            case 'lambda/config.getGlobalConfig':
-              sendJson(res, {
-                serverConfig: { telemetry: { langfuse: false } },
-                serverFeatureFlags: {},
-                billboard: null,
-              });
-              break;
-            case 'lambda/config.getDefaultAgentConfig':
-              sendJson(res, { model: 'gpt-4o-mini', provider: 'openai', params: {} });
-              break;
-            case 'lambda/user.getUserState':
-              sendJson(res, null);
-              break;
-            default:
-              sendError(res);
+          // c-end-trpc-mock-and-console-fix：9 个真实后端过程直接代理 nest-admin
+          if (isRealBackendProcedure(procedures)) {
+            void proxyToBackend(req, res);
+            return;
           }
+
+          // G7/G9：aiModel.list 动态透传后端真实模型目录（/v1/models 已公开，避免 mock 硬编码）
+          if (procedures.length === 1 && procedures[0] === 'lambda/aiModel.list') {
+            void (async () => {
+              try {
+                const upstream = await fetch('http://127.0.0.1:7001/v1/models');
+                const json = (await upstream.json()) as { data?: { id: string }[] };
+                const list = (json.data || []).map((m) => ({
+                  id: m.id,
+                  displayName: m.id,
+                  enabled: true,
+                  isCustom: false,
+                }));
+                sendJson(res, { data: list }, 200, isBatch);
+              } catch {
+                sendJson(res, { data: [] }, 200, isBatch);
+              }
+            })();
+            return;
+          }
+
+          // G7/G9：provider 运行时状态透传真实模型（AiProviderRuntimeState 结构），驱动模型选择器/能力判定
+          if (
+            procedures.length === 1 &&
+            procedures[0] === 'lambda/aiProvider.getAiProviderRuntimeState'
+          ) {
+            void (async () => {
+              try {
+                const upstream = await fetch('http://127.0.0.1:7001/v1/models');
+                const json = (await upstream.json()) as { data?: { id: string }[] };
+                const ids = (json.data || []).map((m) => m.id);
+                const enabledAiModels = ids.map((id) => ({
+                  providerId: 'openai',
+                  id,
+                  type: 'chat',
+                  displayName: id,
+                  enabled: true,
+                  isCustom: false,
+                  functionCall: false,
+                  vision: false,
+                }));
+                sendJson(
+                  res,
+                  {
+                    enabledAiModels,
+                    enabledAiProviders: [],
+                    enabledChatAiProviders: [
+                      { id: 'openai', name: 'OpenAI', enabled: true, isSystem: true },
+                    ],
+                    enabledImageAiProviders: [],
+                    enabledVideoAiProviders: [],
+                    runtimeConfig: {},
+                  },
+                  200,
+                  isBatch,
+                );
+              } catch {
+                sendJson(
+                  res,
+                  {
+                    enabledAiModels: [],
+                    enabledAiProviders: [],
+                    enabledChatAiProviders: [],
+                    enabledImageAiProviders: [],
+                    enabledVideoAiProviders: [],
+                    runtimeConfig: {},
+                  },
+                  200,
+                  isBatch,
+                );
+              }
+            })();
+            return;
+          }
+
+          const mocks: Record<string, unknown> = {
+            'lambda/config.getGlobalConfig': {
+              serverConfig: { telemetry: { langfuse: false } },
+              serverFeatureFlags: {},
+              billboard: null,
+            },
+            'lambda/config.getDefaultAgentConfig': {
+              model: 'gpt-4o-mini',
+              provider: 'openai',
+              params: {},
+            },
+            'lambda/user.getUserState': null,
+            // getBuiltinAgent 需顶层含 id（builtin action 检查 data?.id，G9 修复）；原 {agent:{agentId}} 包裹导致发送按钮禁用
+            'lambda/agent.getBuiltinAgent': {
+              id: 'inbox',
+              agentId: 'inbox',
+              slug: 'inbox',
+              title: '收件箱',
+              description: '默认助手',
+              model: 'deepseek-ai/deepseek-v4-pro',
+              provider: 'openai',
+              settings: {},
+              createAt: 0,
+            },
+            // connector.list 返回 ConnectorWithTools[]（数组），不能包对象否则 connectors.filter 崩溃
+            'lambda/connector.list': [],
+            'lambda/connector.listAgentBound': [],
+            'lambda/connector.listByAgent': [],
+            // SidebarAgentListResponse: { groups, pinned, privateGroups?, privateUngrouped?, ungrouped }
+            'lambda/home.getSidebarAgentList': {
+              groups: [],
+              pinned: [],
+              privateGroups: [],
+              privateUngrouped: [],
+              ungrouped: [],
+            },
+            // recent.getAll 返回 RecentItem[]（数组），不能包对象否则 recents.slice 崩溃
+            'lambda/recent.getAll': [],
+            'lambda/aiModel.list': { data: [] },
+            'lambda/agent.list': { agents: [] },
+            // 聊天页初始化必需（G9 修复）：inbox 助手配置 + 列表类空数组，缺失会报“助理配置加载失败”
+            'lambda/agent.getAgentConfigById': {
+              agentId: 'inbox',
+              slug: 'inbox',
+              title: '收件箱',
+              description: '默认助手',
+              model: 'deepseek-ai/deepseek-v4-pro',
+              provider: 'openai',
+              settings: {},
+              createAt: 0,
+            },
+            'lambda/agent.getAgentConfig': {
+              agentId: 'inbox',
+              model: 'deepseek-ai/deepseek-v4-pro',
+              provider: 'openai',
+              settings: {},
+            },
+            'lambda/agent.queryAgents': [],
+            'lambda/agent.countAgents': 0,
+            'lambda/agentSkills.list': [],
+            'lambda/agentDocument.listDocuments': [],
+            'lambda/agentGroup.list': { groups: [] },
+            'lambda/topic.list': { items: [], total: 0 },
+            // 首页任务推荐（返回 { data, success }）
+            'lambda/taskTemplate.listDailyRecommend': { data: [], success: true },
+            'lambda/taskTemplate.dismiss': { success: true },
+            // 日报/待办/设备（组合 batch 中出现的其他端点）
+            // brief.listUnresolved 前端取 result.data（数组）
+            'lambda/home.getDailyBrief': null,
+            'lambda/brief.listUnresolved': { data: [] },
+            'lambda/brief.markRead': { success: true },
+            'lambda/device.listDevices': [],
+            // 首页“上新/最近/任务”区块组合中出现的端点（S8-17 补全，避免整批 404）
+            'lambda/task.groupList': { groups: [] },
+            'lambda/notebook.listDocuments': [],
+            'lambda/plugin.getPlugins': [],
+            'lambda/acceptance.getBySubject': null,
+            'lambda/agentDocument.getContextDocuments': [],
+            // 设置页/工作区：workspace_user_settings 偏好（与 c-end-trpc-mock.controller.ts 保持一致）
+            'lambda/workspaceUserSettings.getPreference': {},
+            'lambda/workspaceUserSettings.updatePreference': {
+              data: {},
+              message: 'Updated',
+              success: true,
+            },
+          };
+
+          // 组合请求：逐过程返回（已知→mock，未知→null 降级），避免整批 404 导致首页区块加载失败（S8-17 修复）
+          // 单过程未知仍 404（前端可容忍，且暴露真实缺口）
+          if (procedures.length === 1) {
+            if (!(procedures[0] in mocks)) {
+              sendError(res);
+              return;
+            }
+            const json = `{"result":{"data":{"json":${JSON.stringify(mocks[procedures[0]])}}}}`;
+            res.statusCode = 200;
+            res.setHeader('content-type', 'application/json');
+            res.setHeader('cache-control', 'no-store');
+            res.end(json);
+            return;
+          }
+
+          // 多过程组合（batch=1 或逗号分隔）：未知过程返回 json:null，保持数组长度，前端逐项取数
+          const json = isBatch
+            ? `[${procedures.map((p) => `{"result":{"data":{"json":${JSON.stringify(p in mocks ? mocks[p] : null)}}}}`).join(',')}]`
+            : `{"result":{"data":{"json":${JSON.stringify(procedures[0] in mocks ? mocks[procedures[0]] : null)}}}}`;
+          res.statusCode = 200;
+          res.setHeader('content-type', 'application/json');
+          res.setHeader('cache-control', 'no-store');
+          res.end(json);
+          return;
         });
       },
     },
@@ -322,6 +567,11 @@ export default defineConfig({
             /^\/auth\//,
             /^\/system\//,
             /^\/ai\//,
+            /^\/v1\//,
+            /^\/app\//,
+            /^\/signin/,
+            /^\/signup/,
+            /^\/_spa-auth\//,
             /\.(?:png|jpg|jpeg|svg|gif|webp|ico|avif|woff2?)$/,
           ],
           runtimeCaching: [
@@ -376,6 +626,9 @@ export default defineConfig({
       '/api': { target: 'http://127.0.0.1:7001', changeOrigin: true },
       '/auth': { target: 'http://127.0.0.1:7001', changeOrigin: true },
       '/ai': { target: 'http://127.0.0.1:7001', changeOrigin: true, ws: false },
+      '/v1': { target: 'http://127.0.0.1:7001', changeOrigin: true, ws: false },
+      // C 端业务前缀 /app/front-hub（项目前缀规范，替代原 /api/v1/c-end）
+      '/app': { target: 'http://127.0.0.1:7001', changeOrigin: true },
       // token 无感刷新（/system/auth/refresh-token）
       '/system': { target: 'http://127.0.0.1:7001', changeOrigin: true },
       '/oidc': `http://localhost:${process.env.PORT || 3010}`,

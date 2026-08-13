@@ -347,6 +347,13 @@ export const fetchSSE = async (url: string, options: RequestInit & FetchSSEOptio
     },
     onmessage: (ev) => {
       triggerOnMessageHandler = true;
+
+      // G9：裸 OpenAI SSE 流结束标记（直连 /v1 网关时无 event 行，[DONE] 需特判）
+      if (typeof ev.data === 'string' && ev.data.trim() === '[DONE]') {
+        finishedType = 'stop';
+        return;
+      }
+
       let data;
       try {
         data = JSON.parse(ev.data);
@@ -368,6 +375,54 @@ export const fetchSSE = async (url: string, options: RequestInit & FetchSSEOptio
         return;
       }
 
+      const handleText = (text: string) => {
+        // skip empty text
+        if (!text) return;
+
+        if (shouldSkipTextProcessing) {
+          output += text;
+          options.onMessageHandle?.({ text, type: 'text' });
+        } else if (textSmoothing) {
+          textController.pushToQueue(text);
+
+          if (!textController.isAnimationActive) textController.startAnimation();
+        } else {
+          output += text;
+
+          // Use buffer mechanism
+          textBuffer += text;
+
+          // If timer not set yet, create one
+          if (!bufferTimer) {
+            bufferTimer = setTimeout(() => {
+              flushTextBuffer();
+              bufferTimer = null;
+            }, BUFFER_INTERVAL);
+          }
+        }
+      };
+
+      const handleReasoning = (text: string) => {
+        if (textSmoothing) {
+          thinkingController.pushToQueue(text);
+
+          if (!thinkingController.isAnimationActive) thinkingController.startAnimation();
+        } else {
+          thinking += text;
+
+          // Use buffer mechanism
+          thinkingBuffer += text;
+
+          // If timer not set yet, create one
+          if (!thinkingBufferTimer) {
+            thinkingBufferTimer = setTimeout(() => {
+              flushThinkingBuffer();
+              thinkingBufferTimer = null;
+            }, BUFFER_INTERVAL);
+          }
+        }
+      };
+
       switch (ev.event) {
         case 'error': {
           finishedType = 'error';
@@ -385,31 +440,7 @@ export const fetchSSE = async (url: string, options: RequestInit & FetchSSEOptio
         }
 
         case 'text': {
-          // skip empty text
-          if (!data) break;
-
-          if (shouldSkipTextProcessing) {
-            output += data;
-            options.onMessageHandle?.({ text: data, type: 'text' });
-          } else if (textSmoothing) {
-            textController.pushToQueue(data);
-
-            if (!textController.isAnimationActive) textController.startAnimation();
-          } else {
-            output += data;
-
-            // Use buffer mechanism
-            textBuffer += data;
-
-            // If timer not set yet, create one
-            if (!bufferTimer) {
-              bufferTimer = setTimeout(() => {
-                flushTextBuffer();
-                bufferTimer = null;
-              }, BUFFER_INTERVAL);
-            }
-          }
-
+          handleText(data);
           break;
         }
 
@@ -442,25 +473,7 @@ export const fetchSSE = async (url: string, options: RequestInit & FetchSSEOptio
         }
 
         case 'reasoning': {
-          if (textSmoothing) {
-            thinkingController.pushToQueue(data);
-
-            if (!thinkingController.isAnimationActive) thinkingController.startAnimation();
-          } else {
-            thinking += data;
-
-            // Use buffer mechanism
-            thinkingBuffer += data;
-
-            // If timer not set yet, create one
-            if (!thinkingBufferTimer) {
-              thinkingBufferTimer = setTimeout(() => {
-                flushThinkingBuffer();
-                thinkingBufferTimer = null;
-              }, BUFFER_INTERVAL);
-            }
-          }
-
+          handleReasoning(data);
           break;
         }
 
@@ -501,6 +514,47 @@ export const fetchSSE = async (url: string, options: RequestInit & FetchSSEOptio
           if (!toolCalls) toolCalls = [];
           toolCalls = parseToolCalls(toolCalls, data);
           options.onMessageHandle?.({ tool_calls: toolCalls, type: 'tool_calls' });
+          break;
+        }
+
+        // G9：裸 OpenAI SSE 默认分支（直连 /v1 网关，无 event 行）——
+        // 解析 choices[0].delta { content, reasoning_content, tool_calls } + usage
+        default: {
+          if (!data || typeof data !== 'object') break;
+
+          const chunk = data as {
+            choices?: Array<{
+              delta?: {
+                content?: string;
+                reasoning_content?: string;
+                tool_calls?: unknown[];
+              };
+              finish_reason?: string | null;
+            }>;
+            usage?: unknown;
+          };
+          const choice = chunk.choices?.[0];
+          const delta = choice?.delta;
+
+          if (choice?.finish_reason === 'stop') {
+            finishedType = 'stop';
+          }
+          if (delta?.reasoning_content) {
+            handleReasoning(delta.reasoning_content);
+          }
+          if (delta?.content) {
+            handleText(delta.content);
+          }
+          if (delta?.tool_calls) {
+            if (!toolCalls) toolCalls = [];
+            toolCalls = parseToolCalls(toolCalls, delta.tool_calls as any);
+            options.onMessageHandle?.({ tool_calls: toolCalls, type: 'tool_calls' });
+          }
+          if (chunk.usage) {
+            usage = chunk.usage;
+            options.onMessageHandle?.({ type: 'usage', usage: chunk.usage });
+          }
+          break;
         }
       }
     },

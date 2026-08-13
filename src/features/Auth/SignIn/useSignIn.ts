@@ -225,6 +225,15 @@ export const useSignIn = () => {
         },
       );
 
+      // G9 补充：登录成功后把 nest-admin JWT 写入 localStorage，
+      // 供 REST 层（_api.ts / createHeaderWithAuth）作为 Authorization 头使用。
+      // 否则 /app/front-hub/* 与 /v1/chat/completions 均无鉴权而 401。
+      const loginData = result.data ?? (result as any);
+      if (loginData?.token) {
+        localStorage.setItem('accessToken', loginData.token);
+        if (loginData.refreshToken) localStorage.setItem('refreshToken', loginData.refreshToken);
+      }
+
       if (result.error && result.error.status !== 403) {
         // Wrong password is the most common sign-in failure. Keep the error
         // pinned inline on the field (persistent, with retry context) rather

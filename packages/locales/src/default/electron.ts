@@ -151,4 +151,12 @@ export default {
   'window.pinToTop': 'Pin on top',
   'window.restore': 'Restore window',
   'window.unpinFromTop': 'Unpin from top',
+  'navigation.harness': 'Harness Coding Agent',
+  'navigation.teams': 'Agent Teams',
+  'navigation.hitl': 'HITL Approval',
+  'navigation.knowledge': 'Knowledge Base',
+  'navigation.market': 'Agent Market',
+  'navigation.uiGenerator': 'UI Generator',
+  'navigation.uiGeneratorDesc': 'React + Ant Design / HTML + Tailwind',
+  'navigation.workspace': 'Workspace',
 };
