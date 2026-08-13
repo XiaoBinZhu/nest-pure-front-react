@@ -43,6 +43,9 @@ const ErrorCapture = ({ error, resetPath = '/' }: ErrorCaptureProps) => {
         {t('error.title')}
       </h2>
       <p style={{ marginBottom: '2em' }}>{t('error.desc')}</p>
+      <pre style={{ maxWidth: '90vw', overflow: 'auto', fontSize: 12 }}>
+        {JSON.stringify(error, Object.getOwnPropertyNames(error), 2) || String(error)}
+      </pre>
       <Flexbox horizontal gap={12} style={{ marginBottom: '2em' }}>
         <Button onClick={() => window.location.reload()}>{t('error.retry')}</Button>
         <Button type={'primary'} onClick={() => (window.location.href = resetPath)}>

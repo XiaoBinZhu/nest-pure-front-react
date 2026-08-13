@@ -2,15 +2,15 @@
   "name": "@lobechat/memory-user-memory",
   "version": "1.0.0",
   "private": true,
-  "sideEffects": false,
   "type": "module",
+  "sideEffects": false,
+  "main": "src/index.ts",
   "exports": {
     ".": "./src/index.ts",
     "./prompts": "./src/prompts/index.ts",
     "./schemas": "./src/schemas/index.ts",
     "./types": "./src/types.ts"
   },
-  "main": "src/index.ts",
   "scripts": {
     "test": "vitest --run",
     "test:coverage": "vitest --coverage --silent='passed-only'",

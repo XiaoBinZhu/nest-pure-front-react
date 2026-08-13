@@ -39,9 +39,7 @@ const Versions = memo(() => {
   if (!versions.length) {
     return (
       <Flexbox gap={16}>
-        <Title>
-          {t('groupAgents.details.version.title', { defaultValue: 'Version History' })}
-        </Title>
+        <Title>{t('groupAgents.details.version.title', { defaultValue: 'Version History' })}</Title>
         <Block padding={24} variant={'outlined'}>
           {t('groupAgents.details.version.empty', { defaultValue: 'No version history available' })}
         </Block>
@@ -51,9 +49,7 @@ const Versions = memo(() => {
 
   return (
     <Flexbox gap={16}>
-      <Title>
-        {t('groupAgents.details.version.title', { defaultValue: 'Version History' })}
-      </Title>
+      <Title>{t('groupAgents.details.version.title', { defaultValue: 'Version History' })}</Title>
       <Block variant={'outlined'}>
         <InlineTable
           dataSource={versions}
@@ -64,8 +60,7 @@ const Versions = memo(() => {
               dataIndex: 'version',
               render: (_: any, record: any) => {
                 const statusKey =
-                  record.status &&
-                  Object.prototype.hasOwnProperty.call(statusTagMap, record.status)
+                  record.status && Object.prototype.hasOwnProperty.call(statusTagMap, record.status)
                     ? (record.status as keyof typeof statusTagMap)
                     : undefined;
                 const statusMeta = statusKey ? statusTagMap[statusKey] : undefined;
@@ -75,7 +70,9 @@ const Versions = memo(() => {
                     <code style={{ fontSize: 14 }}>{record.version}</code>
                     {(record.isLatest || record.version === currentVersion) && (
                       <Tag color={'info'}>
-                        {t('groupAgents.details.version.table.isLatest', { defaultValue: 'Latest' })}
+                        {t('groupAgents.details.version.table.isLatest', {
+                          defaultValue: 'Latest',
+                        })}
                       </Tag>
                     )}
                     {statusMeta && <Tag color={statusMeta.color}>{statusMeta.label}</Tag>}
@@ -100,9 +97,7 @@ const Versions = memo(() => {
             {
               align: 'end',
               dataIndex: 'createdAt',
-              render: (_: any, record: any) => (
-                <PublishedTime date={record.createdAt} />
-              ),
+              render: (_: any, record: any) => <PublishedTime date={record.createdAt} />,
               title: t('groupAgents.details.version.table.publishAt', {
                 defaultValue: 'Published At',
               }),

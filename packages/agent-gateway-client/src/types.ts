@@ -304,7 +304,11 @@ export interface ToolResultMessage {
 }
 
 export type ClientMessage =
-  AuthMessage | HeartbeatMessage | InterruptMessage | ResumeMessage | ToolResultMessage;
+  | AuthMessage
+  | HeartbeatMessage
+  | InterruptMessage
+  | ResumeMessage
+  | ToolResultMessage;
 
 // Server → Client
 export interface AuthSuccessMessage {
@@ -345,7 +349,12 @@ export interface SessionCompleteMessage {
  * Authoritative session status. Mirrors the gateway DO's `SessionStatus`.
  */
 export type SessionStatus =
-  'running' | 'waiting_input' | 'waiting_confirmation' | 'completed' | 'error' | 'interrupted';
+  | 'running'
+  | 'waiting_input'
+  | 'waiting_confirmation'
+  | 'completed'
+  | 'error'
+  | 'interrupted';
 
 /**
  * Server → Client: sent right after a `resume` replay, carrying the DO's
@@ -372,7 +381,11 @@ export type ServerMessage =
 // ─── Connection Status ───
 
 export type ConnectionStatus =
-  'authenticating' | 'connected' | 'connecting' | 'disconnected' | 'reconnecting';
+  | 'authenticating'
+  | 'connected'
+  | 'connecting'
+  | 'disconnected'
+  | 'reconnecting';
 
 // ─── Client Events ───
 

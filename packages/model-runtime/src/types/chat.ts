@@ -262,7 +262,10 @@ export interface UsageMissingDiagnostics {
   provider?: string;
   responseId?: string;
   source:
-    'anthropic_messages' | 'google_generative_ai' | 'openai_chat_completions' | 'openai_responses';
+    | 'anthropic_messages'
+    | 'google_generative_ai'
+    | 'openai_chat_completions'
+    | 'openai_responses';
   terminalEventType: string;
   terminalStatus?: string;
 }

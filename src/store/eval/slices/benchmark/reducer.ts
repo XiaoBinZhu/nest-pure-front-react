@@ -1,4 +1,4 @@
-import  { type AgentEvalBenchmark } from '@lobechat/types';
+import { type AgentEvalBenchmark } from '@lobechat/types';
 import { produce } from 'immer';
 
 type SetBenchmarkDetailAction = {

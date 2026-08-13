@@ -96,7 +96,8 @@ const storedContext = (
 const createHarness = (initialSession?: OnboardingUnderstandingSession) => {
   let session = initialSession;
   let runningOperation:
-    { assistantMessageId: string; operationId: string; threadId?: string | null } | undefined;
+    | { assistantMessageId: string; operationId: string; threadId?: string | null }
+    | undefined;
   let latestAssistant:
     | { content?: unknown; error?: unknown; id: string; role: string; threadId?: string | null }
     | undefined;

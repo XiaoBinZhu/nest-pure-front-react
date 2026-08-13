@@ -24,12 +24,14 @@ const agentStore = vi.hoisted(() => ({
   activeAgentId: undefined as string | undefined,
   isHeterogeneous: false,
   rawAgencyConfig: undefined as
-    { boundDeviceId?: string; executionTarget?: 'device' | 'local' } | undefined,
+    | { boundDeviceId?: string; executionTarget?: 'device' | 'local' }
+    | undefined,
 }));
 
 const effectiveConfig = vi.hoisted(() => ({
   agencyConfig: undefined as
-    { boundDeviceId?: string; executionTarget?: 'device' | 'local' } | undefined,
+    | { boundDeviceId?: string; executionTarget?: 'device' | 'local' }
+    | undefined,
   workspaceScoped: false,
 }));
 
@@ -425,18 +427,18 @@ describe('AgentWorkingSidebar — tab strip', () => {
   // horizontal strip, so a persisted tab near the end must be brought into view.
   it('scrolls the whole active tab, including its close button, into view', () => {
     globalStore.status.workingSidebarTab = 'params';
-    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
-      this: Element,
-    ) {
-      return this instanceof HTMLDivElement &&
-        this.firstElementChild instanceof HTMLButtonElement &&
-        this.firstElementChild.getAttribute('aria-pressed') === 'true'
-        ? ({
-            left: 120 - (this.parentElement?.scrollLeft ?? 0),
-            right: 222 - (this.parentElement?.scrollLeft ?? 0),
-          } as DOMRect)
-        : ({ left: 0, right: 200 } as DOMRect);
-    });
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: Element) {
+        return this instanceof HTMLDivElement &&
+          this.firstElementChild instanceof HTMLButtonElement &&
+          this.firstElementChild.getAttribute('aria-pressed') === 'true'
+          ? ({
+              left: 120 - (this.parentElement?.scrollLeft ?? 0),
+              right: 222 - (this.parentElement?.scrollLeft ?? 0),
+            } as DOMRect)
+          : ({ left: 0, right: 200 } as DOMRect);
+      },
+    );
     render(<AgentWorkingSidebar />);
     const paramsTab = screen.getByRole('button', { name: 'settingModel.params.panel.tab' });
 
@@ -446,18 +448,18 @@ describe('AgentWorkingSidebar — tab strip', () => {
 
   it('restores the complete active tab after the open menu closes and focus moves', async () => {
     globalStore.status.workingSidebarTab = 'params';
-    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
-      this: Element,
-    ) {
-      return this instanceof HTMLDivElement &&
-        this.firstElementChild instanceof HTMLButtonElement &&
-        this.firstElementChild.getAttribute('aria-pressed') === 'true'
-        ? ({
-            left: 120 - (this.parentElement?.scrollLeft ?? 0),
-            right: 222 - (this.parentElement?.scrollLeft ?? 0),
-          } as DOMRect)
-        : ({ left: 0, right: 200 } as DOMRect);
-    });
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: Element) {
+        return this instanceof HTMLDivElement &&
+          this.firstElementChild instanceof HTMLButtonElement &&
+          this.firstElementChild.getAttribute('aria-pressed') === 'true'
+          ? ({
+              left: 120 - (this.parentElement?.scrollLeft ?? 0),
+              right: 222 - (this.parentElement?.scrollLeft ?? 0),
+            } as DOMRect)
+          : ({ left: 0, right: 200 } as DOMRect);
+      },
+    );
     render(<AgentWorkingSidebar />);
     const paramsTab = screen.getByRole('button', { name: 'settingModel.params.panel.tab' });
     const tabs = paramsTab.parentElement?.parentElement?.parentElement;
@@ -471,15 +473,15 @@ describe('AgentWorkingSidebar — tab strip', () => {
   it('exposes and reveals a persisted active Works tab', () => {
     globalStore.status.workingSidebarTab = 'works';
     localStorageState.openTabsByContext = { 'draft:default:none': ['works'] };
-    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
-      this: Element,
-    ) {
-      return this instanceof HTMLDivElement &&
-        this.firstElementChild instanceof HTMLButtonElement &&
-        this.firstElementChild.getAttribute('aria-pressed') === 'true'
-        ? ({ left: 120, right: 222 } as DOMRect)
-        : ({ left: 0, right: 200 } as DOMRect);
-    });
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: Element) {
+        return this instanceof HTMLDivElement &&
+          this.firstElementChild instanceof HTMLButtonElement &&
+          this.firstElementChild.getAttribute('aria-pressed') === 'true'
+          ? ({ left: 120, right: 222 } as DOMRect)
+          : ({ left: 0, right: 200 } as DOMRect);
+      },
+    );
     render(<AgentWorkingSidebar />);
     const worksTab = screen.getByRole('button', { name: 'workingPanel.works.title' });
 
@@ -492,15 +494,15 @@ describe('AgentWorkingSidebar — tab strip', () => {
     reviewState.workingDirectory = '/repo';
     globalStore.status.workingSidebarTab = 'params';
     localStorageState.openTabsByContext = { 'draft:agent:/repo': ['params', 'review'] };
-    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
-      this: Element,
-    ) {
-      return this instanceof HTMLDivElement &&
-        this.firstElementChild instanceof HTMLButtonElement &&
-        this.firstElementChild.getAttribute('aria-pressed') === 'true'
-        ? ({ left: 120, right: 222 } as DOMRect)
-        : ({ left: 0, right: 200 } as DOMRect);
-    });
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: Element) {
+        return this instanceof HTMLDivElement &&
+          this.firstElementChild instanceof HTMLButtonElement &&
+          this.firstElementChild.getAttribute('aria-pressed') === 'true'
+          ? ({ left: 120, right: 222 } as DOMRect)
+          : ({ left: 0, right: 200 } as DOMRect);
+      },
+    );
     render(<AgentWorkingSidebar />);
     const paramsTab = screen.getByRole('button', { name: 'settingModel.params.panel.tab' });
     const tabs = paramsTab.parentElement?.parentElement?.parentElement;

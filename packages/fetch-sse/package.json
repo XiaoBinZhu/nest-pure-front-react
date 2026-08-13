@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "description": "SSE fetch utilities with streaming support",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "exports": {
     ".": {
       "types": "./src/index.ts",
@@ -17,8 +19,6 @@
       "default": "./src/parseError.ts"
     }
   },
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
   "scripts": {
     "test": "vitest",
     "test:coverage": "vitest --coverage --silent='passed-only'"

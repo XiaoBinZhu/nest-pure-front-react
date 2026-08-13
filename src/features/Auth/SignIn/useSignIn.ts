@@ -11,6 +11,7 @@ import { useAuthServerConfigStore } from '@/features/AuthShell';
 import { trackLoginOrSignupClicked } from '@/features/User/UserLoginOrSignup/trackLoginOrSignupClicked';
 import { requestPasswordReset, signIn } from '@/libs/better-auth/auth-client';
 import { isBuiltinProvider, normalizeProviderId } from '@/libs/better-auth/utils/client';
+import { setAuthTokens } from '@/services/_api';
 import { buildOnboardingRedirectUrl, sanitizeRedirectPath } from '@/utils/onboardingRedirect';
 
 import { EMAIL_REGEX, USERNAME_REGEX } from './SignInEmailStep';
@@ -224,6 +225,15 @@ export const useSignIn = () => {
         },
       );
 
+      // G9 补充：登录成功后把 nest-admin JWT 写入 localStorage，
+      // 供 REST 层（_api.ts / createHeaderWithAuth）作为 Authorization 头使用。
+      // 否则 /app/front-hub/* 与 /v1/chat/completions 均无鉴权而 401。
+      const loginData = result.data ?? (result as any);
+      if (loginData?.token) {
+        localStorage.setItem('accessToken', loginData.token);
+        if (loginData.refreshToken) localStorage.setItem('refreshToken', loginData.refreshToken);
+      }
+
       if (result.error && result.error.status !== 403) {
         // Wrong password is the most common sign-in failure. Keep the error
         // pinned inline on the field (persistent, with retry context) rather
@@ -234,6 +244,10 @@ export const useSignIn = () => {
             name: 'password',
           },
         ]);
+      } else if (result.data?.token) {
+        // 登录成功：把 JWT 写入 localStorage，与 better-auth cookie 双轨打通，
+        // 供 REST 层（_api.ts）注入 Authorization 头与 401 无感刷新。
+        setAuthTokens(result.data.token, result.data.refreshToken);
       }
     } catch (error) {
       console.error('Sign in error:', error);

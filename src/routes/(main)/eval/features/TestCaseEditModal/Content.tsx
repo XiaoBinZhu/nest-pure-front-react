@@ -12,7 +12,6 @@ import { agentEvalService } from '@/services/agentEval';
 const styles = createStaticStyles(({ css }) => ({
   sectionLabel: css`
     margin-block-end: 12px;
-
     font-size: ${cssVar.fontSizeSM};
     font-weight: 500;
     color: ${cssVar.colorTextSecondary};

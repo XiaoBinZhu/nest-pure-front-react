@@ -9,10 +9,10 @@ import { useChatInputNotice } from './useChatInputNotice';
 
 const styles = createStaticStyles(({ css, cssVar }) => ({
   alert: css`
+    flex: 0 1 auto;
+
     /* Keep the icon centered against the single-line title. */
     align-items: center !important;
-
-    flex: 0 1 auto;
 
     min-width: 0;
     max-width: min(560px, 52vw);
@@ -40,7 +40,7 @@ const styles = createStaticStyles(({ css, cssVar }) => ({
       margin-inline-end: 6px !important;
     }
 
-    @media (max-width: 768px) {
+    @media (width <= 768px) {
       max-width: 100%;
     }
   `,

@@ -180,7 +180,11 @@ export interface UserPreference {
 }
 
 export type ReferralStatusString =
-  'pending_reward' | 'registered' | 'suspected' | 'rewarded' | 'revoked';
+  | 'pending_reward'
+  | 'registered'
+  | 'suspected'
+  | 'rewarded'
+  | 'revoked';
 
 export interface UserInitializationState {
   agentOnboarding?: UserAgentOnboarding;

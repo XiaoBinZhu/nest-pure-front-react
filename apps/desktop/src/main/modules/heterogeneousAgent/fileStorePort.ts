@@ -53,7 +53,8 @@ const lambdaMutation = async <T>(
   });
 
   const payload = (await response.json().catch(() => undefined)) as
-    { error?: unknown; result?: { data?: unknown } } | undefined;
+    | { error?: unknown; result?: { data?: unknown } }
+    | undefined;
 
   if (!response.ok || !payload || 'error' in payload) {
     throw new Error(

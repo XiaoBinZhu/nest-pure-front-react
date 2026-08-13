@@ -37,7 +37,9 @@ export interface KnowledgeBaseFileBatchRequest {
 }
 
 export const KnowledgeBaseFileBatchSchema = z.object({
-  fileIds: z.array(z.string().min(1, 'File ID cannot be empty')).min(1, 'File ID list cannot be empty'),
+  fileIds: z
+    .array(z.string().min(1, 'File ID cannot be empty'))
+    .min(1, 'File ID list cannot be empty'),
 });
 
 /**
@@ -117,7 +119,10 @@ export interface CreateKnowledgeBaseRequest {
 export const CreateKnowledgeBaseSchema = z.object({
   avatar: z.string().url('Avatar must be a valid URL').optional(),
   description: z.string().max(1000, 'Knowledge base description is too long').optional(),
-  name: z.string().min(1, 'Knowledge base name cannot be empty').max(255, 'Knowledge base name is too long'),
+  name: z
+    .string()
+    .min(1, 'Knowledge base name cannot be empty')
+    .max(255, 'Knowledge base name is too long'),
 });
 
 /**
@@ -143,7 +148,11 @@ export interface UpdateKnowledgeBaseRequest {
 export const UpdateKnowledgeBaseSchema = z.object({
   avatar: z.string().url('Avatar must be a valid URL').optional(),
   description: z.string().max(1000, 'Knowledge base description is too long').optional(),
-  name: z.string().min(1, 'Knowledge base name cannot be empty').max(255, 'Knowledge base name is too long').optional(),
+  name: z
+    .string()
+    .min(1, 'Knowledge base name cannot be empty')
+    .max(255, 'Knowledge base name is too long')
+    .optional(),
 });
 
 /**

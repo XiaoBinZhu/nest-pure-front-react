@@ -83,6 +83,11 @@
     </script>
     <script>
       window.__SERVER_CONFIG__ = undefined; /* SERVER_CONFIG */
+      // 纯静态 SPA 部署兜底：与主应用 index.html 一致，使用默认配置
+      // globalCDN=true 让 @lobehub/ui 资源（logo 等）走 unpkg CDN（npmmirror 无 CORS 头会加载失败）
+      if (!window.__SERVER_CONFIG__) {
+        window.__SERVER_CONFIG__ = { globalCDN: true };
+      }
     </script>
   </head>
 

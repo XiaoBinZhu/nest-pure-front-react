@@ -93,7 +93,8 @@ export const requestHumanApprove =
         .slice()
         .reverse()
         .find((m: any) => m.role === 'assistant' && m.id) as
-        { groupId?: string | null; id: string } | undefined;
+        | { groupId?: string | null; id: string }
+        | undefined;
 
       if (!parentAssistant) {
         try {

@@ -634,7 +634,8 @@ export class GraphAgent implements Agent {
 
   private loadGraphRuntimeState(state: Readonly<AgentState>): GraphRuntimeState {
     const graphRuntimeState = state.metadata?.[GRAPH_RUNTIME_STATE_KEY] as
-      GraphRuntimeState | undefined;
+      | GraphRuntimeState
+      | undefined;
 
     if (!graphRuntimeState) {
       return {

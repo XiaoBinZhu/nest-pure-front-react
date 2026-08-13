@@ -11,7 +11,12 @@ import type { OnboardingUnderstandingSession } from '../understanding';
 export type ShareVisibility = 'private' | 'link';
 
 export type TimeGroupId =
-  'today' | 'yesterday' | 'week' | 'month' | `${number}-${string}` | `${number}`;
+  | 'today'
+  | 'yesterday'
+  | 'week'
+  | 'month'
+  | `${number}-${string}`
+  | `${number}`;
 
 export type TopicGroupMode = 'byTime' | 'byProject' | 'flat' | 'byStatus';
 export type TopicSortBy = 'createdAt' | 'updatedAt';

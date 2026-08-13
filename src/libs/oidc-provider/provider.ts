@@ -261,7 +261,8 @@ export const createOIDCProvider = async (db: LobeChatDatabase): Promise<Provider
         // Read the ui_locales parameter from the OIDC request (space-separated language priorities)
         // https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
         const uiLocalesRaw = (interaction.params?.ui_locales || ctx.oidc?.params?.ui_locales) as
-          string | undefined;
+          | string
+          | undefined;
 
         let query = '';
         if (uiLocalesRaw) {

@@ -17,7 +17,11 @@ export type UnderstandingProviderStatus = 'pending' | 'running' | 'completed' | 
 export type UnderstandingWritingStatus = 'running' | 'completed' | 'failed';
 
 export type OnboardingUnderstandingSessionStatus =
-  'pending' | 'processing' | 'completed' | 'partial' | 'failed';
+  | 'pending'
+  | 'processing'
+  | 'completed'
+  | 'partial'
+  | 'failed';
 
 export interface OnboardingUnderstandingThreadMarker {
   kind: 'writing';

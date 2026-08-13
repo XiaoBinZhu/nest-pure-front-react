@@ -4,12 +4,12 @@
   "private": true,
   "description": "Context Pipeline Engine for LobeChat - A flexible and configurable context processing system",
   "keywords": [
-    "context",
-    "pipeline",
-    "processor",
-    "chat",
     "ai",
-    "lobe"
+    "chat",
+    "context",
+    "lobe",
+    "pipeline",
+    "processor"
   ],
   "main": "src/index.ts",
   "scripts": {

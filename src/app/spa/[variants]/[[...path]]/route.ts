@@ -85,6 +85,7 @@ export async function GET(
     clientEnv: buildClientEnv(),
     config: await getServerGlobalConfig(),
     featureFlags: getServerFeatureFlagsValue(),
+    globalCDN: appEnv.CDN_USE_GLOBAL,
     isMobile,
   };
 

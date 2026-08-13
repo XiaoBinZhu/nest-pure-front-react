@@ -76,8 +76,8 @@ const styles = createStaticStyles(({ css }) => ({
   `,
   presetGrid: css`
     display: grid;
-    gap: 8px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   `,
   presetIcon: css`
     border: 1px solid ${cssVar.colorBorderSecondary};

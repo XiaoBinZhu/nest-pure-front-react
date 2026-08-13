@@ -2,11 +2,11 @@
   "name": "@lobechat/business-config",
   "version": "1.0.0",
   "private": true,
+  "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
     "./server": "./src/server/index.ts"
   },
-  "main": "./src/index.ts",
   "dependencies": {
     "@lobechat/business-const": "workspace:*",
     "@lobechat/const": "workspace:*",

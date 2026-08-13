@@ -21,7 +21,12 @@ export type WorkVersionChangeType = 'created' | 'updated';
  * inserting the next complete snapshot.
  */
 export type WorkDisplayField =
-  'content' | 'description' | 'identifier' | 'status' | 'title' | 'url';
+  | 'content'
+  | 'description'
+  | 'identifier'
+  | 'status'
+  | 'title'
+  | 'url';
 
 export interface WorkVersionMetadata {
   agentDocumentId?: string;
@@ -178,7 +183,9 @@ export interface ExternalWorkVersionEventItem extends ExternalWorkListItem {
 }
 
 export type WorkVersionEventItem =
-  DocumentWorkVersionEventItem | ExternalWorkVersionEventItem | TaskWorkVersionEventItem;
+  | DocumentWorkVersionEventItem
+  | ExternalWorkVersionEventItem
+  | TaskWorkVersionEventItem;
 export type WorkVersionEventMap = Record<string, WorkVersionEventItem[]>;
 
 export interface TaskWorkSummaryItem extends TaskWorkListItem {
@@ -200,7 +207,9 @@ export interface ExternalWorkSummaryItem extends ExternalWorkListItem {
 }
 
 export type WorkSummaryItem =
-  DocumentWorkSummaryItem | ExternalWorkSummaryItem | TaskWorkSummaryItem;
+  | DocumentWorkSummaryItem
+  | ExternalWorkSummaryItem
+  | TaskWorkSummaryItem;
 export type WorkSummaryMap = Record<string, WorkSummaryItem[]>;
 
 export interface RegisterDocumentWorkParams {

@@ -213,7 +213,8 @@ export class MessagesEngine {
     const currentUserMessage = [...messages]
       .reverse()
       .find((m) => m.role === 'user' && typeof m.content === 'string')?.content as
-      string | undefined;
+      | string
+      | undefined;
 
     // Shared config for all agent document injectors
     const agentDocConfig = {

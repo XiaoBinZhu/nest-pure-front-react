@@ -2,14 +2,14 @@
   "name": "@lobechat/llm-generation-tracing",
   "version": "1.0.0",
   "private": true,
-  "exports": {
-    ".": "./src/index.ts",
-    "./store": "./src/store/types.ts"
-  },
-  "main": "./src/index.ts",
   "bin": {
     "llm-tracing": "./src/cli/index.ts",
     "lt": "./src/cli/index.ts"
+  },
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./store": "./src/store/types.ts"
   },
   "dependencies": {
     "@lobechat/const": "workspace:*",

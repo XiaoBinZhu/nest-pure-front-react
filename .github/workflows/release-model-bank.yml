@@ -30,14 +30,14 @@ jobs:
         with:
           node-version: 24.16.0
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: pnpm install
+        run: bun install --frozen-lockfile
 
       - name: Build package
-        run: pnpm --filter model-bank build
+        run: bun run --filter model-bank build
 
   publish:
     name: Publish ModelBank
@@ -54,14 +54,14 @@ jobs:
           node-version: 24.16.0
           registry-url: https://registry.npmjs.org
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: pnpm install
+        run: bun install --frozen-lockfile
 
       - name: Build package
-        run: pnpm --filter model-bank build
+        run: bun run --filter model-bank build
 
       - name: Prepare publish package
         id: version

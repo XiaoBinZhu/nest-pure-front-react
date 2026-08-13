@@ -53,7 +53,9 @@ import { useChatInputResourceAccess } from '../hooks/useChatInputResourceAccess'
 import { OpenCodeModelSelector } from './OpenCodeModelSelector';
 
 type HeteroReasoningEffort =
-  ClaudeCodeReasoningEffort | CodexReasoningEffort | HeterogeneousAgentDefaultSelection;
+  | ClaudeCodeReasoningEffort
+  | CodexReasoningEffort
+  | HeterogeneousAgentDefaultSelection;
 
 type SelectableHeteroProviderType = 'claude-code' | 'codex' | 'opencode';
 

@@ -195,7 +195,8 @@ describe('TaskDetailHeaderActions', () => {
     };
     render(<TaskDetailHeaderActions />);
     const item = mocks.dropdownItems.find((i) => i?.key === 'makePrivate') as
-      { onClick?: () => void } | undefined;
+      | { onClick?: () => void }
+      | undefined;
     item?.onClick?.();
 
     expect(mocks.confirmModal).toHaveBeenCalledTimes(1);
@@ -214,7 +215,8 @@ describe('TaskDetailHeaderActions', () => {
   it('publish action opens a one-way confirmation modal', () => {
     render(<TaskDetailHeaderActions />);
     const publishItem = mocks.dropdownItems.find((i) => i?.key === 'publishToWorkspace') as
-      { onClick?: () => void } | undefined;
+      | { onClick?: () => void }
+      | undefined;
     publishItem?.onClick?.();
 
     expect(mocks.confirmModal).toHaveBeenCalledTimes(1);

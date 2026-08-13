@@ -118,4 +118,7 @@ export const ContextSelectionSchema = z.discriminatedUnion('source', [
 ]);
 
 export type ContextSelection =
-  PageContextSelection | CodeContextSelection | TextContextSelection | ElementContextSelection;
+  | PageContextSelection
+  | CodeContextSelection
+  | TextContextSelection
+  | ElementContextSelection;

@@ -206,7 +206,13 @@ export const groupTopicsByProject = (
 // the sidebar surfaces "needs attention" in one place. The remaining buckets map
 // 1:1 to a status. The group `id` resolves its title via `groupTitle.byStatus.<id>`.
 export type TopicStatusBucket =
-  'pending' | 'running' | 'scheduled' | 'active' | 'paused' | 'completed' | 'archived';
+  | 'pending'
+  | 'running'
+  | 'scheduled'
+  | 'active'
+  | 'paused'
+  | 'completed'
+  | 'archived';
 
 // Fixed priority order: `pending` (needs attention) comes first, then running,
 // then active; the remaining states fall below. Topics without a status are

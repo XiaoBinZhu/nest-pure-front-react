@@ -5,7 +5,11 @@ import { useEffectiveAgencyConfig } from '@/hooks/useEffectiveAgencyConfig';
 import { deviceService } from '@/services/device';
 
 export type RemoteAgentDeviceStatus =
-  'checking' | 'device-offline' | 'no-device' | 'ok' | 'platform-unavailable';
+  | 'checking'
+  | 'device-offline'
+  | 'no-device'
+  | 'ok'
+  | 'platform-unavailable';
 
 interface UseRemoteAgentDeviceGuardOptions {
   /** The conversation's agent — validate this agent's bound device, not the global active one. */

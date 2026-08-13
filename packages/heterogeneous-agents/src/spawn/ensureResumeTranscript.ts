@@ -73,7 +73,11 @@ const fileExists = async (p: string): Promise<boolean> => {
 };
 
 export type EnsureResumeTranscriptReason =
-  'exists' | 'invalid-session-id' | 'no-messages' | 'empty-transcript' | 'written';
+  | 'exists'
+  | 'invalid-session-id'
+  | 'no-messages'
+  | 'empty-transcript'
+  | 'written';
 
 export interface EnsureResumeTranscriptResult {
   /** Null when the session id was rejected — nothing was touched on disk. */

@@ -117,7 +117,12 @@ const BenchmarkDetail = memo(() => {
         {/* Header skeleton */}
         <Flexbox gap={16}>
           <Flexbox horizontal align="start" gap={12}>
-            <Skeleton.Avatar active shape="square" size={40} style={{ borderRadius: cssVar.borderRadiusLG }} />
+            <Skeleton.Avatar
+              active
+              shape="square"
+              size={40}
+              style={{ borderRadius: cssVar.borderRadiusLG }}
+            />
             <Flexbox flex={1} gap={8}>
               <Skeleton.Input active style={{ height: 24, width: 200 }} />
               <Skeleton.Input active size="small" style={{ height: 14, width: 320 }} />

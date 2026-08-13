@@ -322,7 +322,8 @@ class DiscordGatewayClient implements PlatformClient {
     const directAttachments = (message as any).attachments as DirectAttachment[] | undefined;
     const raw = (message as any).raw as Record<string, any> | undefined;
     const refAttachments = raw?.referenced_message?.attachments as
-      DiscordRefAttachment[] | undefined;
+      | DiscordRefAttachment[]
+      | undefined;
 
     log(
       'extractFiles: msgId=%s, direct=%d, referenced=%d',

@@ -2,10 +2,10 @@
   "name": "@lobechat/builtin-tool-brief",
   "version": "1.0.0",
   "private": true,
+  "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts"
   },
-  "main": "./src/index.ts",
   "devDependencies": {
     "@lobechat/types": "workspace:*"
   }

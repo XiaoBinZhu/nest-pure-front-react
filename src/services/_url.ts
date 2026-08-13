@@ -5,7 +5,9 @@ export const API_ENDPOINTS = {
   trace: '/webapi/trace',
 
   // chat
-  chat: (provider: string) => `/webapi/chat/${provider}`,
+  // G9 修复：纯 SPA 模式下无 Next.js /webapi 后端，聊天 SSE 直连 nest-admin 网关
+  //（JWT 双轨鉴权，22-spec v1.8.0；provider 参数保留仅用于兼容签名）
+  chat: (_provider: string) => '/v1/chat/completions',
 
   // models
   models: (provider: string) => `/webapi/models/${provider}`,

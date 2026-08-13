@@ -251,7 +251,8 @@ export const buildServerVirtualSubAgentRunner = (
         title: description,
         topicId,
       })) as
-        { error?: string; operationId?: string; success?: boolean; threadId?: string } | undefined;
+        | { error?: string; operationId?: string; success?: boolean; threadId?: string }
+        | undefined;
 
       // 3. If the child op never started, no completion bridge will fire — parking
       //    the parent on it would hang forever. Drop the placeholder and signal

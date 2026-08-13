@@ -163,7 +163,16 @@ const linkOptions = {
 // Procedures that should skip batching for faster initial load
 const initialLoadProcedures = new Set(['user.getUserState', 'config.getGlobalConfig']);
 const slowProcedures = new Set(['market.getAssistantList']);
-const SKIP_BATCH_PROCEDURES = new Set([...initialLoadProcedures, ...slowProcedures]);
+// G7 fix: aiProvider.getAiProviderRuntimeState and aiModel.list are proxied by Nginx
+// to /v1/ai-infra/runtime-state and /v1/models respectively. Nginx returns 404 for
+// batch=1 requests on these exact-match locations, so they must use httpLink (non-batch)
+// to avoid the 404 and let the model selector receive the full 120-model list.
+const nginxProxiedProcedures = new Set(['aiProvider.getAiProviderRuntimeState', 'aiModel.list']);
+const SKIP_BATCH_PROCEDURES = new Set([
+  ...initialLoadProcedures,
+  ...slowProcedures,
+  ...nginxProxiedProcedures,
+]);
 
 // 3. splitLink to conditionally disable batching
 const customSplitLink = splitLink({

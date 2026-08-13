@@ -98,7 +98,14 @@ interface TrackedTask {
 }
 
 export type HeterogeneousAgentRuntimeState =
-  'starting' | 'running' | 'monitoring' | 'idle' | 'stale' | 'closing' | 'closed' | 'error';
+  | 'starting'
+  | 'running'
+  | 'monitoring'
+  | 'idle'
+  | 'stale'
+  | 'closing'
+  | 'closed'
+  | 'error';
 
 export interface HeterogeneousAgentRuntimeTask {
   description?: string;

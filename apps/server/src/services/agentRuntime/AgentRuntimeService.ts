@@ -883,7 +883,8 @@ export class AgentRuntimeService {
 
         // Enrich invoke_agent span with agent identity now that state is loaded.
         const stateAgentConfig = agentState.metadata?.agentConfig as
-          { description?: string | null; title?: string | null } | undefined;
+          | { description?: string | null; title?: string | null }
+          | undefined;
         const stateModel =
           agentState.modelRuntimeConfig?.model ?? agentState.metadata?.modelRuntimeConfig?.model;
         const stateProvider =
@@ -2077,7 +2078,8 @@ export class AgentRuntimeService {
    */
   private async publishSubAgentProgress(state: AgentState, stepIndex: number): Promise<void> {
     const anchor = state?.metadata?.subAgentProgress as
-      { parentOperationId: string; toolMessageId: string } | undefined;
+      | { parentOperationId: string; toolMessageId: string }
+      | undefined;
     if (!anchor?.parentOperationId || !anchor.toolMessageId) return;
 
     try {
@@ -2737,7 +2739,8 @@ export class AgentRuntimeService {
               activeDeviceId,
               devicePlatform: msg.pluginState?.metadata?.devicePlatform as string | undefined,
               deviceSystemInfo: msg.pluginState?.metadata?.deviceSystemInfo as
-                Record<string, string> | undefined,
+                | Record<string, string>
+                | undefined,
             };
           }
         },

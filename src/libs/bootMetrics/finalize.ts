@@ -81,7 +81,8 @@ const sendPayload = (ingestUrl: string, cold: boolean): void => {
         : undefined;
 
     const navEntry = performance.getEntriesByType('navigation')[0] as
-      PerformanceNavigationTiming | undefined;
+      | PerformanceNavigationTiming
+      | undefined;
     const navResponseStartMs = navEntry?.responseStart;
 
     const fcpEntry = performance.getEntriesByName('first-contentful-paint')[0];

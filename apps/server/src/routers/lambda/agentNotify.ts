@@ -135,7 +135,8 @@ export const agentNotifyRouter = router({
     // Extract the operationId seeded by execAgent for remote hetero agents.
     // Used to publish notify_update / agent_runtime_end events to the gateway WS.
     const remoteOperationId = (topic.metadata as any)?.runningOperation?.operationId as
-      string | undefined;
+      | string
+      | undefined;
 
     const agentId = inputAgentId ?? topic.agentId;
     if (!agentId) {
@@ -186,7 +187,8 @@ export const agentNotifyRouter = router({
           // skipped persist + verify — so openclaw/hermes tasks never auto-verified.)
           // Hooks were serialized onto runningOperation at dispatch time.
           const serializedHooks = (topic.metadata as any)?.runningOperation?.hooks as
-            SerializedHook[] | undefined;
+            | SerializedHook[]
+            | undefined;
           let lastAssistantContent: string | undefined = content || undefined;
           if (!lastAssistantContent && writtenMessageId) {
             const msg = await ctx.messageModel.findById(writtenMessageId).catch(() => undefined);

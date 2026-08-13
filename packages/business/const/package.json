@@ -2,8 +2,8 @@
   "name": "@lobechat/business-const",
   "version": "1.0.0",
   "private": true,
+  "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts"
-  },
-  "main": "./src/index.ts"
+  }
 }

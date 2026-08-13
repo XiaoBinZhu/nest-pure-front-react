@@ -32,7 +32,12 @@ export type VerifyOnFailStrategy = 'manual' | 'auto_repair';
  *   reads as a rejected delivery and never seeds an auto-repair round.
  */
 export type VerifyCheckResultStatus =
-  'pending' | 'running' | 'passed' | 'failed' | 'errored' | 'skipped';
+  | 'pending'
+  | 'running'
+  | 'passed'
+  | 'failed'
+  | 'errored'
+  | 'skipped';
 
 /** Toulmin Claim — the verifier's judgement. */
 export type VerifyVerdict = 'passed' | 'failed' | 'uncertain';
@@ -260,7 +265,12 @@ export type VerifySurface = 'web' | 'desktop' | 'cli' | 'mobile' | 'bot';
 
 /** The medium of a captured evidence artifact. */
 export type VerifyEvidenceType =
-  'screenshot' | 'gif' | 'video' | 'text' | 'dom_snapshot' | 'transcript';
+  | 'screenshot'
+  | 'gif'
+  | 'video'
+  | 'text'
+  | 'dom_snapshot'
+  | 'transcript';
 
 /** Who / what captured an evidence artifact (provenance). */
 export type VerifyEvidenceCapturedBy = 'agent-browser' | 'cdp' | 'cli' | 'program' | 'llm_judge';
@@ -401,7 +411,10 @@ export interface VerifyGenericScope {
  * extension) — `context` is specifically the active scenario's input.
  */
 export type VerifyRunContext =
-  VerifyCodingScope | VerifyWritingScope | VerifyResearchScope | VerifyGenericScope;
+  | VerifyCodingScope
+  | VerifyWritingScope
+  | VerifyResearchScope
+  | VerifyGenericScope;
 
 export interface VerifyInteractionCostOperators {
   H?: number;

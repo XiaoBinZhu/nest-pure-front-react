@@ -539,7 +539,8 @@ export class SessionModel {
     type,
     ...res
   }: SessionItem & { agentsToSessions?: { agent: AgentItem }[] }):
-    LobeAgentSession | LobeGroupSession => {
+    | LobeAgentSession
+    | LobeGroupSession => {
     const meta = {
       avatar: avatar ?? undefined,
       backgroundColor: backgroundColor ?? undefined,

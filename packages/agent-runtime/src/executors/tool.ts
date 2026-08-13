@@ -155,7 +155,8 @@ const createRunContext = ({
   const toolName = toolNameOf(tool);
   const toolSource = resolveToolSource(state, tool);
   const agentConfig = state.metadata?.agentConfig as
-    { chatConfig?: { toolResultMaxLength?: number } } | undefined;
+    | { chatConfig?: { toolResultMaxLength?: number } }
+    | undefined;
 
   return {
     activatedSkills: extractActivatedSkillsFromMessages(state.messages),
@@ -345,7 +346,8 @@ const persistActivatedTools = ({
 
   for (const result of results) {
     const discoveredTools = result.data.state?.activatedTools as
-      Array<{ identifier: string }> | undefined;
+      | Array<{ identifier: string }>
+      | undefined;
     if (!discoveredTools?.length) continue;
 
     const newActivations = discoveredTools

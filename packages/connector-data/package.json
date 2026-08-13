@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "main": "./src/index.ts",
   "exports": {
     ".": {
       "types": "./src/index.ts",
@@ -17,7 +18,6 @@
       "default": "./src/gmail/index.ts"
     }
   },
-  "main": "./src/index.ts",
   "scripts": {
     "test": "vitest run --silent='passed-only'"
   },

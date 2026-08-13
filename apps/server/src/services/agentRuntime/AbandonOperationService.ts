@@ -166,7 +166,8 @@ export class AbandonOperationService {
           const topicModel = new TopicModel(this.db, metadata.userId, metadata.workspaceId);
           const topic = await topicModel.findById(metadata.topicId);
           const running = topic?.metadata?.runningOperation as
-            { assistantMessageId?: string; operationId?: string } | undefined;
+            | { assistantMessageId?: string; operationId?: string }
+            | undefined;
           if (running?.operationId === operationId) {
             await topicModel.updateMetadata(metadata.topicId, { runningOperation: null });
           }
@@ -329,7 +330,8 @@ export class AbandonOperationService {
         topicModel = new TopicModel(this.db, op.userId, op.workspaceId ?? undefined);
         const topic = await topicModel.findById(op.topicId);
         const running = topic?.metadata?.runningOperation as
-          { assistantMessageId?: string; operationId?: string } | undefined;
+          | { assistantMessageId?: string; operationId?: string }
+          | undefined;
 
         if (running?.operationId && running.operationId !== operationId) return undefined;
 

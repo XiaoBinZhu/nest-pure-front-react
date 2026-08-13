@@ -1,7 +1,7 @@
 {
   "recommendations": [
     "Anthropic.claude-code",
-    "dbaeumer.vscode-eslint",
+    "oxc.oxlint",
     "jrr997.antd-docs",
     "seatonjiang.gitmoji-vscode",
     "styled-components.vscode-styled-components",

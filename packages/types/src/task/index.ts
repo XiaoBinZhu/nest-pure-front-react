@@ -4,7 +4,13 @@ import type { ChatFileItem } from '../message/ui/chat';
 // ── Task type aliases ──
 
 export type TaskStatus =
-  'backlog' | 'canceled' | 'completed' | 'failed' | 'paused' | 'running' | 'scheduled';
+  | 'backlog'
+  | 'canceled'
+  | 'completed'
+  | 'failed'
+  | 'paused'
+  | 'running'
+  | 'scheduled';
 
 export type TaskPriority = 0 | 1 | 2 | 3 | 4;
 

@@ -3,13 +3,20 @@ import { type PartialDeep } from 'type-fest';
 
 import { type VersionResponseData } from '@/app/(backend)/api/version/route';
 import { BusinessGlobalService } from '@/business/client/services/BusinessGlobalService';
-import { lambdaClient } from '@/libs/trpc/client';
 import { getElectronStoreState } from '@/store/electron';
 import { electronSyncSelectors } from '@/store/electron/selectors';
 import { type LobeAgentConfig } from '@/types/agent';
 import { type GlobalRuntimeConfig } from '@/types/serverConfig';
 
-const VERSION_URL = 'https://registry.npmmirror.com/@lobehub/chat/latest';
+import { apiFetch } from './_api';
+
+async function unwrap<T>(path: string): Promise<T> {
+  const res = await apiFetch<{ code: number; data: T }>(path);
+  return (res as any)?.data ?? (res as T);
+}
+
+// jsdelivr 支持 CORS（npmmirror 无 Access-Control-Allow-Origin 头，浏览器直接 fetch 会 403）
+const VERSION_URL = 'https://cdn.jsdelivr.net/npm/@lobehub/chat/package.json';
 const SERVER_VERSION_URL = '/api/version';
 
 class GlobalService extends BusinessGlobalService {
@@ -66,11 +73,11 @@ class GlobalService extends BusinessGlobalService {
   };
 
   getGlobalConfig = async (): Promise<GlobalRuntimeConfig> => {
-    return lambdaClient.config.getGlobalConfig.query();
+    return unwrap<GlobalRuntimeConfig>('/app/front-hub/config/global');
   };
 
   getDefaultAgentConfig = async (): Promise<PartialDeep<LobeAgentConfig>> => {
-    return lambdaClient.config.getDefaultAgentConfig.query();
+    return unwrap<PartialDeep<LobeAgentConfig>>('/app/front-hub/config/default-agent');
   };
 }
 

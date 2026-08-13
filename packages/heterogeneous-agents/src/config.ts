@@ -1,5 +1,8 @@
 export type HeterogeneousAgentMenuLabelKey =
-  'newAmpAgent' | 'newClaudeCodeAgent' | 'newCodexAgent' | 'newOpenCodeAgent';
+  | 'newAmpAgent'
+  | 'newClaudeCodeAgent'
+  | 'newCodexAgent'
+  | 'newOpenCodeAgent';
 
 /**
  * Config for local CLI hetero agents (Amp, Claude Code, Codex, OpenCode) that run as

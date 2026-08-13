@@ -252,7 +252,8 @@ export class UserModel {
     `);
 
     const row = result.rows[0] as
-      { previousLastActiveAt: Date | string; userCreatedAt: Date | string } | undefined;
+      | { previousLastActiveAt: Date | string; userCreatedAt: Date | string }
+      | undefined;
     if (!row) return;
 
     return {

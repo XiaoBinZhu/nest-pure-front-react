@@ -95,12 +95,10 @@ export class ToolSystemRoleProvider extends BaseSystemRoleProvider {
     const tools: Tool[] = manifests
       .filter((manifest) => manifest.api.length > 0 || manifest.systemRole)
       .map((manifest) => ({
-        apis: manifest.api.map(
-          (api): API => ({
-            desc: api.description,
-            name: this.toolNameResolver.generate(manifest.identifier, api.name, manifest.type),
-          }),
-        ),
+        apis: manifest.api.map((api): API => ({
+          desc: api.description,
+          name: this.toolNameResolver.generate(manifest.identifier, api.name, manifest.type),
+        })),
         description: manifest.meta?.description,
         identifier: manifest.identifier,
         name: manifest.meta?.title || manifest.identifier,

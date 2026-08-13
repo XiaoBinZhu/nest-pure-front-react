@@ -18,7 +18,8 @@ interface TestProviderWithModels {
 const testState = vi.hoisted(() => ({
   agent: {
     agencyConfig: undefined as
-      { executionTarget?: string; heterogeneousProvider?: { type: string } } | undefined,
+      | { executionTarget?: string; heterogeneousProvider?: { type: string } }
+      | undefined,
     isConfigLoading: false,
     model: 'gpt-4o',
     provider: 'openai',

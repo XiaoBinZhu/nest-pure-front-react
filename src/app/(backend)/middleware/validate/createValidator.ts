@@ -52,12 +52,8 @@ export const createValidator =
     >;
 
     return <TReq extends NextRequest, TContext>(
-        handler: (
-          req: TReq,
-          context: TContext,
-          data: InferOutput<TSchema>,
-        ) => MaybePromise<Response>,
-      ) =>
+      handler: (req: TReq, context: TContext, data: InferOutput<TSchema>) => MaybePromise<Response>,
+    ) =>
       async (req: TReq, context?: TContext) => {
         const input = (await getRequestInput(req)) as InferInput<TSchema>;
         const result = effectiveSchema.safeParse(input);

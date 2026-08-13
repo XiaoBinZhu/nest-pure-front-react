@@ -2107,7 +2107,8 @@ describe('call_tool executor', () => {
 
       // Track cancel handler registration
       let executeToolCancelHandler:
-        ((context: OperationCancelContext) => void | Promise<void>) | undefined;
+        | ((context: OperationCancelContext) => void | Promise<void>)
+        | undefined;
       const originalOnOperationCancel = mockStore.onOperationCancel;
       mockStore.onOperationCancel = vi.fn(
         (opId: string, handler: (context: OperationCancelContext) => void | Promise<void>) => {

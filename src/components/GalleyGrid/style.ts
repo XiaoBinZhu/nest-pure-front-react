@@ -18,10 +18,8 @@ export const styles = createStaticStyles(({ css }) => ({
       min-width: var(--galley-grid-min, 64px);
       min-height: var(--galley-grid-min, 64px);
       max-height: calc(
-        (
-            var(--galley-grid-max, 200px) - var(--galley-grid-gap, 6px) *
-              (var(--galley-grid-col, 3) - 1)
-          ) /
+        (var(--galley-grid-max, 200px) - var(--galley-grid-gap, 6px) *
+            (var(--galley-grid-col, 3) - 1)) /
           var(--galley-grid-col, 3)
       );
     }

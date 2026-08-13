@@ -228,19 +228,17 @@ describe('scrollSnapshotStore', () => {
       // Spy on setItem: throw on first call (the save we're testing), succeed afterwards.
       let callCount = 0;
       const originalSetItem = Storage.prototype.setItem;
-      const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (
-        this: Storage,
-        key,
-        value,
-      ) {
-        callCount += 1;
-        if (callCount === 1) {
-          const err = new Error('QuotaExceeded');
-          err.name = 'QuotaExceededError';
-          throw err;
-        }
-        originalSetItem.call(this, key, value);
-      });
+      const spy = vi
+        .spyOn(Storage.prototype, 'setItem')
+        .mockImplementation(function (this: Storage, key, value) {
+          callCount += 1;
+          if (callCount === 1) {
+            const err = new Error('QuotaExceeded');
+            err.name = 'QuotaExceededError';
+            throw err;
+          }
+          originalSetItem.call(this, key, value);
+        });
 
       saveScrollSnapshot('next', { atBottom: false, offset: 9, savedAt: fixedNow });
 

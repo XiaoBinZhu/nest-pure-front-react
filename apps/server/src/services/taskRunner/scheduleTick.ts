@@ -16,7 +16,8 @@ const TERMINAL_STATUSES = new Set(['canceled', 'completed', 'failed']);
 const isTerminal = (status: string) => TERMINAL_STATUSES.has(status);
 
 export type ScheduleTickOutcome =
-  { ran: true; taskIdentifier: string } | { ran: false; reason: ScheduleTickSkipReason };
+  | { ran: true; taskIdentifier: string }
+  | { ran: false; reason: ScheduleTickSkipReason };
 
 export type ScheduleTickSkipReason =
   | 'human-waiting'

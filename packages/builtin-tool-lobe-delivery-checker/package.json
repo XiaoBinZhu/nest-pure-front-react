@@ -2,11 +2,11 @@
   "name": "@lobechat/builtin-tool-lobe-delivery-checker",
   "version": "1.0.0",
   "private": true,
+  "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
     "./client": "./src/client/index.ts"
   },
-  "main": "./src/index.ts",
   "scripts": {
     "test": "vitest",
     "test:coverage": "vitest --coverage --silent='passed-only'",

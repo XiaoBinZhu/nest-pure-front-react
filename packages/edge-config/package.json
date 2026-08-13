@@ -2,10 +2,10 @@
   "name": "@lobechat/edge-config",
   "version": "1.0.0",
   "private": true,
+  "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts"
   },
-  "main": "./src/index.ts",
   "dependencies": {
     "@lobechat/business-config": "workspace:*"
   }

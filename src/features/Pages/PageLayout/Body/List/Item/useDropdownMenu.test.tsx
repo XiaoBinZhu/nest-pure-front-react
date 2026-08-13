@@ -18,7 +18,8 @@ const useDocumentTransferMenuItemMock = vi.hoisted(() => vi.fn(() => []));
 const storeMock = vi.hoisted(() => ({
   activeWorkspaceId: undefined as string | undefined,
   document: undefined as
-    { id: string; userId?: string; visibility?: 'private' | 'public' | null } | undefined,
+    | { id: string; userId?: string; visibility?: 'private' | 'public' | null }
+    | undefined,
 }));
 
 vi.mock('react-i18next', () => ({

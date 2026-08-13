@@ -99,7 +99,10 @@ export interface CodexQuotaSnapshot {
 }
 
 export type CodexRateLimitResetOutcome =
-  'alreadyRedeemed' | 'noCredit' | 'nothingToReset' | 'reset';
+  | 'alreadyRedeemed'
+  | 'noCredit'
+  | 'nothingToReset'
+  | 'reset';
 
 export interface CodexRateLimitResetResult {
   outcome: CodexRateLimitResetOutcome;
@@ -112,7 +115,9 @@ export interface CodexRateLimitResetResult {
  * the credential reasons mean no fresh OAuth login was found on this machine.
  */
 export type ClaudeCodeQuotaUnavailableReason =
-  'credentials-expired' | 'credentials-not-found' | 'external-auth';
+  | 'credentials-expired'
+  | 'credentials-not-found'
+  | 'external-auth';
 
 export interface ClaudeCodeScopedWeekly {
   /** Display name of the model the window is scoped to, e.g. "Fable". */
@@ -173,7 +178,14 @@ export interface HeterogeneousAgentSessionError {
 }
 
 export type HeterogeneousAgentRuntimeState =
-  'starting' | 'running' | 'monitoring' | 'idle' | 'stale' | 'closing' | 'closed' | 'error';
+  | 'starting'
+  | 'running'
+  | 'monitoring'
+  | 'idle'
+  | 'stale'
+  | 'closing'
+  | 'closed'
+  | 'error';
 
 export interface HeterogeneousAgentRuntimeTask {
   description?: string;

@@ -160,7 +160,8 @@ export type NonMergeableSelfReviewProposalActionPlan = ActionPlan & {
  * Snapshot-aware action accepted by proposal metadata projection.
  */
 export type SelfReviewProposalActionPlan =
-  MergeableSelfReviewProposalActionPlan | NonMergeableSelfReviewProposalActionPlan;
+  | MergeableSelfReviewProposalActionPlan
+  | NonMergeableSelfReviewProposalActionPlan;
 
 /**
  * Snapshot-aware self-iteration plan accepted by proposal metadata projection.

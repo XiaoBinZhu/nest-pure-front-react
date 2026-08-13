@@ -745,6 +745,45 @@ export const statsKeys = {
   welcome: def('stats:welcome', () => ['stats:welcome']),
 };
 
+// ---- dept usage dashboard (部门负责人数据看板) ---------------------------
+export const deptUsageKeys = {
+  overview: def('stats:dept:overview', (year?: number, month?: number) => [
+    'stats:dept:overview',
+    year ?? null,
+    month ?? null,
+  ]),
+  members: def(
+    'stats:dept:members',
+    (p: { year?: number; month?: number; keyword?: string; page?: number; pageSize?: number }) => [
+      'stats:dept:members',
+      p.year ?? null,
+      p.month ?? null,
+      p.keyword ?? null,
+      p.page ?? 1,
+      p.pageSize ?? 20,
+    ],
+  ),
+  models: def('stats:dept:models', (year?: number, month?: number) => [
+    'stats:dept:models',
+    year ?? null,
+    month ?? null,
+  ]),
+  trend: def('stats:dept:trend', (year?: number, month?: number) => [
+    'stats:dept:trend',
+    year ?? null,
+    month ?? null,
+  ]),
+};
+
+// ---- harness (Harness 代码智能体) ----------------------------------------
+export const harnessKeys = {
+  sessions: def('harness:sessions', () => ['harness:sessions']),
+  session: def('harness:session', (id: string) => ['harness:session', id]),
+  files: def('harness:files', (sessionId: string) => ['harness:files', sessionId]),
+  commands: def('harness:commands', (sessionId: string) => ['harness:commands', sessionId]),
+  tools: def('harness:tools', (mode?: string) => ['harness:tools', mode ?? 'code']),
+};
+
 // ---- messenger / platform integration -----------------------------------
 export const messengerKeys = {
   agentsForBinding: def('messenger:agentsForBinding', (workspaceId: string | null | undefined) => [
@@ -1075,6 +1114,7 @@ export const swrKeys = {
   session: sessionKeys,
   share: shareKeys,
   sidebar: sidebarKeys,
+  deptUsage: deptUsageKeys,
   stats: statsKeys,
   task: taskKeys,
   taskTemplate: taskTemplateKeys,

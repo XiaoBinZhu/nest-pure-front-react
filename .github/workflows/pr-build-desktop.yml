@@ -31,7 +31,7 @@ jobs:
         uses: ./.github/actions/setup-env
 
       - name: Install deps
-        run: pnpm install
+        run: bun install --frozen-lockfile
         env:
           NODE_OPTIONS: --max-old-space-size=8192
 
@@ -40,11 +40,11 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=8192
 
-      # the desktop app is an isolated pnpm workspace that compiles the real
+      # the desktop app is an isolated workspace that compiles the real
       # @lobechat/* package sources — type-check it with its own install so
       # regressions in those packages surface here instead of at release time
       - name: Install desktop deps
-        run: pnpm install --no-frozen-lockfile
+        run: bun install
         working-directory: apps/desktop
         env:
           NODE_OPTIONS: --max-old-space-size=8192

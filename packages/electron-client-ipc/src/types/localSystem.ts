@@ -162,7 +162,9 @@ export interface LocalFilePreviewUnsupported {
 }
 
 export type LocalFilePreview =
-  LocalFilePreviewImage | LocalFilePreviewText | LocalFilePreviewUnsupported;
+  | LocalFilePreviewImage
+  | LocalFilePreviewText
+  | LocalFilePreviewUnsupported;
 
 export interface LocalFilePreviewResult {
   error?: string;

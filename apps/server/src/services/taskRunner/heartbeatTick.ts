@@ -15,10 +15,16 @@ const TERMINAL_STATUSES = new Set(['canceled', 'completed', 'failed']);
 const isTerminal = (status: string) => TERMINAL_STATUSES.has(status);
 
 export type HeartbeatTickOutcome =
-  { ran: true; taskIdentifier: string } | { ran: false; reason: HeartbeatTickSkipReason };
+  | { ran: true; taskIdentifier: string }
+  | { ran: false; reason: HeartbeatTickSkipReason };
 
 export type HeartbeatTickSkipReason =
-  'human-waiting' | 'in-flight' | 'mode-changed' | 'no-interval' | 'not-found' | 'terminal';
+  | 'human-waiting'
+  | 'in-flight'
+  | 'mode-changed'
+  | 'no-interval'
+  | 'not-found'
+  | 'terminal';
 
 /**
  * Run a heartbeat tick — invoked by both the LocalScheduler `setTimeout`

@@ -45,23 +45,23 @@ describe('resolveMount', () => {
 });
 
 describe('pipelineFor', () => {
-  it('maps ts/tsx to the stylelint+eslint+prettier pipeline', () => {
+  it('maps ts/tsx to the stylelint+oxlint+oxfmt pipeline', () => {
     const pipeline = pipelineFor(lobehubPipelines, 'src/auth.ts');
-    expect(pipeline?.tools.map(([tool]) => tool)).toEqual(['stylelint', 'eslint', 'prettier']);
+    expect(pipeline?.tools.map(([tool]) => tool)).toEqual(['stylelint', 'oxlint', 'oxfmt']);
   });
 
-  it('maps md to remark+prettier and json to prettier only', () => {
+  it('maps md to remark+prettier and json to oxfmt only', () => {
     expect(pipelineFor(lobehubPipelines, 'AGENTS.md')?.tools.map(([tool]) => tool)).toEqual([
       'remark',
       'prettier',
     ]);
     expect(pipelineFor(lobehubPipelines, 'package.json')?.tools.map(([tool]) => tool)).toEqual([
-      'prettier',
+      'oxfmt',
     ]);
   });
 
   it('returns null for extensions with no pipeline', () => {
-    expect(pipelineFor(lobehubPipelines, '.github/workflows/ci.yml')).not.toBeNull();
+    expect(pipelineFor(lobehubPipelines, '.github/workflows/ci.yml')).toBeNull();
     expect(pipelineFor(lobehubPipelines, 'image.png')).toBeNull();
     expect(pipelineFor([], 'a.ts')).toBeNull();
   });

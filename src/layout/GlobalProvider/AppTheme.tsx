@@ -155,43 +155,43 @@ const AppTheme = memo<AppThemeProps>(
 
     return (
       <AppConfigContext value={appConfig}>
-        <ThemeProvider
-          appearance={currentAppearence}
-          className={cx(styles.app, styles.scrollbar, styles.scrollbarPolyfill)}
-          defaultAppearance={currentAppearence}
-          defaultThemeMode={currentAppearence}
-          customTheme={{
-            neutralColor: neutralColor ?? defaultNeutralColor,
-            primaryColor: primaryColor ?? defaultPrimaryColor,
-          }}
-          theme={{
-            cssVar: { key: 'lobe-vars' },
-            token: {
-              fontFamily: customFontFamily
-                ? `${customFontFamily},${antdTheme.fontFamily}`
-                : undefined,
-              motion: animationMode !== 'disabled',
-              motionUnit: animationMode === 'agile' ? 0.05 : 0.1,
-            },
+        <ConfigProvider
+          locale={uiLocale}
+          motion={m}
+          resources={uiResources}
+          config={{
+            aAs: Link,
+            imgAs: Image,
+            imgUnoptimized: true,
+            proxy: globalCDN ? 'unpkg' : undefined,
           }}
         >
-          {!!customFontURL && <FontLoader url={customFontURL} />}
-          <GlobalStyle />
-          <AntdStaticMethods />
-          <ConfigProvider
-            locale={uiLocale}
-            motion={m}
-            resources={uiResources}
-            config={{
-              aAs: Link,
-              imgAs: Image,
-              imgUnoptimized: true,
-              proxy: globalCDN ? 'unpkg' : undefined,
+          <ThemeProvider
+            appearance={currentAppearence}
+            className={cx(styles.app, styles.scrollbar, styles.scrollbarPolyfill)}
+            defaultAppearance={currentAppearence}
+            defaultThemeMode={currentAppearence}
+            customTheme={{
+              neutralColor: neutralColor ?? defaultNeutralColor,
+              primaryColor: primaryColor ?? defaultPrimaryColor,
+            }}
+            theme={{
+              cssVar: { key: 'lobe-vars' },
+              token: {
+                fontFamily: customFontFamily
+                  ? `${customFontFamily},${antdTheme.fontFamily}`
+                  : undefined,
+                motion: animationMode !== 'disabled',
+                motionUnit: animationMode === 'agile' ? 0.05 : 0.1,
+              },
             }}
           >
+            {!!customFontURL && <FontLoader url={customFontURL} />}
+            <GlobalStyle />
+            <AntdStaticMethods />
             {children}
-          </ConfigProvider>
-        </ThemeProvider>
+          </ThemeProvider>
+        </ConfigProvider>
       </AppConfigContext>
     );
   },

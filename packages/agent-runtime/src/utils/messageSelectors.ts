@@ -175,10 +175,12 @@ export const extractActivatedSkillsFromMessages = (
 
   for (const msg of messages) {
     for (const invocation of collectToolInvocations(msg)) {
-      if (!(
-        invocation.identifier === SKILLS_IDENTIFIER ||
-        invocation.identifier === ACTIVATOR_IDENTIFIER
-      ))
+      if (
+        !(
+          invocation.identifier === SKILLS_IDENTIFIER ||
+          invocation.identifier === ACTIVATOR_IDENTIFIER
+        )
+      )
         continue;
 
       // Direct activateSkill calls — state has top-level name (id only for DB

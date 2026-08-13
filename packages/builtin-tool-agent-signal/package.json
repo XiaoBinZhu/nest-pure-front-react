@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
     "./executionRuntime": "./src/shared/ExecutionRuntime.ts"
   },
-  "main": "./src/index.ts",
   "devDependencies": {
     "@lobechat/types": "workspace:*"
   }

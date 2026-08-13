@@ -41,7 +41,8 @@ export interface LLMStreamHandlers {
 }
 
 export type LLMAttemptContentPart =
-  { image: string; type: 'image' } | { text: string; type: 'text' };
+  | { image: string; type: 'image' }
+  | { text: string; type: 'text' };
 
 export interface LLMAttemptOutput {
   answerSalvagedFromReasoning: boolean;
@@ -77,7 +78,8 @@ export interface LLMAttemptInput {
 }
 
 export type LLMAttemptExecution =
-  { error: unknown; ok: false; output: LLMAttemptOutput } | { ok: true; output: LLMAttemptOutput };
+  | { error: unknown; ok: false; output: LLMAttemptOutput }
+  | { ok: true; output: LLMAttemptOutput };
 
 export interface LLMCallErrorInput {
   error: unknown;

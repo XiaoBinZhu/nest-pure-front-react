@@ -48,7 +48,8 @@ const createModelTiming = (options: QueryOptions | undefined, prefix: string) =>
 const describeBatchMutateError = (error: unknown): string => {
   const cause = (error as { cause?: unknown } | undefined)?.cause;
   const driverError = (cause ?? error) as
-    { code?: string; constraint?: string; message?: string } | undefined;
+    | { code?: string; constraint?: string; message?: string }
+    | undefined;
 
   const detail = [driverError?.constraint, driverError?.code, driverError?.message]
     .filter(Boolean)

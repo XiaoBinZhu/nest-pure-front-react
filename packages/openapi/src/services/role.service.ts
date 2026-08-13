@@ -44,7 +44,9 @@ export class RoleService extends BaseService {
       // Permission check
       const permissionResult = await this.resolveOperationPermission('RBAC_ROLE_READ');
       if (!permissionResult.isPermitted) {
-        throw this.createAuthorizationError(permissionResult.message || 'No permission to access role list');
+        throw this.createAuthorizationError(
+          permissionResult.message || 'No permission to access role list',
+        );
       }
 
       const conditions = [];
@@ -99,7 +101,9 @@ export class RoleService extends BaseService {
     // Permission check
     const permissionResult = await this.resolveOperationPermission('RBAC_ROLE_READ');
     if (!permissionResult.isPermitted) {
-      throw this.createAuthorizationError(permissionResult.message || 'No permission to access active role list');
+      throw this.createAuthorizationError(
+        permissionResult.message || 'No permission to access active role list',
+      );
     }
 
     try {
@@ -121,7 +125,9 @@ export class RoleService extends BaseService {
     // Permission check
     const permissionResult = await this.resolveOperationPermission('RBAC_ROLE_READ');
     if (!permissionResult.isPermitted) {
-      throw this.createAuthorizationError(permissionResult.message || 'No permission to access this role');
+      throw this.createAuthorizationError(
+        permissionResult.message || 'No permission to access this role',
+      );
     }
 
     try {
@@ -143,7 +149,9 @@ export class RoleService extends BaseService {
     // Permission check
     const permissionResult = await this.resolveOperationPermission('RBAC_ROLE_READ');
     if (!permissionResult.isPermitted) {
-      throw this.createAuthorizationError(permissionResult.message || 'No permission to access this role');
+      throw this.createAuthorizationError(
+        permissionResult.message || 'No permission to access this role',
+      );
     }
 
     try {
@@ -164,7 +172,9 @@ export class RoleService extends BaseService {
 
     const permissionResult = await this.resolveOperationPermission('RBAC_ROLE_CREATE');
     if (!permissionResult.isPermitted) {
-      throw this.createAuthorizationError(permissionResult.message || 'No permission to create role');
+      throw this.createAuthorizationError(
+        permissionResult.message || 'No permission to create role',
+      );
     }
 
     try {
@@ -189,7 +199,10 @@ export class RoleService extends BaseService {
           })
           .returning();
 
-        this.log('info', 'role created successfully', { roleId: createdRole.id, roleName: createdRole.name });
+        this.log('info', 'role created successfully', {
+          roleId: createdRole.id,
+          roleName: createdRole.name,
+        });
         return createdRole;
       });
     } catch (error) {
@@ -209,7 +222,9 @@ export class RoleService extends BaseService {
       // Permission check
       const permissionResult = await this.resolveOperationPermission('RBAC_PERMISSION_READ');
       if (!permissionResult.isPermitted) {
-        throw this.createAuthorizationError(permissionResult.message || 'No permission to access role permissions');
+        throw this.createAuthorizationError(
+          permissionResult.message || 'No permission to access role permissions',
+        );
       }
 
       const conditions: SQL<unknown>[] = [eq(rolePermissions.roleId, request.roleId)];
@@ -273,7 +288,9 @@ export class RoleService extends BaseService {
 
     const permissionResult = await this.resolveOperationPermission('RBAC_ROLE_UPDATE');
     if (!permissionResult.isPermitted) {
-      throw this.createAuthorizationError(permissionResult.message || 'No permission to update role permissions');
+      throw this.createAuthorizationError(
+        permissionResult.message || 'No permission to update role permissions',
+      );
     }
 
     const rawGrantIds = payload.grant ?? [];
@@ -383,7 +400,9 @@ export class RoleService extends BaseService {
     // Permission check
     const permissionResult = await this.resolveOperationPermission('RBAC_ROLE_UPDATE');
     if (!permissionResult.isPermitted) {
-      throw this.createAuthorizationError(permissionResult.message || 'No permission to update role');
+      throw this.createAuthorizationError(
+        permissionResult.message || 'No permission to update role',
+      );
     }
 
     try {
@@ -399,7 +418,9 @@ export class RoleService extends BaseService {
 
         // Check if it is a system role; system roles cannot have certain fields modified
         if (existingRole.isSystem && (updateData.name || updateData.isSystem === false)) {
-          throw this.createBusinessError('System roles cannot have their name or system attribute modified');
+          throw this.createBusinessError(
+            'System roles cannot have their name or system attribute modified',
+          );
         }
 
         // If the role name is being modified, check whether the new name already exists
@@ -447,7 +468,9 @@ export class RoleService extends BaseService {
     // Permission check
     const permissionResult = await this.resolveOperationPermission('RBAC_ROLE_UPDATE');
     if (!permissionResult.isPermitted) {
-      throw this.createAuthorizationError(permissionResult.message || 'No permission to clear role permissions');
+      throw this.createAuthorizationError(
+        permissionResult.message || 'No permission to clear role permissions',
+      );
     }
 
     try {
@@ -481,7 +504,9 @@ export class RoleService extends BaseService {
 
     const permissionResult = await this.resolveOperationPermission('RBAC_ROLE_DELETE');
     if (!permissionResult.isPermitted) {
-      throw this.createAuthorizationError(permissionResult.message || 'No permission to delete role');
+      throw this.createAuthorizationError(
+        permissionResult.message || 'No permission to delete role',
+      );
     }
 
     try {
@@ -502,7 +527,9 @@ export class RoleService extends BaseService {
           where: and(eq(userRoles.roleId, id), this.getUserRoleScopeWhere()),
         });
         if (linkedUser) {
-          throw this.createBusinessError('Role is still associated with users and cannot be deleted');
+          throw this.createBusinessError(
+            'Role is still associated with users and cannot be deleted',
+          );
         }
 
         const [deletedRole] = await tx

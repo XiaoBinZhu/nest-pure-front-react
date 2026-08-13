@@ -1682,7 +1682,12 @@ export class AiAgentService {
     const heteroProviderType = agentConfig.agencyConfig?.heterogeneousProvider?.type;
     const isHeteroAgent = !!heteroProviderType || isHeterogeneousAgentModelId(model);
     const heteroType = (heteroProviderType ?? model) as
-      'amp' | 'claude-code' | 'codex' | 'hermes' | 'openclaw' | 'opencode';
+      | 'amp'
+      | 'claude-code'
+      | 'codex'
+      | 'hermes'
+      | 'openclaw'
+      | 'opencode';
 
     // ── Shared turn setup (runs for BOTH hetero and normal agents) ──────────
     // Everything up to and including persisting the turn is identical for both
@@ -5063,7 +5068,8 @@ export class AiAgentService {
     if (topicId) {
       const topic = await this.topicModel.findById(topicId);
       const runningOp = (topic?.metadata as any)?.runningOperation as
-        { deviceId?: string; heteroType?: string; operationId?: string } | undefined;
+        | { deviceId?: string; heteroType?: string; operationId?: string }
+        | undefined;
 
       if (
         runningOp?.deviceId &&

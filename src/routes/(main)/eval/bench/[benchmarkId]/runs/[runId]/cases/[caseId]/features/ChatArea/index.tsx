@@ -12,16 +12,13 @@ import { useInitAgentConfig } from '@/hooks/useInitAgentConfig';
 const styles = createStaticStyles(({ css }) => ({
   header: css`
     flex: none;
-
     padding-block: 12px;
     padding-inline: 16px;
     border-block-end: 1px solid ${cssVar.colorBorderSecondary};
   `,
   scroll: css`
-    overflow-x: hidden;
-    overflow-y: auto;
-
     position: relative;
+    overflow: hidden auto;
     flex: 1;
   `,
 }));
