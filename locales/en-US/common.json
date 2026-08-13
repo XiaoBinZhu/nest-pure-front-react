@@ -461,6 +461,7 @@
   "tab.search": "Search",
   "tab.setting": "Settings",
   "tab.tasks": "Tasks",
+  "tab.uiGenerator": "UI Generator",
   "tab.video": "Video",
   "taskTemplate.action.connect.button": "Connect {{provider}}",
   "taskTemplate.action.connect.error": "Connection failed, please try again.",
