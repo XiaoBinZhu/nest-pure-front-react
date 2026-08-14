@@ -22,6 +22,8 @@ export class AiModelService {
   };
 
   // 模型列表：GET /v1/models
+  // 后端返回 OpenAI 兼容 { object:'list', data:[{id, object:'model', owned_by}] }，
+  // 前端期望裸数组 AiProviderModelListItem[]，此处做兼容解包与字段映射（G9+ 修复）。
   getAiProviderModelList = async (
     id: string,
     params?: GetAiProviderModelListParams,
@@ -32,7 +34,23 @@ export class AiModelService {
     if (params?.limit) query.set('limit', String(params.limit));
     if (params?.offset) query.set('offset', String(params.offset));
     const qs = query.toString();
-    const models = await apiFetch<AiProviderModelListItem[]>(`/v1/models${qs ? `?${qs}` : ''}`);
+    const res = await apiFetch<AiProviderModelListItem[] | { object?: string; data?: unknown[] }>(
+      `/v1/models${qs ? `?${qs}` : ''}`,
+    );
+
+    const rawList = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+    const models: AiProviderModelListItem[] = rawList.map((m: any) =>
+      m && typeof m === 'object' && 'enabled' in m && 'type' in m
+        ? (m as AiProviderModelListItem)
+        : {
+            displayName: m?.id ?? 'unknown',
+            enabled: true,
+            id: m?.id ?? 'unknown',
+            providerId: m?.owned_by || 'ai-gateway',
+            source: 'builtin',
+            type: 'chat',
+          },
+    );
     return models.filter(isAiModelVisible);
   };
 

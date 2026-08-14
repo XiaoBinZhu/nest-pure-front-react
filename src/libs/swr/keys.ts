@@ -746,6 +746,17 @@ export const statsKeys = {
 };
 
 // ---- dept usage dashboard (部门负责人数据看板) ---------------------------
+export const quotaKeys = {
+  overview: def('quota:overview', () => ['quota:overview']),
+  recent: def('quota:recent', (limit?: number) => ['quota:recent', limit ?? null]),
+  summary: def('quota:summary', (year?: number, month?: number) => [
+    'quota:summary',
+    year ?? null,
+    month ?? null,
+  ]),
+  transactions: def('quota:transactions', (page?: number) => ['quota:transactions', page ?? 1]),
+};
+
 export const deptUsageKeys = {
   overview: def('stats:dept:overview', (year?: number, month?: number) => [
     'stats:dept:overview',
@@ -1106,6 +1117,7 @@ export const swrKeys = {
   openInApp: openInAppKeys,
   portal: portalKeys,
   provider: providerKeys,
+  quota: quotaKeys,
   ragEval: ragEvalKeys,
   recent: recentKeys,
   recommendations: recommendationsKeys,

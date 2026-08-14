@@ -9,7 +9,6 @@ import { isDesktop } from '@/const/version';
 import UserInfo from '@/features/User/UserInfo';
 import { navigateToDesktopOnboarding } from '@/routes/(desktop)/desktop-onboarding/navigation';
 import { DesktopOnboardingScreen } from '@/routes/(desktop)/desktop-onboarding/types';
-import { serverConfigSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
 import { authSelectors } from '@/store/user/selectors';
 
@@ -19,7 +18,6 @@ import { useMenu } from './useMenu';
 const PanelContent: FC<{ closePopover: () => void }> = ({ closePopover }) => {
   const isLoginWithAuth = useUserStore(authSelectors.isLoginWithAuth);
   const [openSignIn, signOut] = useUserStore((s) => [s.openLogin, s.logout]);
-  const enableBusinessFeatures = useServerConfigStore(serverConfigSelectors.enableBusinessFeatures);
   const { mainItems, logoutItems } = useMenu();
 
   const handleSignIn = () => {
@@ -62,7 +60,7 @@ const PanelContent: FC<{ closePopover: () => void }> = ({ closePopover }) => {
         <>
           <UserInfo avatarProps={{ clickable: false }} />
           <UserPanelStatistics />
-          {enableBusinessFeatures && <BusinessPanelContent />}
+          <BusinessPanelContent />
           <UserPanelWorkspaceSection onSwitch={closePopover} />
         </>
       ) : (
