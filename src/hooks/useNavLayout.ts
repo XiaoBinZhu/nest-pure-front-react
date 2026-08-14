@@ -99,6 +99,18 @@ export const useNavLayout = (): NavLayout => {
           url: '/resource',
         },
         {
+          icon: getRouteById('browser')!.icon,
+          key: 'browser',
+          title: t('tab.browser'),
+          url: '/browser',
+        },
+        {
+          icon: getRouteById('protocol')!.icon,
+          key: 'protocol',
+          title: t('tab.protocol'),
+          url: '/protocol',
+        },
+        {
           hidden: !!activeWorkspaceSlug,
           icon: getRouteById('memory')!.icon,
           key: SidebarTabKey.Memory,

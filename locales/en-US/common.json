@@ -463,6 +463,8 @@
   "tab.tasks": "Tasks",
   "tab.uiGenerator": "UI Generator",
   "tab.video": "Video",
+  "tab.browser": "Browser Agent",
+  "tab.protocol": "Protocol Hub",
   "taskTemplate.action.connect.button": "Connect {{provider}}",
   "taskTemplate.action.connect.error": "Connection failed, please try again.",
   "taskTemplate.action.connect.popupBlocked": "Connection popup blocked. Allow popups in your browser to continue.",

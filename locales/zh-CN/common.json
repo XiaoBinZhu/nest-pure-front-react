@@ -463,6 +463,8 @@
   "tab.tasks": "任务",
   "tab.uiGenerator": "UI 生成",
   "tab.video": "视频",
+  "tab.browser": "浏览器 Agent",
+  "tab.protocol": "协议中心",
   "taskTemplate.action.connect.button": "连接 {{provider}}",
   "taskTemplate.action.connect.error": "连接失败，请重试。",
   "taskTemplate.action.connect.popupBlocked": "连接弹出窗口被阻止。请在浏览器中允许弹出窗口以继续。",
