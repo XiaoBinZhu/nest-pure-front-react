@@ -153,5 +153,7 @@
   "navigation.market": "Agent 市场",
   "navigation.uiGenerator": "UI 生成",
   "navigation.uiGeneratorDesc": "React + Ant Design / HTML + Tailwind",
-  "navigation.workspace": "工作台"
+  "navigation.workspace": "工作台",
+  "navigation.browser": "浏览器 Agent",
+  "navigation.protocol": "协议中心"
 }

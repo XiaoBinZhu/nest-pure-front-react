@@ -159,4 +159,6 @@ export default {
   'navigation.uiGenerator': 'UI Generator',
   'navigation.uiGeneratorDesc': 'React + Ant Design / HTML + Tailwind',
   'navigation.workspace': 'Workspace',
+  'navigation.browser': 'Browser Agent',
+  'navigation.protocol': 'Protocol Hub',
 };
