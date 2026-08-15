@@ -19,6 +19,50 @@ const FRAMEWORK_OPTIONS = [
   { value: 'html-tailwind', label: 'HTML + Tailwind CSS' },
 ];
 
+/** 后端历史字段状态 → 展示映射（后端枚举 success/failed） */
+const STATUS_TAG: Record<string, { color: string; label: string }> = {
+  success: { color: 'green', label: '成功' },
+  done: { color: 'green', label: '成功' },
+  failed: { color: 'red', label: '失败' },
+  error: { color: 'red', label: '失败' },
+};
+
+/**
+ * 客户端兜底预览 HTML（react-antd）：
+ * 历史记录可能缺 previewHtml（早期数据），用与后端一致的 Babel try/catch 模板兜底，
+ * 解析/运行失败时在预览框内展示错误卡片而不是白屏/未捕获异常。
+ */
+const buildReactAntdPreviewDoc = (componentCode: string): string => {
+  const codeJson = JSON.stringify(componentCode ?? '');
+  return `<!DOCTYPE html><html><head>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/dayjs@1/dayjs.min.js"></script>
+<script src="https://unpkg.com/antd@5/dist/antd.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head><body><div id="root"></div>
+<script>window.__UI_CODE__ = ${codeJson};</script>
+<script>
+(function () {
+  var rootEl = document.getElementById('root');
+  var escapeHtml = function (s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  var fail = function (msg) {
+    rootEl.innerHTML =
+      '<div style="padding:20px;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#a8071a;background:#fff2f0;border:1px solid #ffccc7;border-radius:8px;margin:16px;">' +
+      '<b>⚠️ 预览渲染失败（生成代码无法解析/执行）</b>' +
+      '<pre style="white-space:pre-wrap;margin-top:10px;">' + escapeHtml(msg) + '</pre></div>';
+  };
+  try {
+    var compiled = Babel.transform(window.__UI_CODE__ || '', { presets: ['react'] }).code;
+    (0, eval)(compiled);
+    ReactDOM.createRoot(rootEl).render(React.createElement(App));
+  } catch (e) {
+    fail(e && e.message ? e.message : String(e));
+  }
+})();
+</script></body></html>`;
+};
+
 const GenerationPage = memo(() => {
   const { message } = App.useApp();
   const { t } = useTranslation();
@@ -124,6 +168,10 @@ const GenerationPage = memo(() => {
         const item = await generationPortalService.getHistory(id);
         if (item) {
           setHistoryId(id);
+          // 历史详情回填框架，保证下载扩展名/按修改意见重生成使用正确框架
+          if (item.framework === 'html-tailwind' || item.framework === 'react-antd') {
+            setFramework(item.framework);
+          }
           setCode(item.code ?? '');
           setPreviewHtml(item.previewHtml ?? '');
         }
@@ -135,7 +183,11 @@ const GenerationPage = memo(() => {
   );
 
   const previewSrcDoc = useMemo(() => {
-    return previewHtml || (code && framework === 'html-tailwind' ? code : '');
+    if (previewHtml) return previewHtml;
+    if (code && framework === 'html-tailwind') return code;
+    // react-antd 历史记录缺 previewHtml 时用客户端模板兜底
+    if (code && framework === 'react-antd') return buildReactAntdPreviewDoc(code);
+    return '';
   }, [previewHtml, code, framework]);
 
   return (
@@ -262,7 +314,9 @@ const GenerationPage = memo(() => {
                 title={
                   <Space>
                     {item.message}
-                    <Tag color={item.status === 'done' ? 'green' : 'orange'}>{item.status}</Tag>
+                    <Tag color={STATUS_TAG[item.status]?.color ?? 'orange'}>
+                      {STATUS_TAG[item.status]?.label ?? item.status}
+                    </Tag>
                   </Space>
                 }
                 description={`${item.framework} · ${new Date(item.createdAt).toLocaleString()}`}
