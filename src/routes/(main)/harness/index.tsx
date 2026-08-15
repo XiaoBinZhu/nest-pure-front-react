@@ -115,10 +115,11 @@ const HarnessPage = memo(() => {
       setMode(sessionDetail.mode);
       setModel(sessionDetail.model);
       setSessionName(sessionDetail.name);
-      setRuntime(sessionDetail.runtime || 'cloud');
-      setWorkspaceId(sessionDetail.workspaceId);
+      // 网页端不支持本机运行时：强制回退云端并清空工作区（隐藏选择目录/权限入口）
+      setRuntime(localSupported ? sessionDetail.runtime || 'cloud' : 'cloud');
+      setWorkspaceId(localSupported ? sessionDetail.workspaceId : undefined);
     }
-  }, [sessionDetail?.id]);
+  }, [sessionDetail?.id, localSupported]);
 
   // ============ 文件 ============
   const { data: fileTree, mutate: mutateFiles } = useClientDataSWR(
@@ -185,7 +186,7 @@ const HarnessPage = memo(() => {
   const [chatItems, setChatItems] = useState<ChatItem[]>([]);
   const [input, setInput] = useState('');
   const [running, setRunning] = useState(false);
-  const abortRef = useRef<AbortController>();
+  const abortRef = useRef<AbortController | undefined>(undefined);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -231,7 +232,14 @@ const HarnessPage = memo(() => {
               ...prev,
               { id: toolId, role: 'tool', tool: d.tool, args: d.args, pending: !!d.delegated },
             ]);
-            if (d.delegated && workspaceId) {
+            if (d.delegated) {
+              if (!localSupported || !workspaceId) {
+                // 网页端无法执行本机工具：立即回传失败，避免服务端 120s 超时
+                void harnessService.postToolResult(activeId!, d.callId, false, {
+                  error: '本机工具仅桌面端可用',
+                });
+                return;
+              }
               setPendingCalls((p) => [...p, d.callId]);
               void (async () => {
                 try {
@@ -595,12 +603,12 @@ const HarnessPage = memo(() => {
                     value={runtime}
                     onChange={(v) => setRuntime(v as 'cloud' | 'local')}
                   />
-                  {runtime === 'local' && !workspaceId && (
+                  {localSupported && runtime === 'local' && !workspaceId && (
                     <Button size="small" type="primary" onClick={chooseWorkspace}>
                       {t('harness.chooseWorkspace')}
                     </Button>
                   )}
-                  {runtime === 'local' && workspaceId && currentWorkspace && (
+                  {localSupported && runtime === 'local' && workspaceId && currentWorkspace && (
                     <Space size={4}>
                       <Tag color="green">{currentWorkspace.name}</Tag>
                       <Select

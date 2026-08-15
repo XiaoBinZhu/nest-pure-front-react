@@ -112,7 +112,7 @@ const ApiKey: FC = () => {
       title: t('developer.tokens.status'),
       render: (v: MyToken['status']) => {
         const color = v === 'active' ? 'green' : v === 'expired' ? 'default' : 'orange';
-        return <Tag color={color}>{t('developer.tokens.status.' + v)}</Tag>;
+        return <Tag color={color}>{t(('developer.tokens.status.' + v) as any)}</Tag>;
       },
     },
     {

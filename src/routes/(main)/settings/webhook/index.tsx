@@ -2,7 +2,7 @@
 
 import { Center, Empty, Flexbox, Input } from '@lobehub/ui';
 import { Button, confirmModal, createModal, Switch, useModalContext } from '@lobehub/ui/base-ui';
-import { App, Select, Table, Tag, Typography } from 'antd';
+import { App, Input as AntInput, Select, Table, Tag, Typography } from 'antd';
 import type { TableColumnType } from 'antd';
 import { Plus, RefreshCw, Send, Trash } from 'lucide-react';
 import { useState, type FC } from 'react';
@@ -64,7 +64,7 @@ const WebhookCreateContent: FC<{
       </Flexbox>
       <Flexbox gap={4}>
         <Typography.Text>{t('developer.webhooks.secret')}</Typography.Text>
-        <Input.Password
+        <AntInput.Password
           placeholder={t('developer.webhooks.secretPlaceholder')}
           value={secret}
           onChange={(e) => setSecret(e.target.value)}
