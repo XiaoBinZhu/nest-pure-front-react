@@ -61,6 +61,12 @@ export const useNavLayout = (): NavLayout => {
           url: '/tasks',
         },
         {
+          icon: getRouteById('generate')!.icon,
+          key: 'generate',
+          title: t('tab.uiGenerator'),
+          url: '/generate',
+        },
+        {
           icon: getRouteById('page')!.icon,
           key: SidebarTabKey.Pages,
           title: t('tab.pages'),
@@ -91,6 +97,18 @@ export const useNavLayout = (): NavLayout => {
           key: SidebarTabKey.Resource,
           title: t('tab.resource'),
           url: '/resource',
+        },
+        {
+          icon: getRouteById('browser')!.icon,
+          key: 'browser',
+          title: t('tab.browser'),
+          url: '/browser',
+        },
+        {
+          icon: getRouteById('protocol')!.icon,
+          key: 'protocol',
+          title: t('tab.protocol'),
+          url: '/protocol',
         },
         {
           hidden: !!activeWorkspaceSlug,

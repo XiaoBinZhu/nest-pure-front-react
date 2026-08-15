@@ -37,6 +37,7 @@ import pageShare from './pageShare';
 import plugin from './plugin';
 import portal from './portal';
 import providers from './providers';
+import quota from './quota';
 import ragEval from './ragEval';
 import setting from './setting';
 import spend from './spend';
@@ -90,6 +91,7 @@ const resources = {
   plugin,
   portal,
   providers,
+  quota,
   ragEval,
   setting,
   spend,

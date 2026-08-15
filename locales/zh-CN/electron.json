@@ -146,6 +146,7 @@
   "window.restore": "恢复窗口",
   "window.unpinFromTop": "取消置顶",
   "navigation.deptStats": "部门用量看板",
+  "navigation.developer": "开发者中心",
   "navigation.harness": "Harness 代码智能体",
   "navigation.teams": "Agent 团队",
   "navigation.hitl": "HITL 审批",
@@ -153,5 +154,7 @@
   "navigation.market": "Agent 市场",
   "navigation.uiGenerator": "UI 生成",
   "navigation.uiGeneratorDesc": "React + Ant Design / HTML + Tailwind",
-  "navigation.workspace": "工作台"
+  "navigation.workspace": "工作台",
+  "navigation.browser": "浏览器 Agent",
+  "navigation.protocol": "协议中心"
 }

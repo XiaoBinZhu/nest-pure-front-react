@@ -174,6 +174,7 @@ export const SIDEBAR_SPACER_ID = '__spacer__';
 
 export const DEFAULT_SIDEBAR_ITEMS: string[] = [
   'tasks',
+  'generate',
   'pages',
   'recents',
   'private',
@@ -182,6 +183,8 @@ export const DEFAULT_SIDEBAR_ITEMS: string[] = [
   'image',
   'community',
   'resource',
+  'browser',
+  'protocol',
   'memory',
 ];
 

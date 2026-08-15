@@ -70,7 +70,7 @@ export const useCategory = () => {
   const { t: tLabs } = useTranslation('labs');
   const { t: tSubscription } = useTranslation('subscription');
   const mobile = useServerConfigStore((s) => s.isMobile);
-  const { hideDocs, showApiKeyManage, showProvider } = useServerConfigStore(featureFlagsSelectors);
+  const { hideDocs, showProvider } = useServerConfigStore(featureFlagsSelectors);
   const [avatar, username] = useUserStore((s) => [
     userProfileSelectors.userAvatar(s),
     userProfileSelectors.nickName(s),
@@ -130,16 +130,19 @@ export const useCategory = () => {
       title: t('group.common'),
     });
 
-    // Personal subscription / billing items. Always shown when business
-    // features are enabled — workspace settings live under a separate
-    // `/:workspaceSlug/settings/*` surface and never share this sidebar.
-    if (enableBusinessFeatures) {
+    // Personal subscription / billing items. Credits（我的额度）与 Usage（使用情况）
+    // 为 C 端核心能力，对所有登录用户常驻展示；Plans/Billing/Referral 仅业务特性开启时显示。
+    {
       const subscriptionItems: CategoryItem[] = [
-        { icon: Map, key: SettingsTabs.Plans, label: tSubscription('tab.plans') },
-        { icon: ChartColumnBigIcon, key: SettingsTabs.Usage, label: t('tab.usage') },
         { icon: Coins, key: SettingsTabs.Credits, label: tSubscription('tab.credits') },
-        { icon: CreditCard, key: SettingsTabs.Billing, label: tSubscription('tab.billing') },
-        { icon: Gift, key: SettingsTabs.Referral, label: tSubscription('tab.referral') },
+        { icon: ChartColumnBigIcon, key: SettingsTabs.Usage, label: t('tab.usage') },
+        ...(enableBusinessFeatures
+          ? ([
+              { icon: Map, key: SettingsTabs.Plans, label: tSubscription('tab.plans') },
+              { icon: CreditCard, key: SettingsTabs.Billing, label: tSubscription('tab.billing') },
+              { icon: Gift, key: SettingsTabs.Referral, label: tSubscription('tab.referral') },
+            ] as CategoryItem[])
+          : []),
       ];
 
       groups.push({
@@ -183,10 +186,20 @@ export const useCategory = () => {
         key: SettingsTabs.Creds,
         label: t('tab.creds'),
       },
-      showApiKeyManage && {
+      {
         icon: KeyIcon,
         key: SettingsTabs.APIKey,
         label: tAuth('tab.apikey'),
+      },
+      {
+        icon: ChartColumnBigIcon,
+        key: SettingsTabs.DeveloperUsage,
+        label: tAuth('tab.developerUsage'),
+      },
+      {
+        icon: BellIcon,
+        key: SettingsTabs.Webhook,
+        label: tAuth('tab.webhook'),
       },
       {
         icon: MessageCircleIcon,
@@ -271,7 +284,6 @@ export const useCategory = () => {
     enableBusinessFeatures,
     hideDocs,
     mobile,
-    showApiKeyManage,
     showProvider,
     isDevMode,
     enableOAuthApps,

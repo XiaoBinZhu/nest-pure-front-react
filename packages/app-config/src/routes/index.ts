@@ -2,9 +2,12 @@ import { type LucideIcon } from 'lucide-react';
 import {
   BrainCircuit,
   FilePenIcon,
+  Globe,
   Image,
   LibraryBigIcon,
   ListTodoIcon,
+  Palette,
+  Plug,
   Settings,
   ShapesIcon,
   Video,
@@ -108,6 +111,33 @@ export const NAVIGATION_ROUTES: NavigationRoute[] = [
     pathPrefix: '/tasks',
   },
   {
+    cmdkKey: 'tab.browser',
+    electronKey: 'navigation.browser',
+    icon: Globe,
+    id: 'browser',
+    keywords: ['browser', 'agent', 'web', 'playwright', 'automation'],
+    path: '/browser',
+    pathPrefix: '/browser',
+  },
+  {
+    cmdkKey: 'tab.protocol',
+    electronKey: 'navigation.protocol',
+    icon: Plug,
+    id: 'protocol',
+    keywords: ['protocol', 'mcp', 'sync', 'a2a', 'agent card'],
+    path: '/protocol',
+    pathPrefix: '/protocol',
+  },
+  {
+    cmdkKey: 'tab.uiGenerator',
+    electronKey: 'navigation.uiGenerator',
+    icon: Palette,
+    id: 'generate',
+    keywords: ['ui', 'generator', 'generate', 'prototype', 'design', 'code'],
+    path: '/generate',
+    pathPrefix: '/generate',
+  },
+  {
     cmdkKey: 'cmdk.settings',
     electronKey: 'navigation.settings',
     icon: Settings,
@@ -137,24 +167,24 @@ export const getRouteById = (id: string): NavigationRoute | undefined =>
  */
 export const getNavigableRoutes = (): NavigationRoute[] =>
   NAVIGATION_ROUTES.filter((r) =>
-    ['community', 'image', 'resource', 'page', 'memory'].includes(r.id),
+    ['community', 'image', 'resource', 'page', 'memory', 'generate'].includes(r.id),
   ).map((r) =>
     r.id === 'image'
       ? {
-          ...r,
-          cmdkKey: 'tab.generation',
-          keywords: [
-            'generation',
-            'generate',
-            'image',
-            'painting',
-            'art',
-            'draw',
-            'video',
-            'seedance',
-            'kling',
-          ],
-          keywordsKey: undefined,
-        }
+        ...r,
+        cmdkKey: 'tab.generation',
+        keywords: [
+          'generation',
+          'generate',
+          'image',
+          'painting',
+          'art',
+          'draw',
+          'video',
+          'seedance',
+          'kling',
+        ],
+        keywordsKey: undefined,
+      }
       : r,
   );

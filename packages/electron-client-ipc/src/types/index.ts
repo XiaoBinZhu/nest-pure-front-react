@@ -3,6 +3,7 @@ export * from './browserControl';
 export * from './browserSidebar';
 export * from './dataSync';
 export * from './git';
+export * from './harnessLocal';
 export * from './heterogeneousAgent';
 export * from './imessageBridge';
 export * from './localSystem';

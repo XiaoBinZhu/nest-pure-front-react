@@ -30,7 +30,7 @@ describe('UserService', () => {
 
       const result = await userService.getProfile();
 
-      expect(mockApiFetch).toHaveBeenCalledWith('/api/v1/c-end/user/profile');
+      expect(mockApiFetch).toHaveBeenCalledWith('/app/front-hub/user/profile', undefined);
       expect(result).toEqual(mockProfile);
     });
   });
@@ -42,7 +42,7 @@ describe('UserService', () => {
 
       const result = await userService.getPreferences();
 
-      expect(mockApiFetch).toHaveBeenCalledWith('/api/v1/c-end/user/preferences');
+      expect(mockApiFetch).toHaveBeenCalledWith('/app/front-hub/user/preferences', undefined);
       expect(result).toEqual(mockPreferences);
     });
   });
@@ -54,7 +54,7 @@ describe('UserService', () => {
 
       const result = await userService.getSettings();
 
-      expect(mockApiFetch).toHaveBeenCalledWith('/api/v1/c-end/user/settings');
+      expect(mockApiFetch).toHaveBeenCalledWith('/app/front-hub/user/settings', undefined);
       expect(result).toEqual(mockSettings);
     });
   });
@@ -63,7 +63,7 @@ describe('UserService', () => {
     it('should call apiFetch with PATCH profile and avatar body', async () => {
       await userService.updateAvatar('https://example.com/avatar.png');
 
-      expect(mockApiFetch).toHaveBeenCalledWith('/api/v1/c-end/user/profile', {
+      expect(mockApiFetch).toHaveBeenCalledWith('/app/front-hub/user/profile', {
         method: 'PATCH',
         body: JSON.stringify({ avatar: 'https://example.com/avatar.png' }),
       });
@@ -74,7 +74,7 @@ describe('UserService', () => {
     it('should call apiFetch with PATCH profile and fullName body', async () => {
       await userService.updateFullName('John Doe');
 
-      expect(mockApiFetch).toHaveBeenCalledWith('/api/v1/c-end/user/profile', {
+      expect(mockApiFetch).toHaveBeenCalledWith('/app/front-hub/user/profile', {
         method: 'PATCH',
         body: JSON.stringify({ fullName: 'John Doe' }),
       });
@@ -87,9 +87,9 @@ describe('UserService', () => {
 
       await userService.updatePreference(preference);
 
-      expect(mockApiFetch).toHaveBeenCalledWith('/api/v1/c-end/user/preferences', {
+      expect(mockApiFetch).toHaveBeenCalledWith('/app/front-hub/user/preferences', {
         method: 'PUT',
-        body: JSON.stringify(preference),
+        body: JSON.stringify({ preferences: preference }),
       });
     });
   });
@@ -100,7 +100,7 @@ describe('UserService', () => {
 
       await userService.updateUserSettings(settings);
 
-      expect(mockApiFetch).toHaveBeenCalledWith('/api/v1/c-end/user/settings', {
+      expect(mockApiFetch).toHaveBeenCalledWith('/app/front-hub/user/settings', {
         method: 'PUT',
         body: JSON.stringify(settings),
         signal: undefined,
@@ -113,7 +113,7 @@ describe('UserService', () => {
 
       await userService.updateUserSettings(settings, abortController.signal);
 
-      expect(mockApiFetch).toHaveBeenCalledWith('/api/v1/c-end/user/settings', {
+      expect(mockApiFetch).toHaveBeenCalledWith('/app/front-hub/user/settings', {
         method: 'PUT',
         body: JSON.stringify(settings),
         signal: abortController.signal,
@@ -138,11 +138,11 @@ describe('UserService', () => {
     });
 
     it('makeUserOnboarded should resolve', async () => {
-      await expect(userService.makeUserOnboarded()).resolves.toBeUndefined();
+      await expect(userService.makeUserOnboarded()).resolves.toEqual({});
     });
 
     it('updateGuide should resolve', async () => {
-      await expect(userService.updateGuide({})).resolves.toBeUndefined();
+      await expect(userService.updateGuide({})).resolves.toEqual({});
     });
 
     it('resetUserSettings should resolve', async () => {

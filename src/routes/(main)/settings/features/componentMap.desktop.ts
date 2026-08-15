@@ -12,6 +12,7 @@ import APIKey from '../apikey';
 import Appearance from '../appearance';
 import Connector from '../connector';
 import Creds from '../creds';
+import DeveloperUsage from '../developer-usage';
 import Devices from '../devices';
 import Hotkey from '../hotkey';
 import Labs from '../labs';
@@ -27,6 +28,7 @@ import Skill from '../skill';
 import Stats from '../stats';
 import Storage from '../storage';
 import SystemTools from '../system-tools';
+import Webhook from '../webhook';
 
 export const componentMap = {
   [SettingsTabs.Advanced]: Advanced,
@@ -48,6 +50,8 @@ export const componentMap = {
   [SettingsTabs.Stats]: Stats,
   [SettingsTabs.Usage]: Usage,
   [SettingsTabs.APIKey]: APIKey,
+  [SettingsTabs.DeveloperUsage]: DeveloperUsage,
+  [SettingsTabs.Webhook]: Webhook,
   [SettingsTabs.OAuthApps]: OAuthApps,
   [SettingsTabs.Creds]: Creds,
   [SettingsTabs.Security]: Security,

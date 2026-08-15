@@ -6,10 +6,13 @@ import {
   Database,
   Download,
   FilePenIcon,
+  Globe,
   Home,
   Image,
   LibraryBigIcon,
   Palette,
+  Plug,
+  Rocket,
   Settings,
   ShapesIcon,
   ShieldCheck,
@@ -739,6 +742,30 @@ export const desktopRoutes: RouteObject[] = [
         errorElement: <ErrorBoundary />,
         handle: { meta: routeMeta({ icon: Code2, titleKey: 'navigation.harness' }) },
         path: 'harness',
+      },
+
+      // 开发者中心（personal-only — 公开模型目录 + 定价 + 示例）
+      {
+        element: dynamicElement(() => import('@/routes/(main)/developer'), 'Desktop > Developer'),
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Rocket, titleKey: 'navigation.developer' }) },
+        path: 'developer',
+      },
+
+      // 浏览器 Agent（personal-only — Playwright 会话 + 网页操作）
+      {
+        element: dynamicElement(() => import('@/routes/(main)/browser'), 'Desktop > Browser Agent'),
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Globe, titleKey: 'navigation.browser' }) },
+        path: 'browser',
+      },
+
+      // 协议中心（personal-only — MCP Server 注册表 + 协议同步）
+      {
+        element: dynamicElement(() => import('@/routes/(main)/protocol'), 'Desktop > Protocol Hub'),
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Plug, titleKey: 'navigation.protocol' }) },
+        path: 'protocol',
       },
 
       // Agent 团队页

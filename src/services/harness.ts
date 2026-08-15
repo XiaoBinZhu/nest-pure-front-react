@@ -15,6 +15,8 @@ export interface HarnessSession {
   name: string;
   mode: 'chat' | 'code' | 'browser';
   model: string;
+  runtime?: 'cloud' | 'local';
+  workspaceId?: string;
   context?: { fileTreeSummary?: string; lastMessage?: string };
   createdAt: string;
   updatedAt: string;
@@ -53,7 +55,10 @@ export interface HarnessToolInfo {
 export type HarnessEvent =
   | { event: 'harness_state'; data: { sessionId: string; model: string; mode: string } }
   | { event: 'harness_content'; data: { text: string } }
-  | { event: 'harness_tool_call'; data: { tool: string; args: any; callId: string } }
+  | {
+      event: 'harness_tool_call';
+      data: { tool: string; args: any; callId: string; delegated?: boolean; approved?: boolean };
+    }
   | {
       event: 'harness_tool_result';
       data: { tool: string; callId: string; success: boolean; result: any };
@@ -62,7 +67,15 @@ export type HarnessEvent =
   | { event: 'harness_terminal'; data: { command: string; exitCode: number; output: string } }
   | {
       event: 'harness_approval';
-      data: { callId: string; tool: string; args: any; risk: string; description: string };
+      data: {
+        callId: string;
+        tool: string;
+        args: any;
+        risk: string;
+        description: string;
+        id?: string;
+        approvalId?: string;
+      };
     }
   | { event: 'harness_done'; data: { steps: number } }
   | { event: 'error'; data: { code: string; message: string; recoverable?: boolean } };
@@ -71,7 +84,13 @@ class HarnessService {
   // ============ 会话 ============
   listSessions = async () => unwrap<HarnessSession[]>('/app/front-hub/harness/sessions');
 
-  createSession = async (data: { name?: string; mode?: string; model?: string }) =>
+  createSession = async (data: {
+    name?: string;
+    mode?: string;
+    model?: string;
+    runtime?: 'cloud' | 'local';
+    workspaceId?: string;
+  }) =>
     unwrap<HarnessSession>('/app/front-hub/harness/sessions', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -159,6 +178,12 @@ class HarnessService {
     const q = mode ? `?mode=${mode}` : '';
     return unwrap<{ mode: string; tools: HarnessToolInfo[] }>(`/app/front-hub/harness/tools${q}`);
   };
+  // ============ 委托执行回传（本地模式） ============
+  postToolResult = async (sessionId: string, callId: string, success: boolean, data: any) =>
+    unwrap('/app/front-hub/harness/sessions/' + sessionId + '/tool-result', {
+      method: 'POST',
+      body: JSON.stringify({ callId, success, data }),
+    });
 }
 
 export const harnessService = new HarnessService();

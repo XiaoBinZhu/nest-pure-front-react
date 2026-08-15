@@ -2,13 +2,22 @@
 
 import {
   BrainCircuit,
+  Code2,
+  Database,
   Download,
   FilePenIcon,
+  Globe,
   Home,
   Image,
   LibraryBigIcon,
+  Palette,
+  Plug,
+  Rocket,
   Settings,
   ShapesIcon,
+  ShieldCheck,
+  Store,
+  Users,
 } from 'lucide-react';
 import type { RouteObject } from 'react-router';
 
@@ -98,8 +107,19 @@ import CommunityListSkillLayout from '@/routes/(main)/community/(list)/skill/_la
 import DevtoolsIndexPage from '@/routes/(main)/devtools';
 import DevtoolsLayout from '@/routes/(main)/devtools/_layout';
 import DevtoolsToolPage from '@/routes/(main)/devtools/[identifier]';
+import BrowserPage from '@/routes/(main)/browser';
+import DeptStatsPage from '@/routes/(main)/dept-stats';
+import DeveloperPage from '@/routes/(main)/developer';
 import DownloadsPage from '@/routes/(main)/downloads';
 import EvalOverviewPage from '@/routes/(main)/eval';
+import GeneratePage from '@/routes/(main)/generate';
+import HarnessPage from '@/routes/(main)/harness';
+import HitlPage from '@/routes/(main)/hitl';
+import KnowledgePage from '@/routes/(main)/knowledge';
+import MarketPage from '@/routes/(main)/market';
+import ProtocolPage from '@/routes/(main)/protocol';
+import TeamsPage from '@/routes/(main)/teams';
+import WorkspacePage from '@/routes/(main)/workspace';
 import EvalLayout from '@/routes/(main)/eval/_layout';
 import EvalHomeLayout from '@/routes/(main)/eval/(home)/_layout';
 import EvalBenchmarkDetailPage from '@/routes/(main)/eval/bench/[benchmarkId]';
@@ -636,6 +656,86 @@ export const desktopRoutes: RouteObject[] = [
         path: 'downloads',
       },
 
+      // Harness page (personal-only — 代码智能体工作区)
+      {
+        element: <HarnessPage />,
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Code2, titleKey: 'navigation.harness' }) },
+        path: 'harness',
+      },
+
+      // 开发者中心（personal-only — 公开模型目录 + 定价 + 示例）
+      {
+        element: <DeveloperPage />,
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Rocket, titleKey: 'navigation.developer' }) },
+        path: 'developer',
+      },
+
+      // 浏览器 Agent（personal-only — Playwright 会话 + 网页操作）
+      {
+        element: <BrowserPage />,
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Globe, titleKey: 'navigation.browser' }) },
+        path: 'browser',
+      },
+
+      // 协议中心（personal-only — MCP Server 注册表 + 协议同步）
+      {
+        element: <ProtocolPage />,
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Plug, titleKey: 'navigation.protocol' }) },
+        path: 'protocol',
+      },
+
+      // Agent 团队页
+      {
+        element: <TeamsPage />,
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Users, titleKey: 'navigation.teams' }) },
+        path: 'teams',
+      },
+
+      // HITL 审批中心
+      {
+        element: <HitlPage />,
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: ShieldCheck, titleKey: 'navigation.hitl' }) },
+        path: 'hitl',
+      },
+
+      // 知识库
+      {
+        element: <KnowledgePage />,
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Database, titleKey: 'navigation.knowledge' }) },
+        path: 'knowledge',
+      },
+
+      // Agent 市场
+      {
+        element: <MarketPage />,
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Store, titleKey: 'navigation.market' }) },
+        path: 'market',
+      },
+
+      // UI 生成页（G1 补全，AC9：一句话生成 UI 原型 + iframe 预览 + 下载 + refine）
+      {
+        element: <GeneratePage />,
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Palette, titleKey: 'navigation.uiGenerator' }) },
+        path: 'generate',
+      },
+
+      // 工作台页（personal-only — 任务列表 + 产物中心 + 版本/diff/下载）
+      {
+        element: <WorkspacePage />,
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: BrainCircuit, titleKey: 'navigation.workspace' }) },
+        path: 'workspace',
+      },
+
       // Settings routes (personal-only — never mirrored under /:workspaceSlug)
       {
         children: [
@@ -663,6 +763,11 @@ export const desktopRoutes: RouteObject[] = [
               meta: routeMeta({ icon: Settings, titleKey: 'navigation.provider' }),
             },
             path: 'provider',
+          },
+          {
+            element: <DeptStatsPage />,
+            handle: { meta: routeMeta({ icon: Settings, titleKey: 'navigation.deptStats' }) },
+            path: 'dept-stats',
           },
           {
             element: <SettingsTabPage />,

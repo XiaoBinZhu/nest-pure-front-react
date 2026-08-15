@@ -198,10 +198,13 @@ describe('systemStatusSelectors', () => {
         status: { sidebarItems: stored },
       });
       expect(systemStatusSelectors.sidebarItems(null)(s)).toEqual([
+        'generate',
         'private',
         'agent',
         'recents',
         SIDEBAR_SPACER_ID,
+        'browser',
+        'protocol',
         'pages',
         'tasks',
         'image',
@@ -227,7 +230,21 @@ describe('systemStatusSelectors', () => {
       const s: GlobalState = merge(initialState, {
         status: { sidebarItems: stored },
       });
-      expect(systemStatusSelectors.sidebarItems(null)(s)).toEqual(stored);
+      expect(systemStatusSelectors.sidebarItems(null)(s)).toEqual([
+        'pages',
+        'generate',
+        'recents',
+        'private',
+        'agent',
+        SIDEBAR_SPACER_ID,
+        'browser',
+        'protocol',
+        'image',
+        'tasks',
+        'community',
+        'resource',
+        'memory',
+      ]);
     });
 
     it('should re-anchor the spacer when stored above the accordion', () => {
@@ -251,10 +268,13 @@ describe('systemStatusSelectors', () => {
       expect(systemStatusSelectors.sidebarItems(null)(s)).toEqual([
         'tasks',
         'pages',
+        'generate',
         'recents',
         'private',
         'agent',
         SIDEBAR_SPACER_ID,
+        'browser',
+        'protocol',
         'image',
         'community',
         'resource',
@@ -293,6 +313,7 @@ describe('systemStatusSelectors', () => {
       // the legacy state was saved) is backfilled at the head of the block.
       expect(items).toEqual([
         'tasks',
+        'generate',
         'pages',
         'private',
         'agent',
@@ -301,6 +322,8 @@ describe('systemStatusSelectors', () => {
         'image',
         'community',
         'resource',
+        'browser',
+        'protocol',
         'memory',
       ]);
     });
@@ -314,6 +337,7 @@ describe('systemStatusSelectors', () => {
       // backfilled at the head of the block; recents/agent keep legacy order.
       expect(items).toEqual([
         'tasks',
+        'generate',
         'pages',
         'private',
         'recents',
@@ -322,6 +346,8 @@ describe('systemStatusSelectors', () => {
         'image',
         'community',
         'resource',
+        'browser',
+        'protocol',
         'memory',
       ]);
     });

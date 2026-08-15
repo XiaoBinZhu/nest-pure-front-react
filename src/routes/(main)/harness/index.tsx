@@ -21,13 +21,17 @@ import {
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import type {
+  HarnessWorkspaceEntry,
+  HarnessWorkspacePermission,
+} from '@lobechat/electron-client-ipc';
+import { confirmModal, Segmented } from '@lobehub/ui/base-ui';
+
 import { useClientDataSWR } from '@/libs/swr';
 import { harnessKeys } from '@/libs/swr/keys';
-import {
-  harnessService,
-  type HarnessFileNode,
-  type HarnessSession,
-} from '@/services/harness';
+import { harnessService, type HarnessFileNode, type HarnessSession } from '@/services/harness';
+import { harnessLocal, isHarnessLocalSupported } from '@/services/harnessLocal';
+import { hitlService } from '@/services/hitl';
 
 // Harness 代码智能体工作区
 // 布局：左=会话列表 | 中=聊天流 | 右=文件树+编辑器+终端
@@ -45,6 +49,7 @@ interface ChatItem {
   command?: string;
   exitCode?: number;
   output?: string;
+  pending?: boolean;
 }
 
 const MODE_OPTIONS = [
@@ -66,6 +71,39 @@ const HarnessPage = memo(() => {
   const [model, setModel] = useState('deepseek-ai/DeepSeek-V4-Pro');
   const [sessionName, setSessionName] = useState('Harness 会话');
 
+  // ============ 本地模式 ============
+  const localSupported = useMemo(() => isHarnessLocalSupported(), []);
+  const [runtime, setRuntime] = useState<'cloud' | 'local'>('cloud');
+  const [workspaces, setWorkspaces] = useState<HarnessWorkspaceEntry[]>([]);
+  const [workspaceId, setWorkspaceId] = useState<string>();
+  const [pendingCalls, setPendingCalls] = useState<string[]>([]);
+  const [localFileTree, setLocalFileTree] = useState<any[]>([]);
+
+  const loadWorkspaces = useCallback(async () => {
+    try {
+      setWorkspaces(await harnessLocal.listWorkspaces());
+    } catch {
+      // ignore（非桌面环境）
+    }
+  }, []);
+
+  const loadLocalTree = useCallback(async (id: string) => {
+    try {
+      const r = await harnessLocal.execTool(id, 'file_list', {});
+      if (r.success && r.data?.tree) setLocalFileTree(r.data.tree);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    if (localSupported) loadWorkspaces();
+  }, [localSupported, loadWorkspaces]);
+
+  useEffect(() => {
+    if (runtime === 'local' && workspaceId) loadLocalTree(workspaceId);
+  }, [runtime, workspaceId, loadLocalTree]);
+
   const { data: sessionDetail, mutate: mutateSession } = useClientDataSWR(
     activeId ? harnessKeys.session(activeId) : null,
     () => (activeId ? harnessService.getSession(activeId) : undefined),
@@ -77,8 +115,11 @@ const HarnessPage = memo(() => {
       setMode(sessionDetail.mode);
       setModel(sessionDetail.model);
       setSessionName(sessionDetail.name);
+      // 网页端不支持本机运行时：强制回退云端并清空工作区（隐藏选择目录/权限入口）
+      setRuntime(localSupported ? sessionDetail.runtime || 'cloud' : 'cloud');
+      setWorkspaceId(localSupported ? sessionDetail.workspaceId : undefined);
     }
-  }, [sessionDetail?.id]);
+  }, [sessionDetail?.id, localSupported]);
 
   // ============ 文件 ============
   const { data: fileTree, mutate: mutateFiles } = useClientDataSWR(
@@ -91,37 +132,61 @@ const HarnessPage = memo(() => {
 
   const openFile = useCallback(
     async (path: string) => {
-      if (!activeId) return;
       setEditorPath(path);
       setEditorLoading(true);
       try {
-        const file = await harnessService.getFileContent(activeId, path);
-        setEditorContent(file.content);
+        if (runtime === 'local' && workspaceId) {
+          const r = await harnessLocal.execTool(workspaceId, 'file_read', { path });
+          if (!r.success) throw new Error(r.error);
+          setEditorContent(r.data?.content ?? '');
+        } else if (activeId) {
+          const file = await harnessService.getFileContent(activeId, path);
+          setEditorContent(file.content);
+        }
       } catch (e: any) {
         antdMsg.error(e.message);
       } finally {
         setEditorLoading(false);
       }
     },
-    [activeId, antdMsg],
+    [activeId, runtime, workspaceId, antdMsg],
   );
 
   const saveFile = useCallback(async () => {
-    if (!activeId || !editorPath) return;
+    if (!editorPath) return;
     try {
-      await harnessService.saveFile(activeId, editorPath, editorContent);
+      if (runtime === 'local' && workspaceId) {
+        const r = await harnessLocal.execTool(workspaceId, 'file_write', {
+          path: editorPath,
+          content: editorContent,
+        });
+        if (!r.success) throw new Error(r.error);
+        loadLocalTree(workspaceId);
+      } else if (activeId) {
+        await harnessService.saveFile(activeId, editorPath, editorContent);
+        mutateFiles();
+      }
       antdMsg.success(t('harness.saved'));
-      mutateFiles();
     } catch (e: any) {
       antdMsg.error(e.message);
     }
-  }, [activeId, editorPath, editorContent, antdMsg, mutateFiles, t]);
+  }, [
+    runtime,
+    workspaceId,
+    activeId,
+    editorPath,
+    editorContent,
+    antdMsg,
+    loadLocalTree,
+    mutateFiles,
+    t,
+  ]);
 
   // ============ 聊天 ============
   const [chatItems, setChatItems] = useState<ChatItem[]>([]);
   const [input, setInput] = useState('');
   const [running, setRunning] = useState(false);
-  const abortRef = useRef<AbortController>();
+  const abortRef = useRef<AbortController | undefined>(undefined);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -133,7 +198,11 @@ const HarnessPage = memo(() => {
     const text = input.trim();
     setInput('');
     const userItem: ChatItem = { id: `${Date.now()}-u`, role: 'user', text };
-    setChatItems((prev) => [...prev, userItem, { id: `${Date.now()}-a`, role: 'assistant', text: '' }]);
+    setChatItems((prev) => [
+      ...prev,
+      userItem,
+      { id: `${Date.now()}-a`, role: 'assistant', text: '' },
+    ]);
     setRunning(true);
     const ac = new AbortController();
     abortRef.current = ac;
@@ -148,20 +217,53 @@ const HarnessPage = memo(() => {
               const last = prev[prev.length - 1];
               if (last?.role === 'assistant') {
                 const next = [...prev];
-                next[next.length - 1] = { ...last, text: (last.text || '') + (evt.data as any).text };
+                next[next.length - 1] = {
+                  ...last,
+                  text: (last.text || '') + (evt.data as any).text,
+                };
                 return next;
               }
               return prev;
             });
           } else if (evt.event === 'harness_tool_call') {
             const d = evt.data as any;
-            setChatItems((prev) => [...prev, { id: `${Date.now()}-tool`, role: 'tool', tool: d.tool, args: d.args }]);
+            const toolId = d.callId || String(Date.now()) + '-tool';
+            setChatItems((prev) => [
+              ...prev,
+              { id: toolId, role: 'tool', tool: d.tool, args: d.args, pending: !!d.delegated },
+            ]);
+            if (d.delegated) {
+              if (!localSupported || !workspaceId) {
+                // 网页端无法执行本机工具：立即回传失败，避免服务端 120s 超时
+                void harnessService.postToolResult(activeId!, d.callId, false, {
+                  error: '本机工具仅桌面端可用',
+                });
+                return;
+              }
+              setPendingCalls((p) => [...p, d.callId]);
+              void (async () => {
+                try {
+                  const r = await harnessLocal.execTool(workspaceId, d.tool, d.args, d.approved);
+                  await harnessService.postToolResult(activeId!, d.callId, r.success, r.data);
+                } catch (e: any) {
+                  await harnessService.postToolResult(activeId!, d.callId, false, {
+                    error: String(e?.message || e),
+                  });
+                } finally {
+                  setPendingCalls((p) => p.filter((id) => id !== d.callId));
+                }
+              })();
+            }
           } else if (evt.event === 'harness_tool_result') {
             const d = evt.data as any;
             setChatItems((prev) => {
               const next = [...prev];
               for (let i = next.length - 1; i >= 0; i--) {
-                if (next[i].role === 'tool' && next[i].tool === d.tool && next[i].success === undefined) {
+                if (
+                  next[i].role === 'tool' &&
+                  next[i].tool === d.tool &&
+                  next[i].success === undefined
+                ) {
                   next[i] = { ...next[i], success: d.success, result: d.result };
                   break;
                 }
@@ -170,18 +272,59 @@ const HarnessPage = memo(() => {
             });
           } else if (evt.event === 'harness_file_change') {
             const d = evt.data as any;
-            setChatItems((prev) => [...prev, { id: `${Date.now()}-fc`, role: 'system', action: d.action, path: d.path }]);
+            setChatItems((prev) => [
+              ...prev,
+              { id: `${Date.now()}-fc`, role: 'system', action: d.action, path: d.path },
+            ]);
             mutateFiles();
             if (editorPath === d.path) openFile(d.path);
           } else if (evt.event === 'harness_terminal') {
             const d = evt.data as any;
-            setChatItems((prev) => [...prev, { id: `${Date.now()}-term`, role: 'terminal', command: d.command, exitCode: d.exitCode, output: d.output }]);
+            setChatItems((prev) => [
+              ...prev,
+              {
+                id: `${Date.now()}-term`,
+                role: 'terminal',
+                command: d.command,
+                exitCode: d.exitCode,
+                output: d.output,
+              },
+            ]);
           } else if (evt.event === 'harness_approval') {
             const d = evt.data as any;
-            setChatItems((prev) => [...prev, { id: `${Date.now()}-approval`, role: 'system', tool: d.tool, args: d.args, text: t('harness.approval') }]);
+            if (runtime === 'local') {
+              const approvalId = d.approvalId || d.id || d.callId;
+              confirmModal({
+                content: d.tool + ' ' + JSON.stringify(d.args || {}).slice(0, 200),
+                okButtonProps: { danger: true },
+                okText: t('harness.approveConfirm'),
+                cancelText: t('harness.approveReject'),
+                title: t('harness.approveTitle'),
+                onOk: async () => {
+                  await hitlService.approve(approvalId);
+                },
+                onCancel: async () => {
+                  await hitlService.reject(approvalId);
+                },
+              });
+            } else {
+              setChatItems((prev) => [
+                ...prev,
+                {
+                  id: String(Date.now()) + '-approval',
+                  role: 'system',
+                  tool: d.tool,
+                  args: d.args,
+                  text: t('harness.approval'),
+                },
+              ]);
+            }
           } else if (evt.event === 'error') {
             const d = evt.data as any;
-            setChatItems((prev) => [...prev, { id: `${Date.now()}-err`, role: 'system', text: `[${d.code}] ${d.message}` }]);
+            setChatItems((prev) => [
+              ...prev,
+              { id: `${Date.now()}-err`, role: 'system', text: `[${d.code}] ${d.message}` },
+            ]);
           }
         },
         ac.signal,
@@ -192,33 +335,52 @@ const HarnessPage = memo(() => {
       setRunning(false);
       mutateSessions();
     }
-  }, [activeId, input, running, antdMsg, mutateFiles, mutateSessions, editorPath, openFile, t]);
+  }, [
+    activeId,
+    input,
+    running,
+    runtime,
+    workspaceId,
+    antdMsg,
+    mutateFiles,
+    mutateSessions,
+    editorPath,
+    openFile,
+    t,
+  ]);
 
   const stop = useCallback(() => abortRef.current?.abort(), []);
 
   // ============ 会话操作 ============
   const createSession = useCallback(async () => {
+    if (runtime === 'local' && !workspaceId) {
+      antdMsg.warning(t('harness.chooseWorkspace'));
+      return;
+    }
     try {
-      const s = await harnessService.createSession({ name: sessionName, mode, model });
+      const s = await harnessService.createSession(
+        runtime === 'local'
+          ? { name: sessionName, mode, model, runtime: 'local', workspaceId }
+          : { name: sessionName, mode, model },
+      );
       setActiveId(s.id);
       setChatItems([]);
+      setEditorPath(undefined);
+      setEditorContent('');
       mutateSessions();
       mutateFiles();
       antdMsg.success(t('harness.created'));
     } catch (e: any) {
       antdMsg.error(e.message);
     }
-  }, [sessionName, mode, model, antdMsg, mutateSessions, mutateFiles, t]);
+  }, [runtime, workspaceId, sessionName, mode, model, antdMsg, mutateSessions, mutateFiles, t]);
 
-  const selectSession = useCallback(
-    (id: string) => {
-      setActiveId(id);
-      setChatItems([]);
-      setEditorPath(undefined);
-      setEditorContent('');
-    },
-    [],
-  );
+  const selectSession = useCallback((id: string) => {
+    setActiveId(id);
+    setChatItems([]);
+    setEditorPath(undefined);
+    setEditorContent('');
+  }, []);
 
   const deleteSession = useCallback(
     async (id: string) => {
@@ -239,7 +401,12 @@ const HarnessPage = memo(() => {
   );
 
   const deleteFile = useCallback(async () => {
-    if (!activeId || !editorPath) return;
+    if (!editorPath) return;
+    if (runtime === 'local') {
+      antdMsg.info(t('harness.deleteNeedsApproval'));
+      return;
+    }
+    if (!activeId) return;
     modal.confirm({
       title: t('harness.deleteFileConfirm'),
       onOk: async () => {
@@ -254,7 +421,7 @@ const HarnessPage = memo(() => {
         }
       },
     });
-  }, [activeId, editorPath, antdMsg, modal, mutateFiles, t]);
+  }, [runtime, activeId, editorPath, antdMsg, modal, mutateFiles, t]);
 
   // ============ 模式/模型变更 ============
   const changeMode = useCallback(
@@ -278,8 +445,53 @@ const HarnessPage = memo(() => {
     [activeId],
   );
 
+  // ============ 本地工作区操作 ============
+  const chooseWorkspace = useCallback(async () => {
+    try {
+      const entry = await harnessLocal.chooseWorkspace();
+      if (entry) {
+        setWorkspaceId(entry.id);
+        await loadWorkspaces();
+        await loadLocalTree(entry.id);
+      }
+    } catch (e: any) {
+      antdMsg.error(e.message);
+    }
+  }, [antdMsg, loadWorkspaces, loadLocalTree]);
+
+  const removeCurrentWorkspace = useCallback(async () => {
+    if (!workspaceId) return;
+    await harnessLocal.removeWorkspace(workspaceId);
+    setWorkspaceId(undefined);
+    await loadWorkspaces();
+  }, [workspaceId, loadWorkspaces]);
+
+  const changePermission = useCallback(
+    async (permission: HarnessWorkspacePermission) => {
+      if (!workspaceId) return;
+      await harnessLocal.setWorkspacePermission(workspaceId, permission);
+      await loadWorkspaces();
+    },
+    [workspaceId, loadWorkspaces],
+  );
+
+  const currentWorkspace = useMemo(
+    () => workspaces.find((w) => w.id === workspaceId),
+    [workspaces, workspaceId],
+  );
+
   // ============ 渲染 ============
   const treeData = useMemo(() => {
+    if (runtime === 'local') {
+      const buildLocal = (nodes: any[]): any[] =>
+        (nodes || []).map((n) => ({
+          title: n.name || String(n.path).split('/').pop(),
+          key: n.path,
+          isLeaf: n.type === 'file',
+          children: n.children ? buildLocal(n.children) : undefined,
+        }));
+      return buildLocal(localFileTree);
+    }
     const build = (nodes: HarnessFileNode[]): any[] =>
       nodes.map((n) => ({
         title: n.name,
@@ -288,14 +500,18 @@ const HarnessPage = memo(() => {
         children: n.children ? build(n.children) : undefined,
       }));
     return build(fileTree || []);
-  }, [fileTree]);
+  }, [runtime, localFileTree, fileTree]);
 
   return (
     <Flex vertical gap={12} style={{ height: '100%', padding: 16 }}>
       <Row gutter={12} style={{ flex: 1, minHeight: 0 }}>
         {/* 左：会话列表 */}
         <Col flex="240px">
-          <Card size="small" title={t('harness.sessions')} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <Card
+            size="small"
+            title={t('harness.sessions')}
+            style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+          >
             <Button type="primary" block onClick={createSession} style={{ marginBottom: 8 }}>
               {t('harness.newSession')}
             </Button>
@@ -303,7 +519,11 @@ const HarnessPage = memo(() => {
               <List
                 size="small"
                 dataSource={sessions || []}
-                locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('harness.empty')} /> }}
+                locale={{
+                  emptyText: (
+                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('harness.empty')} />
+                  ),
+                }}
                 renderItem={(s: HarnessSession) => (
                   <List.Item
                     onClick={() => selectSession(s.id)}
@@ -314,7 +534,16 @@ const HarnessPage = memo(() => {
                       borderRadius: 6,
                     }}
                     actions={[
-                      <Button key="del" type="text" size="small" danger onClick={(e) => { e.stopPropagation(); deleteSession(s.id); }}>
+                      <Button
+                        key="del"
+                        type="text"
+                        size="small"
+                        danger
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteSession(s.id);
+                        }}
+                      >
                         {t('harness.delete')}
                       </Button>,
                     ]}
@@ -335,30 +564,85 @@ const HarnessPage = memo(() => {
           <Card
             size="small"
             title={
-              <Space>
-                <Input
-                  value={sessionName}
-                  onChange={(e) => setSessionName(e.target.value)}
-                  onBlur={() => activeId && harnessService.updateSession(activeId, { name: sessionName }).catch(() => undefined)}
-                  style={{ width: 180 }}
-                />
-                <Select
-                  value={mode}
-                  options={MODE_OPTIONS}
-                  onChange={changeMode}
-                  style={{ width: 100 }}
-                />
-                <Input
-                  value={model}
-                  onChange={(e) => changeModel(e.target.value)}
-                  placeholder="model"
-                  style={{ width: 240 }}
-                />
-                {running && <Tag color="processing">{t('harness.running')}</Tag>}
-              </Space>
+              <Flex vertical gap={4}>
+                <Space>
+                  <Input
+                    value={sessionName}
+                    onChange={(e) => setSessionName(e.target.value)}
+                    onBlur={() =>
+                      activeId &&
+                      harnessService
+                        .updateSession(activeId, { name: sessionName })
+                        .catch(() => undefined)
+                    }
+                    style={{ width: 180 }}
+                  />
+                  <Select
+                    value={mode}
+                    options={MODE_OPTIONS}
+                    onChange={changeMode}
+                    style={{ width: 100 }}
+                  />
+                  <Input
+                    value={model}
+                    onChange={(e) => changeModel(e.target.value)}
+                    placeholder="model"
+                    style={{ width: 240 }}
+                  />
+                  {running && <Tag color="processing">{t('harness.running')}</Tag>}
+                </Space>
+                <Space>
+                  <Segmented
+                    options={[
+                      { label: t('harness.cloudRuntime'), value: 'cloud' },
+                      ...(localSupported
+                        ? [{ label: t('harness.localRuntime'), value: 'local' }]
+                        : []),
+                    ]}
+                    size="small"
+                    value={runtime}
+                    onChange={(v) => setRuntime(v as 'cloud' | 'local')}
+                  />
+                  {localSupported && runtime === 'local' && !workspaceId && (
+                    <Button size="small" type="primary" onClick={chooseWorkspace}>
+                      {t('harness.chooseWorkspace')}
+                    </Button>
+                  )}
+                  {localSupported && runtime === 'local' && workspaceId && currentWorkspace && (
+                    <Space size={4}>
+                      <Tag color="green">{currentWorkspace.name}</Tag>
+                      <Select
+                        size="small"
+                        style={{ width: 150 }}
+                        value={currentWorkspace.permission}
+                        options={[
+                          { label: t('harness.readOnly'), value: 'read-only' },
+                          { label: t('harness.workspaceWrite'), value: 'workspace-write' },
+                          { label: t('harness.fullAccess'), value: 'full' },
+                        ]}
+                        onChange={(v) => changePermission(v as HarnessWorkspacePermission)}
+                      />
+                      <Button size="small" onClick={chooseWorkspace}>
+                        {t('harness.switchWorkspace')}
+                      </Button>
+                      <Button size="small" danger onClick={removeCurrentWorkspace}>
+                        {t('harness.removeWorkspace')}
+                      </Button>
+                    </Space>
+                  )}
+                </Space>
+              </Flex>
             }
             style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-            styles={{ body: { flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, padding: 12 } }}
+            styles={{
+              body: {
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: 0,
+                padding: 12,
+              },
+            }}
           >
             <div style={{ flex: 1, overflow: 'auto', marginBottom: 8 }}>
               {chatItems.length === 0 && !running ? (
@@ -368,7 +652,14 @@ const HarnessPage = memo(() => {
                   if (item.role === 'user') {
                     return (
                       <Flex key={item.id} justify="flex-end" style={{ marginBottom: 8 }}>
-                        <div style={{ maxWidth: '80%', background: 'rgba(22,119,255,0.1)', borderRadius: 10, padding: '6px 12px' }}>
+                        <div
+                          style={{
+                            maxWidth: '80%',
+                            background: 'rgba(22,119,255,0.1)',
+                            borderRadius: 10,
+                            padding: '6px 12px',
+                          }}
+                        >
                           <Typography.Text>{item.text}</Typography.Text>
                         </div>
                       </Flex>
@@ -377,29 +668,54 @@ const HarnessPage = memo(() => {
                   if (item.role === 'assistant') {
                     return (
                       <div key={item.id} style={{ marginBottom: 8 }}>
-                        <Typography.Paragraph style={{ whiteSpace: 'pre-wrap' }}>{item.text || '…'}</Typography.Paragraph>
+                        <Typography.Paragraph style={{ whiteSpace: 'pre-wrap' }}>
+                          {item.text || '…'}
+                        </Typography.Paragraph>
                       </div>
                     );
                   }
                   if (item.role === 'tool') {
                     return (
-                      <Card key={item.id} size="small" style={{ marginBottom: 8 }} styles={{ body: { padding: 8 } }}>
+                      <Card
+                        key={item.id}
+                        size="small"
+                        style={{ marginBottom: 8 }}
+                        styles={{ body: { padding: 8 } }}
+                      >
                         <Space>
-                          <Tag color="blue">{t('harness.toolCall')}: {item.tool}</Tag>
+                          <Tag color="blue">
+                            {t('harness.toolCall')}: {item.tool}
+                          </Tag>
+                          {item.pending && pendingCalls.includes(item.id) && (
+                            <Tag color="processing">
+                              {t('harness.executingTool', { tool: item.tool })}
+                            </Tag>
+                          )}
                           {item.success === true && <Tag color="green">ok</Tag>}
                           {item.success === false && <Tag color="red">fail</Tag>}
                         </Space>
-                        <Typography.Paragraph style={{ margin: '4px 0 0', fontSize: 12, whiteSpace: 'pre-wrap' }}>
+                        <Typography.Paragraph
+                          style={{ margin: '4px 0 0', fontSize: 12, whiteSpace: 'pre-wrap' }}
+                        >
                           {JSON.stringify(item.args)}
-                          {item.result !== undefined ? `\n→ ${JSON.stringify(item.result).slice(0, 200)}` : ''}
+                          {item.result !== undefined
+                            ? `\n→ ${JSON.stringify(item.result).slice(0, 200)}`
+                            : ''}
                         </Typography.Paragraph>
                       </Card>
                     );
                   }
                   if (item.role === 'terminal') {
                     return (
-                      <Card key={item.id} size="small" style={{ marginBottom: 8, background: '#1f1f1f' }} styles={{ body: { padding: 8 } }}>
-                        <Typography.Text style={{ color: '#d4d4d4', fontFamily: 'monospace', fontSize: 12 }}>
+                      <Card
+                        key={item.id}
+                        size="small"
+                        style={{ marginBottom: 8, background: '#1f1f1f' }}
+                        styles={{ body: { padding: 8 } }}
+                      >
+                        <Typography.Text
+                          style={{ color: '#d4d4d4', fontFamily: 'monospace', fontSize: 12 }}
+                        >
                           <Tag color={item.exitCode === 0 ? 'green' : 'red'}>$ {item.command}</Tag>
                           {item.output ? `\n${item.output}` : ''}
                         </Typography.Text>
@@ -411,7 +727,11 @@ const HarnessPage = memo(() => {
                       <Alert
                         key={item.id}
                         type={item.tool ? 'warning' : 'info'}
-                        message={item.tool ? `${item.text}: ${item.tool} ${JSON.stringify(item.args)}` : item.text}
+                        message={
+                          item.tool
+                            ? `${item.text}: ${item.tool} ${JSON.stringify(item.args)}`
+                            : item.text
+                        }
                         showIcon
                         style={{ marginBottom: 8 }}
                       />
@@ -453,7 +773,11 @@ const HarnessPage = memo(() => {
         {/* 右：文件树 + 编辑器 + 终端 */}
         <Col flex="340px">
           <Flex vertical gap={12} style={{ height: '100%' }}>
-            <Card size="small" title={t('harness.files')} style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+            <Card
+              size="small"
+              title={t('harness.files')}
+              style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
+            >
               <div style={{ flex: 1, overflow: 'auto' }}>
                 {activeId ? (
                   <Tree
@@ -501,7 +825,12 @@ const HarnessPage = memo(() => {
                 <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('harness.noFile')} />
               )}
             </Card>
-            <Card size="small" title={t('harness.terminal')} style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }} styles={{ body: { flex: 1, overflow: 'auto', padding: 8 } }}>
+            <Card
+              size="small"
+              title={t('harness.terminal')}
+              style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
+              styles={{ body: { flex: 1, overflow: 'auto', padding: 8 } }}
+            >
               {chatItems.filter((i) => i.role === 'terminal').length === 0 ? (
                 <Typography.Text type="secondary" style={{ fontSize: 12 }}>
                   {t('harness.terminalEmpty')}
@@ -511,9 +840,16 @@ const HarnessPage = memo(() => {
                   .filter((i) => i.role === 'terminal')
                   .slice(-20)
                   .map((i) => (
-                    <div key={i.id} style={{ fontFamily: 'monospace', fontSize: 12, marginBottom: 4 }}>
+                    <div
+                      key={i.id}
+                      style={{ fontFamily: 'monospace', fontSize: 12, marginBottom: 4 }}
+                    >
                       <Tag color={i.exitCode === 0 ? 'green' : 'red'}>$ {i.command}</Tag>
-                      {i.output && <pre style={{ margin: 0, whiteSpace: 'pre-wrap', color: '#666' }}>{i.output.slice(0, 300)}</pre>}
+                      {i.output && (
+                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap', color: '#666' }}>
+                          {i.output.slice(0, 300)}
+                        </pre>
+                      )}
                     </div>
                   ))
               )}

@@ -69,6 +69,7 @@ export enum SettingsTabs {
   Connector = 'connector',
   Credits = 'credits',
   Creds = 'credential',
+  DeveloperUsage = 'developer-usage',
   Devices = 'devices',
   Hotkey = 'hotkey',
   /** @deprecated Use ServiceModel instead */
@@ -95,6 +96,7 @@ export enum SettingsTabs {
   /** @deprecated Use ServiceModel instead */
   TTS = 'tts',
   Usage = 'usage',
+  Webhook = 'webhook',
 }
 
 /**

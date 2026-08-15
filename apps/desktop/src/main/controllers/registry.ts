@@ -9,6 +9,7 @@ import CliCtr from './CliCtr';
 import DevtoolsCtr from './DevtoolsCtr';
 import GatewayConnectionCtr from './GatewayConnectionCtr';
 import GitCtr from './GitCtr';
+import HarnessLocalCtr from './HarnessLocalCtr';
 import HeterogeneousAgentCtr from './HeterogeneousAgentCtr';
 import ImessageBridgeCtr from './ImessageBridgeCtr';
 import LocalFileCtr from './LocalFileCtr';
@@ -39,6 +40,7 @@ export const controllerIpcConstructors = [
   DevtoolsCtr,
   GatewayConnectionCtr,
   GitCtr,
+  HarnessLocalCtr,
   LocalFileCtr,
   ImessageBridgeCtr,
   McpCtr,

@@ -146,6 +146,7 @@
   "window.restore": "Restore window",
   "window.unpinFromTop": "Unpin from top",
   "navigation.deptStats": "Department Stats",
+  "navigation.developer": "Developer Center",
   "navigation.harness": "Harness Coding Agent",
   "navigation.teams": "Agent Teams",
   "navigation.hitl": "HITL Approval",
@@ -153,5 +154,7 @@
   "navigation.market": "Agent Market",
   "navigation.uiGenerator": "UI Generator",
   "navigation.uiGeneratorDesc": "React + Ant Design / HTML + Tailwind",
-  "navigation.workspace": "Workspace"
+  "navigation.workspace": "Workspace",
+  "navigation.browser": "Browser Agent",
+  "navigation.protocol": "Protocol Hub"
 }

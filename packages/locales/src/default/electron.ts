@@ -152,6 +152,8 @@ export default {
   'window.restore': 'Restore window',
   'window.unpinFromTop': 'Unpin from top',
   'navigation.harness': 'Harness Coding Agent',
+  'navigation.developer': 'Developer Center',
+  'navigation.deptStats': 'Department Stats',
   'navigation.teams': 'Agent Teams',
   'navigation.hitl': 'HITL Approval',
   'navigation.knowledge': 'Knowledge Base',
@@ -159,4 +161,6 @@ export default {
   'navigation.uiGenerator': 'UI Generator',
   'navigation.uiGeneratorDesc': 'React + Ant Design / HTML + Tailwind',
   'navigation.workspace': 'Workspace',
+  'navigation.browser': 'Browser Agent',
+  'navigation.protocol': 'Protocol Hub',
 };
