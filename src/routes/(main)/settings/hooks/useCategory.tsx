@@ -70,7 +70,7 @@ export const useCategory = () => {
   const { t: tLabs } = useTranslation('labs');
   const { t: tSubscription } = useTranslation('subscription');
   const mobile = useServerConfigStore((s) => s.isMobile);
-  const { hideDocs, showApiKeyManage, showProvider } = useServerConfigStore(featureFlagsSelectors);
+  const { hideDocs, showProvider } = useServerConfigStore(featureFlagsSelectors);
   const [avatar, username] = useUserStore((s) => [
     userProfileSelectors.userAvatar(s),
     userProfileSelectors.nickName(s),
@@ -186,10 +186,20 @@ export const useCategory = () => {
         key: SettingsTabs.Creds,
         label: t('tab.creds'),
       },
-      showApiKeyManage && {
+      {
         icon: KeyIcon,
         key: SettingsTabs.APIKey,
         label: tAuth('tab.apikey'),
+      },
+      {
+        icon: ChartColumnBigIcon,
+        key: SettingsTabs.DeveloperUsage,
+        label: tAuth('tab.developerUsage'),
+      },
+      {
+        icon: BellIcon,
+        key: SettingsTabs.Webhook,
+        label: tAuth('tab.webhook'),
       },
       {
         icon: MessageCircleIcon,
@@ -274,7 +284,6 @@ export const useCategory = () => {
     enableBusinessFeatures,
     hideDocs,
     mobile,
-    showApiKeyManage,
     showProvider,
     isDevMode,
     enableOAuthApps,

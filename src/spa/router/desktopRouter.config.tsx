@@ -12,6 +12,7 @@ import {
   LibraryBigIcon,
   Palette,
   Plug,
+  Rocket,
   Settings,
   ShapesIcon,
   ShieldCheck,
@@ -741,6 +742,14 @@ export const desktopRoutes: RouteObject[] = [
         errorElement: <ErrorBoundary />,
         handle: { meta: routeMeta({ icon: Code2, titleKey: 'navigation.harness' }) },
         path: 'harness',
+      },
+
+      // 开发者中心（personal-only — 公开模型目录 + 定价 + 示例）
+      {
+        element: dynamicElement(() => import('@/routes/(main)/developer'), 'Desktop > Developer'),
+        errorElement: <ErrorBoundary />,
+        handle: { meta: routeMeta({ icon: Rocket, titleKey: 'navigation.developer' }) },
+        path: 'developer',
       },
 
       // 浏览器 Agent（personal-only — Playwright 会话 + 网页操作）

@@ -57,6 +57,7 @@ const SettingsContent = ({ mobile, activeTab }: SettingsContentProps) => {
     [SettingsTabs.Billing]: t('subscription:tab.billing'),
     [SettingsTabs.Credits]: t('subscription:tab.credits'),
     [SettingsTabs.Devices]: t('setting:devices.title'),
+    [SettingsTabs.DeveloperUsage]: t('auth:tab.developerUsage'),
     [SettingsTabs.Hotkey]: t('setting:tab.hotkey'),
     [SettingsTabs.Memory]: t('setting:tab.memory'),
     [SettingsTabs.Notification]: t('setting:tab.notification'),
@@ -66,6 +67,7 @@ const SettingsContent = ({ mobile, activeTab }: SettingsContentProps) => {
     [SettingsTabs.ServiceModel]: t('setting:tab.serviceModel'),
     [SettingsTabs.Stats]: t('auth:tab.stats'),
     [SettingsTabs.Storage]: t('setting:tab.storage'),
+    [SettingsTabs.Webhook]: t('auth:tab.webhook'),
   };
 
   useSettingsAnchorScroll();

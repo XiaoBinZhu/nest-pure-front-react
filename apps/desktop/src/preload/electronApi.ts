@@ -1,5 +1,9 @@
 import { electronAPI } from '@electron-toolkit/preload';
-import type { ScreenCaptureSession } from '@lobechat/electron-client-ipc';
+import type {
+  HarnessExecToolRequest,
+  HarnessWorkspacePermission,
+  ScreenCaptureSession,
+} from '@lobechat/electron-client-ipc';
 import { contextBridge, ipcRenderer } from 'electron';
 
 import { invoke } from './invoke';
@@ -42,6 +46,14 @@ export const setupElectronApi = () => {
       };
     },
     onStreamInvoke,
+    harnessLocal: {
+      chooseWorkspace: () => invoke('harnessLocal.chooseWorkspace'),
+      listWorkspaces: () => invoke('harnessLocal.listWorkspaces'),
+      removeWorkspace: (id: string) => invoke('harnessLocal.removeWorkspace', id),
+      setWorkspacePermission: (id: string, permission: HarnessWorkspacePermission) =>
+        invoke('harnessLocal.setWorkspacePermission', { id, permission }),
+      execTool: (req: HarnessExecToolRequest) => invoke('harnessLocal.execTool', req),
+    },
   });
 
   const os = require('node:os');
