@@ -33,13 +33,10 @@ import { aiAgentRouter } from './aiAgent';
 import { aiChatRouter } from './aiChat';
 import { aiModelRouter } from './aiModel';
 import { aiProviderRouter } from './aiProvider';
-import { apiKeyRouter } from './apiKey';
-import { asrRouter } from './asr';
 import { botMessageRouter } from './botMessage';
 import { briefRouter } from './brief';
 import { changelogRouter } from './changelog';
 import { chunkRouter } from './chunk';
-import { comfyuiRouter } from './comfyui';
 import { composioRouter } from './composio';
 import { configRouter } from './config';
 import { connectorRouter } from './connector';
@@ -54,7 +51,6 @@ import { generationTopicRouter } from './generationTopic';
 import { homeRouter } from './home';
 import { imageRouter } from './image';
 import { importerRouter } from './importer';
-import { klavisRouter } from './klavis';
 import { knowledgeRouter } from './knowledge';
 import { knowledgeBaseRouter } from './knowledgeBase';
 import { llmGenerationTracingRouter } from './llmGenerationTracing';
@@ -62,9 +58,7 @@ import { marketRouter } from './market';
 import { messageRouter } from './message';
 import { messengerRouter } from './messenger';
 import { notebookRouter } from './notebook';
-import { notificationRouter } from './notification';
 import { oauthAppRouter } from './oauthApp';
-import { oauthDeviceFlowRouter } from './oauthDeviceFlow';
 import { pluginRouter } from './plugin';
 import { pushTokenRouter } from './pushToken';
 import { ragEvalRouter } from './ragEval';
@@ -75,12 +69,9 @@ import { sessionRouter } from './session';
 import { sessionGroupRouter } from './sessionGroup';
 import { shareRouter } from './share';
 import { taskRouter } from './task';
-import { threadRouter } from './thread';
 import { topicRouter } from './topic';
 import { uploadRouter } from './upload';
-import { usageRouter } from './usage';
 import { userRouter } from './user';
-import { userMemoriesRouter } from './userMemories';
 import { userMemoryRouter } from './userMemory';
 import { verifyRouter } from './verify';
 import { videoRouter } from './video';
@@ -107,10 +98,7 @@ export const lambdaRouter = router({
   aiModel: aiModelRouter,
   agentQuota: agentQuotaRouter,
   aiProvider: aiProviderRouter,
-  apiKey: apiKeyRouter,
-  asr: asrRouter,
   chunk: chunkRouter,
-  comfyui: comfyuiRouter,
   config: configRouter,
   connector: connectorRouter,
   device: deviceRouter,
@@ -128,7 +116,6 @@ export const lambdaRouter = router({
   importer: importerRouter,
   composio: composioRouter,
 
-  klavis: klavisRouter,
   knowledge: knowledgeRouter,
   knowledgeBase: knowledgeBaseRouter,
   llmGenerationTracing: llmGenerationTracingRouter,
@@ -136,9 +123,7 @@ export const lambdaRouter = router({
   message: messageRouter,
   messenger: messengerRouter,
   notebook: notebookRouter,
-  notification: notificationRouter,
   oauthApp: oauthAppRouter,
-  oauthDeviceFlow: oauthDeviceFlowRouter,
   plugin: pluginRouter,
   pushToken: pushTokenRouter,
   ragEval: ragEvalRouter,
@@ -148,12 +133,9 @@ export const lambdaRouter = router({
   session: sessionRouter,
   sessionGroup: sessionGroupRouter,
   share: shareRouter,
-  thread: threadRouter,
   topic: topicRouter,
   upload: uploadRouter,
-  usage: usageRouter,
   user: userRouter,
-  userMemories: userMemoriesRouter,
   userMemory: userMemoryRouter,
   verify: verifyRouter,
   video: videoRouter,

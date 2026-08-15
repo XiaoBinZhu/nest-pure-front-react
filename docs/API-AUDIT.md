@@ -32,6 +32,17 @@
 | /v1/responses、/v1/files、/v1/batches、/v1/fine_tuning、/v1/audio/translations、/v1/images/edits、/v1/moderations(501) | ✅ 本次新增 | OpenAI 兼容面 |
 | /app/front-hub/generation/*（generate/refine/history/templates/prompts/fewshots/render/extract-variables） | ✅ 已存在 | UI 生成（类 Figma）前后端一致 |
 
+
+
+## 四、trpc 层清理（补充轮次）
+
+- **定位**：客户端 lambdaClient = packages/trpc/src/client/lambda.ts（类型来自 apps/server/src/routers/lambda 聚合，75 个 router）。
+- **运行期调用分析**：以 lambdaClient.<router>. / trpc.<router>. / routers/lambda/<router> 三种引用形态扫描 src + packages（排除测试与 trpc 包），并交叉检查 apps/server 内部、mobile 聚合、market 聚合、e2e、desktop、cli。
+- **结论**：9 个 router 全链路零引用，已删除（文件 + lambda/index.ts 注册 + 2 个孤儿测试）：
+  apiKey、asr、comfyui、klavis、notification、oauthDeviceFlow、thread、usage、userMemories。
+- **保留**（有引用）：session/user/aiModel/chunk/pushToken（mobile 聚合在用）、agentGroup（market 在用）、userMemory/knowledge/deviceWorkingDirs/deviceWorkspaceGuard（服务端内部在用）。
+- **验证**：lambda/index.ts lint clean；全量 typecheck 中本层无新增错误（仅 messengerInstall.ts 2 个既有错误，与本次无关）。
+
 ## 三、清理动作记录
 
 - 删除 src/services/electron/devtools.ts（0 引用）。
