@@ -504,6 +504,9 @@ const MarketPage = memo(() => {
         <Text type="secondary" style={{ fontSize: 12 }}>
           共 {total} 个条目
         </Text>
+        <Text type="secondary" style={{ fontSize: 12 }}>
+          · 安装后本地持久化（IndexedDB），按需加载，不占额外内存
+        </Text>
       </Flex>
 
       {/* 列表 */}
@@ -552,14 +555,19 @@ const MarketPage = memo(() => {
           </Space>
         }
         extra={
-          <Button
-            type="primary"
-            icon={<DownloadOutlined />}
-            loading={installingId === detailItem?.identifier}
-            onClick={() => detailItem && handleInstall(detailItem)}
-          >
-            安装
-          </Button>
+          <Space>
+            {tab !== 'agents' && tab !== 'groups' && (
+              <Button onClick={() => { window.location.href = '/agent'; }}>💬 在对话中使用</Button>
+            )}
+            <Button
+              type="primary"
+              icon={<DownloadOutlined />}
+              loading={installingId === detailItem?.identifier}
+              onClick={() => detailItem && handleInstall(detailItem)}
+            >
+              {tab === 'agents' ? '安装并去对话' : '安装'}
+            </Button>
+          </Space>
         }
       >
         {detailLoading ? (
