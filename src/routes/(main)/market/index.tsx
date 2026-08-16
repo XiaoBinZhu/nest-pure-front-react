@@ -32,7 +32,7 @@ import { useToolStore } from '@/store/tool';
 
 const { Text, Paragraph, Title } = Typography;
 
-type TabKey = 'agents' | 'skills' | 'mcp' | 'plugins' | 'models' | 'providers';
+type TabKey = 'agents' | 'groups' | 'skills' | 'mcp' | 'plugins' | 'models' | 'providers';
 
 interface MarketItemCard {
   identifier: string;
@@ -105,6 +105,23 @@ const MarketPage = memo(() => {
         );
         setCategories(cats || []);
         setTotal(res.totalCount || res.items?.length || 0);
+      } else if (tab === 'groups') {
+        const [res, cats] = await Promise.all([
+          discoverService.getGroupAgentList({ page, pageSize: PAGE_SIZE, category: category === 'all' ? undefined : category, q: keyword || undefined }),
+          discoverService.getGroupAgentCategories().catch(() => []),
+        ]);
+        setItems((res.items || []).map((it: any) => ({
+          identifier: it.identifier, name: it.title || it.identifier,
+          description: it.description || '', icon: it.avatar || '👥',
+          category: it.category, author: it.author,
+          installCount: it.installCount, isFeatured: it.isFeatured, isOfficial: it.isOfficial,
+          tags: it.tags || [], raw: it,
+        })));
+        setCategories(cats || []);
+        setTotal(res.totalCount || 0);
+      } else if (tab === 'groups') {
+        const d = await discoverService.getGroupAgentDetail({ identifier: item.identifier });
+        setDetailData(d || item.raw);
       } else if (tab === 'skills') {
         const [res, cats] = await Promise.all([
           discoverService.getSkillList({
@@ -423,6 +440,7 @@ const MarketPage = memo(() => {
 
   const tabItems = [
     { key: 'agents', label: '🤖 Agent 助手' },
+    { key: 'groups', label: '👥 Agent 团队' },
     { key: 'skills', label: '🧩 Skill 技能' },
     { key: 'mcp', label: '🔌 MCP 服务器' },
     { key: 'plugins', label: '🧰 Plugin 插件' },
@@ -629,6 +647,24 @@ const MarketPage = memo(() => {
                     {JSON.stringify(detailData.manifest, null, 2).slice(0, 6000)}
                   </pre>
                 )}
+              </>
+            )}
+
+            {tab === 'groups' && Array.isArray(detailData?.memberAgents) && detailData.memberAgents.length > 0 && (
+              <>
+                <Divider plain style={{ margin: '4px 0' }}>团队成员（{detailData.memberAgents.length}）</Divider>
+                <List
+                  size="small"
+                  dataSource={detailData.memberAgents}
+                  renderItem={(m: any) => (
+                    <List.Item>
+                      <List.Item.Meta
+                        title={<Space><Text>{m.name}</Text><Tag color={m.role === 'supervisor' ? 'gold' : 'blue'} style={{ fontSize: 10, marginInlineEnd: 0 }}>{m.role === 'supervisor' ? '主管' : '成员'}</Tag></Space>}
+                        description={<Text type="secondary" style={{ fontSize: 12 }}>{m.description}</Text>}
+                      />
+                    </List.Item>
+                  )}
+                />
               </>
             )}
 
