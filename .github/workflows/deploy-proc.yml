@@ -145,7 +145,10 @@ jobs:
               exit 0
             fi
 
-            CONF_SRC="/tmp/lobehub-spa-deploy/c-end.conf"
+            # 注意：appleboy/scp-action 会保留 source 的相对路径层级，
+            # 文件实际落在 /tmp/lobehub-spa-deploy/docker-compose/deploy/nginx/c-end.conf
+            # （2026-08-19 曾因路径不匹配静默跳过 nginx 更新，导致新 SPA 配旧 nginx）
+            CONF_SRC="/tmp/lobehub-spa-deploy/docker-compose/deploy/nginx/c-end.conf"
             CONF_DST="/usr/share/nginx/conf.d/c-end.conf"
             if [ ! -f "$CONF_SRC" ]; then
               echo "ℹ️  无 nginx 配置变更，跳过"
