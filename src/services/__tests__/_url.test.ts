@@ -9,7 +9,8 @@ describe('API_ENDPOINTS', () => {
   });
 
   it('should return correct dynamic URLs', () => {
-    expect(API_ENDPOINTS.chat('openai')).toBe('/v1/chat/completions');
+    // 2026-08-19：/v1 让位给对外 gateway 直连入口，C 端 AI 中继统一走 /ai/v1
+    expect(API_ENDPOINTS.chat('openai')).toBe('/ai/v1/chat/completions');
     expect(API_ENDPOINTS.models('anthropic')).toBe('/webapi/models/anthropic');
     expect(API_ENDPOINTS.modelPull('azure')).toBe('/webapi/models/azure/pull');
     expect(API_ENDPOINTS.pricing('newapi')).toBe('/webapi/models/newapi/pricing');
