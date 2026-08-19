@@ -197,6 +197,9 @@ const DeveloperPage = () => {
                 </li>
               ))}
             </ul>
+            <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
+              {t('developer.docs.rateLimitNote')}
+            </Typography.Text>
           </Card>
         </Col>
       </Row>
