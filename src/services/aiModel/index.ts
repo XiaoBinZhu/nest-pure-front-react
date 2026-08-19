@@ -21,7 +21,7 @@ export class AiModelService {
     return;
   };
 
-  // 模型列表：GET /v1/models
+  // 模型列表：GET /ai/v1/models（nginx rewrite 到 nest-admin /v1/models）
   // 后端返回 OpenAI 兼容 { object:'list', data:[{id, object:'model', owned_by}] }，
   // 前端期望裸数组 AiProviderModelListItem[]，此处做兼容解包与字段映射（G9+ 修复）。
   getAiProviderModelList = async (
@@ -35,7 +35,7 @@ export class AiModelService {
     if (params?.offset) query.set('offset', String(params.offset));
     const qs = query.toString();
     const res = await apiFetch<AiProviderModelListItem[] | { object?: string; data?: unknown[] }>(
-      `/v1/models${qs ? `?${qs}` : ''}`,
+      `/ai/v1/models${qs ? `?${qs}` : ''}`,
     );
 
     const rawList = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
@@ -54,9 +54,9 @@ export class AiModelService {
     return models.filter(isAiModelVisible);
   };
 
-  // 模型详情：GET /v1/models/:id
+  // 模型详情：GET /ai/v1/models/:id
   getAiModelById = async (id: string) => {
-    return apiFetch(`/v1/models/${encodeURIComponent(id)}`);
+    return apiFetch(`/ai/v1/models/${encodeURIComponent(id)}`);
   };
 
   // TODO: Wave 2 - 待对接 nest-admin aiModel toggle 接口

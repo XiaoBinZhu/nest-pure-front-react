@@ -83,9 +83,9 @@ class AiChatService {
     } as unknown as SendMessageServerResponse;
   };
 
-  // 非流式生成 JSON（对接 nest-admin /v1/chat/completions）
+  // 非流式生成 JSON（对接 nest-admin /v1/chat/completions；nginx /ai/v1 -> /v1）
   generateJSON = async (params: StructureOutputParams, abortController: AbortController) => {
-    return apiFetch('/v1/chat/completions', {
+    return apiFetch('/ai/v1/chat/completions', {
       method: 'POST',
       body: JSON.stringify({ ...params, stream: false }),
       signal: abortController?.signal,
