@@ -1,12 +1,52 @@
 ---
 name: data-fetching-architecture
-description: 'LobeHub data-fetching pipeline guide. Use for service layer, Zustand store, SWR, lambdaClient, useClientDataSWR, useFetchXxx hooks, or migrating useEffect fetches.'
+description: 'nest-pure-front-react（LobeHub fork）数据获取管线指南。用于 service 层、Zustand store、SWR、apiFetch(REST→nest-admin)、lambdaClient(tRPC 遗留链路)、useClientDataSWR、useFetchXxx hooks，或把 useEffect 抓取迁移到 store SWR。'
 user-invocable: false
 ---
 
-# LobeHub Data Fetching Architecture
+# Data Fetching Architecture
 
 > **Related:** `store-data-structures` covers List vs Detail data shape rationale (Map vs Array).
+> **Fork context:** see `project-overview` §4 for the backend wiring (`/app/front-hub/*`, `/ai/v1/*`, nginx rewrite).
+
+## ⚠️ 本 fork 的传输层：REST `apiFetch` 优先，tRPC 仅遗留
+
+本仓库的 C 端业务**后端是 nest-admin，不是 LobeHub 自带 Server DB**，因此 service 层有两条传输路径：
+
+| 路径 | 客户端 | 端点 | 适用范围 |
+| --- | --- | --- | --- |
+| **REST（主路径，新代码一律用它）** | `apiFetch` / `apiStream`（`src/services/_api.ts`） | `/app/front-hub/*`、`/ai/v1/*`、`/system/auth/refresh-token` | 所有 C 端业务：session / topic / message / thread / usage / file / agent / config / notification / user / memory / hitl / harness / marketplace / workspace / agentTeam / quota ... |
+| tRPC（遗留） | `lambdaClient` | `apps/server/src/routers/lambda/*` + `/webapi/*` | 上游遗留链路：桌面端、market OIDC、stub 能力（tools/search、mcp、discover、knowledge-bases、devices、plugins、acceptance 后端返回 501，前端靠 tRPC mock） |
+
+当前分布：`apiFetch` 约 29 个文件、`lambdaClient` 约 116 个文件（迁移进行中）。**新增或改写 C 端 service 必须用 `apiFetch`，不要再新增 `lambdaClient` 调用。**
+
+`apiFetch` 使用要点：
+
+```typescript
+import { apiFetch } from '../_api';
+
+// nest-admin 统一信封 { code, data, message }，service 内再解一层
+async function unwrap<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await apiFetch<{ code: number; data: T }>(path, options);
+  return 'data' in (res as any) ? (res as any).data : (res as T);
+}
+
+export class SessionService {
+  createSession = async (data: Partial<LobeAgentSession>) =>
+    unwrap<{ id: string }>('/app/front-hub/sessions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+}
+```
+
+- `API_BASE` 取自 `process.env.NEXT_PUBLIC_API_BASE`（默认空串 = 同域，靠 nginx 反代）
+- **无 body 的请求不要带 `Content-Type: application/json`**（DELETE 等会被 Fastify 以 `Body cannot be empty...` 拒绝）——`apiFetch` 已自动处理
+- 401 自动用 `localStorage.refreshToken` 打 `/system/auth/refresh-token` 刷新后重试；令牌读写用 `setAuthTokens` / `clearAuthTokens`
+- SSE / 流式用 `apiStream`（聊天走 `/ai/v1/chat/completions`，非 `/webapi/chat`）
+- `@Bypass` 端点返回原始格式（无 `code/data` 信封），调用方需兼容
+
+本文档后续出现的 `lambdaClient` 规则**仅在维护遗留 tRPC 链路时适用**；其余场景把「service → lambdaClient」读作「service → `apiFetch`」。
 
 ## Architecture Overview
 
@@ -41,16 +81,18 @@ user-invocable: false
 1. **Use Service Layer** for all API calls
 2. **Use Store SWR Hooks** for data fetching (not useEffect)
 3. **Use proper data structures** — see `store-data-structures` skill for List vs Detail patterns
-4. **Use lambdaClient.mutate** for write operations (create/update/delete)
-5. **Use lambdaClient.query** only inside service methods
+4. **Use `apiFetch` for all C-end REST calls** (`/app/front-hub/*`) — this is the primary transport in this fork
+5. **Use `lambdaClient.mutate` / `.query`** only inside service methods, and only for the legacy upstream tRPC paths
 6. **Naming convention** — read hooks are `useFetchXxx`, cache invalidation helpers are `refreshXxx` (e.g. `useFetchBenchmarks` / `refreshBenchmarks`). Mutations then chain `refreshXxx()` after the service call.
+7. **Streaming**: use `apiStream` against `/ai/v1/chat/completions`, never `/webapi/chat`
 
 ### ❌ DON'T
 
 1. **Never use useEffect** for data fetching
-2. **Never call lambdaClient** directly in components or stores
+2. **Never call `apiFetch` / `lambdaClient`** directly in components or stores — always go through a service
 3. **Never use useState** for server data
 4. **Never mix data structure patterns** — follow `store-data-structures` skill
+5. **Never add new `lambdaClient` calls for C-end features** — the nest-admin REST layer is the target; stub-only capabilities (tools/search, mcp, discover, ...) return 501 and stay on tRPC mock by design
 
 ---
 
